@@ -44,6 +44,7 @@ export default function RecordList({
   const [syncError, setSyncError] = useState('');
   const [syncBusy, setSyncBusy] = useState(false);
   const [syncConflict, setSyncConflict] = useState(null);
+  const [showMoreEdit, setShowMoreEdit] = useState(false);
   const fileInputRef = useRef(null);
 
   const todayExpense = records
@@ -78,6 +79,7 @@ export default function RecordList({
       note: record.note || '',
       datetime: toDatetimeLocal(record.datetime),
     });
+    setShowMoreEdit(false);
   };
 
   const getAvailableTagsForCategory = (type, categoryName) => {
@@ -358,8 +360,8 @@ export default function RecordList({
               </button>
             </div>
 
-            <div className="edit-field">
-              <label>金额</label>
+            <div className="edit-amount-input">
+              <span className="amount-symbol">{editForm.type === 'expense' ? '-' : '+'}</span>
               <input
                 type="number"
                 step="0.01"
@@ -368,49 +370,54 @@ export default function RecordList({
               />
             </div>
 
-            <div className="edit-field">
-              <label>分类</label>
-              <div className="category-grid">
-                {filteredEditCategories.map((category) => (
-                  <button
-                    key={category.id}
-                    type="button"
-                    className={`category-item ${editForm.category === category.name ? 'active' : ''}`}
-                    onClick={() => setEditForm((form) => ({ ...form, category: category.name, tags: [] }))}
-                  >
-                    {category.name}
-                  </button>
-                ))}
-              </div>
+            <div className="category-grid">
+              {filteredEditCategories.map((category) => (
+                <button
+                  key={category.id}
+                  type="button"
+                  className={`category-item ${editForm.category === category.name ? 'active' : ''}`}
+                  onClick={() => setEditForm((form) => ({ ...form, category: category.name, tags: [] }))}
+                >
+                  {category.name}
+                </button>
+              ))}
             </div>
 
-            <div className="edit-field">
-              <label>标签</label>
+            {editForm.type === 'expense' && (
               <TagInput
                 tags={filteredEditTags}
                 selectedTags={editForm.tags}
                 onChange={(nextTags) => setEditForm((form) => ({ ...form, tags: nextTags }))}
                 emptyMessage={editForm.category ? '这个分类下还没有细分标签' : '先选分类，再选细分标签'}
               />
-            </div>
+            )}
 
-            <div className="edit-field">
-              <label>备注</label>
-              <input
-                type="text"
-                value={editForm.note}
-                onChange={(event) => setEditForm((form) => ({ ...form, note: event.target.value }))}
-              />
-            </div>
+            <button
+              type="button"
+              className={`more-toggle ${showMoreEdit ? 'expanded' : ''}`}
+              onClick={() => setShowMoreEdit(!showMoreEdit)}
+            >
+              {showMoreEdit ? '收起' : '更多选项'}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
 
-            <div className="edit-field">
-              <label>时间</label>
-              <input
-                type="datetime-local"
-                value={editForm.datetime}
-                onChange={(event) => setEditForm((form) => ({ ...form, datetime: event.target.value }))}
-              />
-            </div>
+            {showMoreEdit && (
+              <div className="more-section">
+                <input
+                  type="text"
+                  placeholder="添加备注..."
+                  value={editForm.note}
+                  onChange={(event) => setEditForm((form) => ({ ...form, note: event.target.value }))}
+                />
+                <input
+                  type="datetime-local"
+                  value={editForm.datetime}
+                  onChange={(event) => setEditForm((form) => ({ ...form, datetime: event.target.value }))}
+                />
+              </div>
+            )}
 
             <button className="submit-btn" onClick={saveEdit}>
               保存
