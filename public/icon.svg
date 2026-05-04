@@ -6,13 +6,12 @@
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="108" fill="url(#bg)"/>
-  <g transform="translate(256,240)">
-    <ellipse cx="0" cy="-52" rx="22" ry="52" fill="#fff" opacity="0.9" transform="rotate(0)"/>
-    <ellipse cx="0" cy="-52" rx="22" ry="52" fill="#fff" opacity="0.85" transform="rotate(72)"/>
-    <ellipse cx="0" cy="-52" rx="22" ry="52" fill="#fff" opacity="0.8" transform="rotate(144)"/>
-    <ellipse cx="0" cy="-52" rx="22" ry="52" fill="#fff" opacity="0.85" transform="rotate(216)"/>
-    <ellipse cx="0" cy="-52" rx="22" ry="52" fill="#fff" opacity="0.9" transform="rotate(288)"/>
-    <circle cx="0" cy="0" r="14" fill="#D4789C"/>
+  <g transform="translate(256,256)">
+    <ellipse cx="0" cy="-48" rx="20" ry="48" fill="#fff" opacity="0.92" transform="rotate(0)"/>
+    <ellipse cx="0" cy="-48" rx="20" ry="48" fill="#fff" opacity="0.92" transform="rotate(72)"/>
+    <ellipse cx="0" cy="-48" rx="20" ry="48" fill="#fff" opacity="0.92" transform="rotate(144)"/>
+    <ellipse cx="0" cy="-48" rx="20" ry="48" fill="#fff" opacity="0.92" transform="rotate(216)"/>
+    <ellipse cx="0" cy="-48" rx="20" ry="48" fill="#fff" opacity="0.92" transform="rotate(288)"/>
+    <circle cx="0" cy="0" r="10" fill="#E8A0BF"/>
   </g>
-  <text x="256" y="360" text-anchor="middle" font-family="system-ui,sans-serif" font-size="72" font-weight="300" fill="#fff" letter-spacing="2">$</text>
 </svg>
