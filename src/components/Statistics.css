@@ -118,21 +118,15 @@
 }
 
 .stats-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, max-content));
-  gap: 18px;
-  align-items: start;
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
 }
 
 .stats-summary {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-
-.stats-summary-secondary {
-  padding-left: 16px;
-  border-left: 1px solid var(--color-border);
+  gap: 2px;
 }
 
 .stats-summary-amount {
@@ -338,15 +332,8 @@
   }
 
   .stats-summary-grid {
-    grid-template-columns: 1fr;
+    flex-direction: column;
     gap: 12px;
-  }
-
-  .stats-summary-secondary {
-    padding-left: 0;
-    border-left: none;
-    padding-top: 12px;
-    border-top: 1px solid var(--color-border);
   }
 
   .chart-readout {

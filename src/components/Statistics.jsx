@@ -293,7 +293,7 @@ export default function Statistics({ records, categories, tags }) {
               <span className="stats-summary-caption">{viewModel.filterLabel} 总支出</span>
             </div>
 
-            <div className="stats-summary stats-summary-secondary">
+            <div className="stats-summary">
               <strong className="stats-summary-amount stats-summary-amount-secondary">
                 {formatAmount(viewModel.averageAmount)}
               </strong>
