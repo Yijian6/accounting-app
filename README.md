@@ -23,9 +23,13 @@
 ---
 
 <p align="center">
-  <img src="screenshots/add.png" width="240" alt="记一笔" />&nbsp;&nbsp;
-  <img src="screenshots/list.png" width="240" alt="看记录" />&nbsp;&nbsp;
-  <img src="screenshots/stats.png" width="240" alt="统计" />
+  <img src="screenshots/add.png" width="220" alt="记一笔" />&nbsp;
+  <img src="screenshots/list.png" width="220" alt="看记录" />&nbsp;
+  <img src="screenshots/stats.png" width="220" alt="统计" />
+</p>
+
+<p align="center">
+  <em>记一笔 · 看记录 · 统计曲线</em>
 </p>
 
 ---
