@@ -16,6 +16,10 @@
   <img src="https://img.shields.io/badge/License-MIT-9E9E9E?style=flat-square" alt="MIT" />
 </p>
 
+<p align="center">
+  <a href="https://accounting-app-9f0.pages.dev"><strong>在线体验 →</strong></a>
+</p>
+
 ---
 
 <p align="center">
