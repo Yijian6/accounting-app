@@ -12,6 +12,7 @@ import { mergeBackupData, replaceBackupData } from './utils/backup';
 export default function App() {
   const [activeTab, setActiveTab] = useState('add');
   const [manageType, setManageType] = useState(null); // 'categories-expense' | 'categories-income' | 'tags'
+  const [manageInitialCategoryId, setManageInitialCategoryId] = useState(null);
 
   const { records, addRecord, updateRecord, deleteRecord, replaceRecords } = useRecords();
   const {
@@ -30,12 +31,14 @@ export default function App() {
     setManageType('categories-expense');
   };
 
-  const handleManageTags = () => {
+  const handleManageTags = (categoryId) => {
     setManageType('tags');
+    setManageInitialCategoryId(categoryId || null);
   };
 
   const closeManage = () => {
     setManageType(null);
+    setManageInitialCategoryId(null);
   };
 
   const handleImportBackup = (payload, mode) => {
@@ -134,6 +137,7 @@ export default function App() {
           itemType={manageProps.itemType}
           items={manageProps.items}
           categories={manageProps.categories}
+          initialCategoryId={manageInitialCategoryId}
           onClose={closeManage}
           onAdd={manageProps.onAdd}
           onUpdate={manageProps.onUpdate}

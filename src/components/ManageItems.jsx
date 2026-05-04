@@ -8,13 +8,14 @@ export default function ManageItems({
   items,
   itemType,
   categories = [],
+  initialCategoryId = null,
   onClose,
   onAdd,
   onUpdate,
   onDelete,
 }) {
   const [newName, setNewName] = useState('');
-  const [newCategoryId, setNewCategoryId] = useState('');
+  const [newCategoryId, setNewCategoryId] = useState(initialCategoryId || '');
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
   const [editCategoryId, setEditCategoryId] = useState('');
