@@ -45,6 +45,8 @@ export default function RecordList({
   const [syncBusy, setSyncBusy] = useState(false);
   const [syncConflict, setSyncConflict] = useState(null);
   const [showMoreEdit, setShowMoreEdit] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState(() => new Set());
+  const [showMoreExport, setShowMoreExport] = useState(false);
   const fileInputRef = useRef(null);
 
   const todayExpense = records
@@ -64,10 +66,30 @@ export default function RecordList({
     const key = getDateKey(record.datetime);
     if (key !== currentKey) {
       currentKey = key;
-      groupedRecords.push({ type: 'header', label: getDateGroup(record.datetime), key });
+      const label = getDateGroup(record.datetime);
+      groupedRecords.push({ type: 'header', label, key });
     }
     groupedRecords.push({ type: 'record', ...record });
   }
+
+  const toggleGroup = (key) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
+  const isGroupExpanded = (key) => {
+    if (expandedGroups.has(key)) return true;
+    if (expandedGroups.has('__all__')) return true;
+    const label = getDateGroup(new Date(key + 'T12:00:00').toISOString());
+    return label === '今天' || label === '昨天';
+  };
 
   const startEdit = (record) => {
     setEditingRecord(record);
@@ -292,7 +314,6 @@ export default function RecordList({
       </div>
 
       <div className="list-actions">
-        <span className="list-count">{records.length} 条记录</span>
         <button className="manage-icon-btn-inline" onClick={openDataManager} title="数据管理">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />
@@ -307,20 +328,29 @@ export default function RecordList({
         <div className="records">
           {groupedRecords.map((item) =>
             item.type === 'header' ? (
-              <div key={item.key} className="date-group-header">
-                <span>{item.label}</span>
-              </div>
-            ) : (
               <button
-                key={item.id}
-                className="record-item"
-                onClick={() => startEdit(item)}
+                key={item.key}
+                className={`date-group-header ${isGroupExpanded(item.key) ? 'expanded' : ''}`}
+                onClick={() => toggleGroup(item.key)}
               >
-                <span className="record-category">{item.category}</span>
-                <span className={`record-amount ${item.type}`}>
-                  {item.type === 'expense' ? '-' : '+'}{formatAmount(item.amount)}
-                </span>
+                <span>{item.label}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
               </button>
+            ) : (
+              isGroupExpanded(getDateKey(item.datetime)) && (
+                <button
+                  key={item.id}
+                  className="record-item"
+                  onClick={() => startEdit(item)}
+                >
+                  <span className="record-category">{item.category}</span>
+                  <span className={`record-amount ${item.type}`}>
+                    {item.type === 'expense' ? '-' : '+'}{formatAmount(item.amount)}
+                  </span>
+                </button>
+              )
             )
           )}
         </div>
@@ -441,24 +471,11 @@ export default function RecordList({
           />
 
           <div className="data-manager-section">
-            <p className="export-desc">当前本地有 {records.length} 条记录，建议定期导出备份。</p>
             <button
               className="export-option-btn"
               onClick={() => exportBackupJSON({ records, categories, tags })}
             >
               导出备份
-            </button>
-            <button
-              className="export-option-btn secondary"
-              onClick={() => exportCSV(records)}
-            >
-              导出 CSV
-            </button>
-            <button
-              className="export-option-btn secondary"
-              onClick={() => exportJSON(records)}
-            >
-              导出展示 JSON
             </button>
             <button
               className="export-option-btn secondary"
@@ -526,6 +543,36 @@ export default function RecordList({
               </div>
             </div>
           )}
+
+          <button
+            type="button"
+            className={`more-toggle ${showMoreExport ? 'expanded' : ''}`}
+            onClick={() => setShowMoreExport(!showMoreExport)}
+          >
+            {showMoreExport ? '收起' : '更多选项'}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+
+          {showMoreExport && (
+          <>
+          <div className="data-manager-divider" />
+
+          <div className="data-manager-section">
+            <button
+              className="export-option-btn secondary"
+              onClick={() => exportCSV(records)}
+            >
+              导出 CSV
+            </button>
+            <button
+              className="export-option-btn secondary"
+              onClick={() => exportJSON(records)}
+            >
+              导出展示 JSON
+            </button>
+          </div>
 
           <div className="data-manager-divider" />
 
@@ -614,6 +661,8 @@ export default function RecordList({
               </div>
             )}
           </div>
+          </>
+          )}
         </div>
       </Modal>
     </div>
