@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import Modal from './Modal';
 import TagInput from './TagInput';
-import { formatAmount, formatDate, toDatetimeLocal, isToday, isThisMonth } from '../utils/format';
+import { formatAmount, toDatetimeLocal, isToday, isThisMonth, getDateGroup, getDateKey } from '../utils/format';
 import { exportBackupJSON, exportCSV, exportJSON } from '../utils/export';
 import { formatBackupSummary, parseBackupFileContent } from '../utils/backup';
 import {
@@ -49,19 +49,24 @@ export default function RecordList({
   const todayExpense = records
     .filter((record) => record.type === 'expense' && isToday(record.datetime))
     .reduce((sum, record) => sum + record.amount, 0);
-  const todayIncome = records
-    .filter((record) => record.type === 'income' && isToday(record.datetime))
-    .reduce((sum, record) => sum + record.amount, 0);
   const monthExpense = records
     .filter((record) => record.type === 'expense' && isThisMonth(record.datetime))
-    .reduce((sum, record) => sum + record.amount, 0);
-  const monthIncome = records
-    .filter((record) => record.type === 'income' && isThisMonth(record.datetime))
     .reduce((sum, record) => sum + record.amount, 0);
 
   const sortedRecords = [...records].sort(
     (left, right) => new Date(right.datetime) - new Date(left.datetime)
   );
+
+  const groupedRecords = [];
+  let currentKey = '';
+  for (const record of sortedRecords) {
+    const key = getDateKey(record.datetime);
+    if (key !== currentKey) {
+      currentKey = key;
+      groupedRecords.push({ type: 'header', label: getDateGroup(record.datetime), key });
+    }
+    groupedRecords.push({ type: 'record', ...record });
+  }
 
   const startEdit = (record) => {
     setEditingRecord(record);
@@ -279,23 +284,18 @@ export default function RecordList({
           <span className="summary-value expense">{formatAmount(todayExpense)}</span>
         </div>
         <div className="summary-card">
-          <span className="summary-label">今日收入</span>
-          <span className="summary-value income">{formatAmount(todayIncome)}</span>
-        </div>
-        <div className="summary-card">
           <span className="summary-label">本月支出</span>
           <span className="summary-value expense">{formatAmount(monthExpense)}</span>
-        </div>
-        <div className="summary-card">
-          <span className="summary-label">本月收入</span>
-          <span className="summary-value income">{formatAmount(monthIncome)}</span>
         </div>
       </div>
 
       <div className="list-actions">
         <span className="list-count">{records.length} 条记录</span>
-        <button className="export-btn" onClick={openDataManager}>
-          数据管理
+        <button className="manage-icon-btn-inline" onClick={openDataManager} title="数据管理">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
         </button>
       </div>
 
@@ -303,39 +303,24 @@ export default function RecordList({
         <div className="empty-state">暂无记录</div>
       ) : (
         <div className="records">
-          {sortedRecords.map((record) => (
-            <div key={record.id} className="record-item">
-              <div className="record-left">
-                <span className={`record-category ${record.type}`}>
-                  {record.category}
-                </span>
-                {record.tags.length > 0 && (
-                  <div className="record-tags">
-                    {record.tags.map((tag) => (
-                      <span key={tag} className="record-tag">{tag}</span>
-                    ))}
-                  </div>
-                )}
-                {record.note && (
-                  <span className="record-note">{record.note}</span>
-                )}
+          {groupedRecords.map((item) =>
+            item.type === 'header' ? (
+              <div key={item.key} className="date-group-header">
+                <span>{item.label}</span>
               </div>
-              <div className="record-right">
-                <span className={`record-amount ${record.type}`}>
-                  {record.type === 'expense' ? '-' : '+'}{formatAmount(record.amount)}
+            ) : (
+              <button
+                key={item.id}
+                className="record-item"
+                onClick={() => startEdit(item)}
+              >
+                <span className="record-category">{item.category}</span>
+                <span className={`record-amount ${item.type}`}>
+                  {item.type === 'expense' ? '-' : '+'}{formatAmount(item.amount)}
                 </span>
-                <span className="record-time">{formatDate(record.datetime)}</span>
-                <div className="record-actions">
-                  <button className="action-btn" onClick={() => startEdit(record)}>
-                    编辑
-                  </button>
-                  <button className="action-btn danger" onClick={() => onDelete(record.id)}>
-                    删除
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+              </button>
+            )
+          )}
         </div>
       )}
 

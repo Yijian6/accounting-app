@@ -51,18 +51,17 @@
   color: var(--color-text-secondary);
 }
 
-.export-btn {
-  font-size: var(--text-xs);
-  color: var(--color-primary-dark);
-  padding: 6px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  transition: all var(--transition);
+.manage-icon-btn-inline {
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-secondary);
+  opacity: 0.35;
+  transition: opacity var(--transition), color var(--transition);
 }
 
-.export-btn:hover {
-  background: var(--color-primary-light);
+.manage-icon-btn-inline:hover {
+  opacity: 0.7;
+  color: var(--color-primary-dark);
 }
 
 .empty-state {
@@ -72,78 +71,52 @@
   font-size: 14px;
 }
 
+/* ── Date grouped records ── */
+
 .records {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
+.date-group-header {
+  padding: 10px 0 4px;
+}
+
+.date-group-header span {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
 .record-item {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  padding: 14px 16px;
+  align-items: center;
+  padding: 12px 14px;
   background: var(--color-surface);
   border-radius: var(--radius-sm);
-  box-shadow: var(--shadow);
   border: 1px solid rgba(15, 23, 42, 0.04);
+  transition: background var(--transition);
+  width: 100%;
+  text-align: left;
 }
 
-.record-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
+.record-item:active {
+  background: var(--color-primary-light);
 }
 
 .record-category {
   font-size: 15px;
   font-weight: 500;
-}
-
-.record-category.expense {
-  color: var(--color-expense);
-}
-
-.record-category.income {
-  color: var(--color-income);
-}
-
-.record-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.record-tag {
-  font-size: var(--text-xs);
-  padding: 2px 8px;
-  border-radius: var(--radius-pill);
-  background: var(--color-primary-light);
-  color: var(--color-text-secondary);
-}
-
-.record-note {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.record-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  flex-shrink: 0;
-  margin-left: 12px;
+  color: var(--color-text);
 }
 
 .record-amount {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
 }
 
 .record-amount.expense {
@@ -154,35 +127,8 @@
   color: var(--color-income);
 }
 
-.record-time {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-}
+/* ── Edit Form ── */
 
-.record-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.action-btn {
-  font-size: var(--text-xs);
-  color: var(--color-text-secondary);
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  transition: all var(--transition);
-}
-
-.action-btn:hover {
-  background: var(--color-primary-light);
-}
-
-.action-btn.danger:hover {
-  background: var(--color-danger-light);
-  color: var(--color-danger);
-}
-
-/* Edit Form */
 .edit-form {
   display: flex;
   flex-direction: column;
@@ -209,7 +155,8 @@
   color: var(--color-text-secondary);
 }
 
-/* Export */
+/* ── Export / Data manager ── */
+
 .data-manager,
 .export-options {
   display: flex;

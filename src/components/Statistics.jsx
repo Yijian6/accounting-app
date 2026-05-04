@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { formatAmount, formatDate } from '../utils/format';
+import { formatAmount, getDateGroup, getDateKey } from '../utils/format';
 import { getStatisticsViewModel } from '../utils/statistics';
 import './Statistics.css';
 
@@ -328,15 +328,28 @@ export default function Statistics({ records, categories, tags }) {
       <section className="stats-panel">
         {viewModel.recentRecords.length > 0 ? (
           <div className="detail-records">
-            {viewModel.recentRecords.map((record) => (
-              <div key={record.id} className="detail-record">
-                <div className="detail-record-main">
-                  <span className="detail-record-note">{record.note || record.category}</span>
-                  <span className="detail-record-time">{formatDate(record.datetime)}</span>
-                </div>
-                <strong className="detail-record-amount">{formatAmount(record.amount)}</strong>
-              </div>
-            ))}
+            {(() => {
+              let currentKey = '';
+              return viewModel.recentRecords.map((record) => {
+                const key = getDateKey(record.datetime);
+                const items = [];
+                if (key !== currentKey) {
+                  currentKey = key;
+                  items.push(
+                    <div key={`h-${key}`} className="date-group-header">
+                      <span>{getDateGroup(record.datetime)}</span>
+                    </div>
+                  );
+                }
+                items.push(
+                  <div key={record.id} className="detail-record">
+                    <span className="detail-record-category">{record.note || record.category}</span>
+                    <strong className="detail-record-amount">{formatAmount(record.amount)}</strong>
+                  </div>
+                );
+                return items;
+              });
+            })()}
           </div>
         ) : (
           <div className="stats-empty stats-empty-compact">
