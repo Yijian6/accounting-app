@@ -223,90 +223,82 @@ export default function Statistics({ records, categories, tags }) {
 
   return (
     <div className="statistics">
-      <section className="stats-panel">
-        <div className="stats-filter-group">
-          <div className="stats-periods">
-            {PERIOD_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                className={`stats-period-btn ${periodDays === option.value ? 'active' : ''}`}
-                onClick={() => {
-                  setPeriodDays(option.value);
-                  setSelectedPointKey('');
-                }}
-              >
-                {option.label}
-              </button>
-            ))}
+      <section className="stats-panel stats-filters-panel">
+        <div className="stats-periods">
+          {PERIOD_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              className={`stats-period-btn ${periodDays === option.value ? 'active' : ''}`}
+              onClick={() => {
+                setPeriodDays(option.value);
+                setSelectedPointKey('');
+              }}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="stats-tags-scroll">
+          <div className="stats-tags">
+            {categoryOptions.map((category) => {
+              const value = category.id === 'all' ? 'all' : category.name;
+              return (
+                <button
+                  key={category.id}
+                  className={`stats-tag-btn ${activeCategory === value ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedCategory(value);
+                    setSelectedTag('all');
+                    setSelectedPointKey('');
+                  }}
+                >
+                  {category.name}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        <div className="stats-filter-group">
-          <div className="stats-tags-scroll">
-            <div className="stats-tags">
-              {categoryOptions.map((category) => {
-                const value = category.id === 'all' ? 'all' : category.name;
-                return (
-                  <button
-                    key={category.id}
-                    className={`stats-tag-btn ${activeCategory === value ? 'active' : ''}`}
-                    onClick={() => {
-                      setSelectedCategory(value);
-                      setSelectedTag('all');
-                      setSelectedPointKey('');
-                    }}
-                  >
-                    {category.name}
-                  </button>
-                );
-              })}
-            </div>
+        <div className="stats-tags-scroll">
+          <div className="stats-tags">
+            {tagOptions.map((tag) => {
+              const value = tag.id === 'all' ? 'all' : tag.name;
+              return (
+                <button
+                  key={tag.id}
+                  className={`stats-tag-btn ${activeTag === value ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedTag(value);
+                    setSelectedPointKey('');
+                  }}
+                >
+                  {tag.name}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        <div className="stats-filter-group">
-          <div className="stats-tags-scroll">
-            <div className="stats-tags">
-              {tagOptions.map((tag) => {
-                const value = tag.id === 'all' ? 'all' : tag.name;
-                return (
-                  <button
-                    key={tag.id}
-                    className={`stats-tag-btn ${activeTag === value ? 'active' : ''}`}
-                    onClick={() => {
-                      setSelectedTag(value);
-                      setSelectedPointKey('');
-                    }}
-                  >
-                    {tag.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {activeCategory !== 'all' && tagOptions.length === 1 && (
-            <span className="stats-filter-hint">这个分类下还没有已归属的细分标签。</span>
-          )}
-        </div>
+        {activeCategory !== 'all' && tagOptions.length === 1 && (
+          <span className="stats-filter-hint">这个分类下还没有已归属的细分标签。</span>
+        )}
       </section>
 
       <section className="stats-panel stats-chart-panel">
         <div className="stats-chart-head">
           <div className="stats-summary-grid">
             <div className="stats-summary">
-              <span className="stats-summary-label">{viewModel.filterLabel}</span>
               <strong className="stats-summary-amount">{formatAmount(viewModel.totalAmount)}</strong>
-              <span className="stats-summary-caption">当前筛选支出总额</span>
+              <span className="stats-summary-caption">{viewModel.filterLabel} 总支出</span>
             </div>
 
             <div className="stats-summary stats-summary-secondary">
-              <span className="stats-summary-label">平均额</span>
               <strong className="stats-summary-amount stats-summary-amount-secondary">
                 {formatAmount(viewModel.averageAmount)}
               </strong>
               <span className="stats-summary-caption">
-                按有支出的 {viewModel.activeDays} 天平均
+                日均（{viewModel.activeDays} 天）
               </span>
             </div>
           </div>
@@ -334,11 +326,6 @@ export default function Statistics({ records, categories, tags }) {
       </section>
 
       <section className="stats-panel">
-        <div className="stats-section-head">
-          <h3 className="stats-section-title">最近记录</h3>
-          <span className="stats-section-meta">{viewModel.filterLabel}</span>
-        </div>
-
         {viewModel.recentRecords.length > 0 ? (
           <div className="detail-records">
             {viewModel.recentRecords.map((record) => (

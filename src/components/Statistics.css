@@ -28,9 +28,7 @@
 
 /* ── Filters ── */
 
-.stats-filter-group {
-  display: flex;
-  flex-direction: column;
+.stats-filters-panel {
   gap: 10px;
 }
 
@@ -135,11 +133,6 @@
 .stats-summary-secondary {
   padding-left: 18px;
   border-left: 1px solid var(--color-border);
-}
-
-.stats-summary-label {
-  font-size: 12px;
-  color: var(--stats-muted);
 }
 
 .stats-summary-amount {
@@ -260,26 +253,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ── Section head ── */
-
-.stats-section-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 10px;
-}
-
-.stats-section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--stats-ink);
-}
-
-.stats-section-meta {
-  font-size: 12px;
-  color: var(--stats-muted);
-}
-
 /* ── Recent records ── */
 
 .detail-records {
@@ -359,8 +332,7 @@
 /* ── Responsive ── */
 
 @media (max-width: 420px) {
-  .stats-chart-head,
-  .stats-section-head {
+  .stats-chart-head {
     flex-direction: column;
     align-items: flex-start;
   }
