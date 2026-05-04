@@ -225,7 +225,6 @@ export default function Statistics({ records, categories, tags }) {
     <div className="statistics">
       <section className="stats-panel">
         <div className="stats-filter-group">
-          <span className="stats-filter-label">时间</span>
           <div className="stats-periods">
             {PERIOD_OPTIONS.map((option) => (
               <button
@@ -243,7 +242,6 @@ export default function Statistics({ records, categories, tags }) {
         </div>
 
         <div className="stats-filter-group">
-          <span className="stats-filter-label">分类</span>
           <div className="stats-tags-scroll">
             <div className="stats-tags">
               {categoryOptions.map((category) => {
@@ -267,7 +265,6 @@ export default function Statistics({ records, categories, tags }) {
         </div>
 
         <div className="stats-filter-group">
-          <span className="stats-filter-label">细分标签</span>
           <div className="stats-tags-scroll">
             <div className="stats-tags">
               {tagOptions.map((tag) => {
