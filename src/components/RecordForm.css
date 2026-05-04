@@ -79,7 +79,9 @@
 /* ── Category grid with manage icon ── */
 
 .category-grid-wrap {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .category-grid {
@@ -106,24 +108,17 @@
 }
 
 .manage-icon-btn {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  align-self: flex-end;
+  width: 14px;
+  height: 14px;
   color: var(--color-text-secondary);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  transition: all var(--transition);
+  opacity: 0.35;
+  transition: opacity var(--transition), color var(--transition);
 }
 
 .manage-icon-btn:hover {
+  opacity: 0.7;
   color: var(--color-primary-dark);
-  background: var(--color-primary-light);
 }
 
 /* ── More toggle ── */
