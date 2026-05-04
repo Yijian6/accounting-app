@@ -260,28 +260,32 @@ export default function Statistics({ records, categories, tags }) {
           </div>
         </div>
 
-        <div className="stats-tags-scroll">
-          <div className="stats-tags">
-            {tagOptions.map((tag) => {
-              const value = tag.id === 'all' ? 'all' : tag.name;
-              return (
-                <button
-                  key={tag.id}
-                  className={`stats-tag-btn ${activeTag === value ? 'active' : ''}`}
-                  onClick={() => {
-                    setSelectedTag(value);
-                    setSelectedPointKey('');
-                  }}
-                >
-                  {tag.name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        {activeCategory !== 'all' && (
+          <>
+            <div className="stats-tags-scroll">
+              <div className="stats-tags">
+                {tagOptions.map((tag) => {
+                  const value = tag.id === 'all' ? 'all' : tag.name;
+                  return (
+                    <button
+                      key={tag.id}
+                      className={`stats-tag-btn ${activeTag === value ? 'active' : ''}`}
+                      onClick={() => {
+                        setSelectedTag(value);
+                        setSelectedPointKey('');
+                      }}
+                    >
+                      {tag.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-        {activeCategory !== 'all' && tagOptions.length === 1 && (
-          <span className="stats-filter-hint">这个分类下还没有已归属的细分标签。</span>
+            {tagOptions.length === 1 && (
+              <span className="stats-filter-hint">这个分类下还没有已归属的细分标签。</span>
+            )}
+          </>
         )}
       </section>
 
