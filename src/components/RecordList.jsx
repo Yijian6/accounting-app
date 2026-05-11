@@ -45,7 +45,12 @@ export default function RecordList({
   const [syncBusy, setSyncBusy] = useState(false);
   const [syncConflict, setSyncConflict] = useState(null);
   const [showMoreEdit, setShowMoreEdit] = useState(false);
-  const [expandedGroups, setExpandedGroups] = useState(() => new Set());
+  const [expandedGroups, setExpandedGroups] = useState(() => {
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return new Set([getDateKey(today.toISOString()), getDateKey(yesterday.toISOString())]);
+  });
   const [showMoreExport, setShowMoreExport] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -87,8 +92,7 @@ export default function RecordList({
   const isGroupExpanded = (key) => {
     if (expandedGroups.has(key)) return true;
     if (expandedGroups.has('__all__')) return true;
-    const label = getDateGroup(new Date(key + 'T12:00:00').toISOString());
-    return label === '今天' || label === '昨天';
+    return false;
   };
 
   const startEdit = (record) => {
