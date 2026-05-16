@@ -1,14 +1,26 @@
 import puppeteer from 'puppeteer';
-import { writeFileSync } from 'fs';
 
 const OUTDIR = 'C:/Users/觉/Desktop/accounting-app/screenshots';
 const URL = 'http://localhost:5176';
 
-// Today's date for realistic data
-const today = '2026-05-04';
-const yesterday = '2026-05-03';
-const dayBefore = '2026-05-02';
-const may1 = '2026-05-01';
+const toDateKey = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const relativeDate = (offset) => {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() + offset);
+  return toDateKey(date);
+};
+
+const today = relativeDate(0);
+const yesterday = relativeDate(-1);
+const dayBefore = relativeDate(-2);
+const earlierThisWeek = relativeDate(-5);
 
 const sampleRecords = [
   { id: 'r1', type: 'expense', amount: 35.50, category: '餐饮', tags: [], note: '午饭', datetime: `${today}T12:30:00` },
@@ -17,9 +29,9 @@ const sampleRecords = [
   { id: 'r4', type: 'expense', amount: 15, category: '餐饮', tags: [], note: '早餐', datetime: `${yesterday}T08:00:00` },
   { id: 'r5', type: 'expense', amount: 200, category: '娱乐', tags: [], note: '电影', datetime: `${dayBefore}T20:00:00` },
   { id: 'r6', type: 'expense', amount: 45, category: '餐饮', tags: [], note: '晚饭', datetime: `${dayBefore}T19:00:00` },
-  { id: 'r7', type: 'expense', amount: 89, category: '购物', tags: [], note: '日用品', datetime: `${may1}T15:00:00` },
-  { id: 'r8', type: 'expense', amount: 32, category: '交通', tags: [], note: '地铁', datetime: `${may1}T08:30:00` },
-  { id: 'r9', type: 'income', amount: 5000, category: '工资', tags: [], note: '五月工资', datetime: `${may1}T10:00:00` },
+  { id: 'r7', type: 'expense', amount: 89, category: '购物', tags: [], note: '日用品', datetime: `${earlierThisWeek}T15:00:00` },
+  { id: 'r8', type: 'expense', amount: 32, category: '交通', tags: [], note: '地铁', datetime: `${earlierThisWeek}T08:30:00` },
+  { id: 'r9', type: 'income', amount: 5000, category: '工资', tags: [], note: '本月工资', datetime: `${earlierThisWeek}T10:00:00` },
 ];
 
 const sampleCategories = [
@@ -82,8 +94,7 @@ async function main() {
   // Screenshot 2: List page
   console.log('Switching to list...');
   await page.evaluate(() => {
-    const tabs = document.querySelectorAll('.header-tab');
-    for (const tab of tabs) { if (tab.textContent.trim() === '记录') { tab.click(); break; } }
+    document.querySelectorAll('.header-tab')[1]?.click();
   });
   await sleep(800);
   console.log('Screenshot: list page');
@@ -92,12 +103,18 @@ async function main() {
   // Screenshot 3: Stats page — crop bottom records list
   console.log('Switching to stats...');
   await page.evaluate(() => {
-    const tabs = document.querySelectorAll('.header-tab');
-    for (const tab of tabs) { if (tab.textContent.trim() === '统计') { tab.click(); break; } }
+    document.querySelectorAll('.header-tab')[2]?.click();
   });
   await sleep(800);
   console.log('Screenshot: stats page');
   await takeScreenshot('stats.png', 100);
+
+  // Screenshot 4: Stats detail modal
+  console.log('Opening stats detail...');
+  await page.evaluate(() => document.querySelector('.compact-card')?.click());
+  await sleep(800);
+  console.log('Screenshot: stats detail');
+  await takeScreenshot('detail.png', 0);
 
   console.log('All screenshots saved!');
   await browser.close();

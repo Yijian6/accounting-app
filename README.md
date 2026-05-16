@@ -1,132 +1,150 @@
 <p align="center">
-  <img src="public/icon.svg" width="88" alt="记账" />
+  <a href="https://accounting-app-9f0.pages.dev">
+    <img src="public/icon.svg" width="92" alt="记账 app icon" />
+  </a>
 </p>
 
 <h1 align="center">记账</h1>
 
 <p align="center">
-  <strong>极简个人记账 PWA</strong><br/>
-  樱花粉主题 · 纯手写 CSS · 零 UI 框架 · 移动端优先
+  <strong>一个安静、漂亮、专注移动端体验的个人记账 PWA。</strong><br />
+  少一点输入，多一点确认。把每天的花费，收进一个轻盈的地方。
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white&style=flat-square" alt="React" />
-  <img src="https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white&style=flat-square" alt="Vite" />
-  <img src="https://img.shields.io/badge/PWA-离线可用-E8A0BF?style=flat-square" alt="PWA" />
-  <img src="https://img.shields.io/badge/License-MIT-9E9E9E?style=flat-square" alt="MIT" />
+  <a href="https://accounting-app-9f0.pages.dev"><strong>在线体验</strong></a>
+  ·
+  <a href="#screenshots">界面截图</a>
+  ·
+  <a href="cloudflare/worker/README.md">云端同步</a>
+  ·
+  <a href="#development">本地运行</a>
 </p>
 
 <p align="center">
-  <a href="https://accounting-app-9f0.pages.dev"><strong>在线体验 →</strong></a>
-</p>
-
----
-
-<p align="center">
-  <img src="screenshots/add.png" width="220" alt="记一笔" />&nbsp;
-  <img src="screenshots/list.png" width="220" alt="看记录" />&nbsp;
-  <img src="screenshots/stats.png" width="220" alt="统计" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white&style=flat-square" alt="React 19" />
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white&style=flat-square" alt="Vite 8" />
+  <img src="https://img.shields.io/badge/PWA-offline_ready-E8A0BF?style=flat-square" alt="PWA offline ready" />
+  <img src="https://img.shields.io/badge/Cloudflare-Pages_+_D1-F38020?logo=cloudflare&logoColor=white&style=flat-square" alt="Cloudflare Pages and D1" />
 </p>
 
 <p align="center">
-  <em>记一笔 · 看记录 · 统计曲线</em>
+  <a href="https://accounting-app-9f0.pages.dev">
+    <img src="screenshots/showcase.png" alt="记账 app product showcase" />
+  </a>
 </p>
 
----
+## Product
 
-## 功能
+记账不是一个表格，也不是一套财务系统。它更像一件随身小物：打开、记下、合上。界面尽量克制，信息尽量清楚，常用操作放在拇指能自然触到的位置。
+
+它适合一个人长期使用：本地优先、离线可用、支持备份导出，也可以接上 Cloudflare Worker + D1 做私有云同步。
+
+## Highlights
+
+| 体验 | 设计取舍 |
+|---|---|
+| 快速记一笔 | 金额、分类、标签和备注拆成轻量步骤，不把完整表单一次性压给用户。 |
+| 清楚看记录 | 自动按今天、昨天、前天和具体日期分组，日期组可以折叠，单条记录可直接编辑。 |
+| 优雅看趋势 | 首页是深色统计卡片，详情页提供近七日/近三十天曲线、分类筛选和最近记录。 |
+| 私有数据流 | localStorage 本地保存，JSON/CSV 可导出，Cloudflare D1 同步可选。 |
+
+## Screenshots
 
 <table>
-<tr>
-<td width="50%">
-
-### 记一笔
-输入金额，选分类，完成。备注和时间默认折叠，保持界面干净。分类下可设细分标签，从记账页直接管理。
-
-</td>
-<td width="50%">
-
-### 看记录
-按日期自动分组 — 今天、昨天、前天，或 MM/DD 周X。日期组可折叠，点击任意记录直接编辑。
-
-</td>
-</tr>
-<tr>
-<td>
-
-### 统计曲线
-近七日 / 近三十天支出曲线，SVG 手绘，无图表库。支持按分类和细分标签筛选，点击曲线上任意点查看当日金额。
-
-</td>
-<td>
-
-### 数据与同步
-导出 JSON / CSV，导入备份支持合并或覆盖。云端同步基于 Cloudflare Worker + D1，密码认证，revision 冲突检测。
-
-</td>
-</tr>
+  <tr>
+    <td align="center">
+      <img src="screenshots/add.png" width="190" alt="记账录入界面" /><br />
+      <sub>记录一笔</sub>
+    </td>
+    <td align="center">
+      <img src="screenshots/list.png" width="190" alt="记录列表界面" /><br />
+      <sub>查看记录</sub>
+    </td>
+    <td align="center">
+      <img src="screenshots/stats.png" width="190" alt="统计卡片界面" /><br />
+      <sub>统计概览</sub>
+    </td>
+    <td align="center">
+      <img src="screenshots/detail.png" width="190" alt="统计详情弹窗" /><br />
+      <sub>趋势详情</sub>
+    </td>
+  </tr>
 </table>
 
-## 技术栈
+## Craft
 
-| 层 | 选型 |
+| Layer | Choice |
 |---|---|
-| 框架 | React 19 + Vite 8 |
-| 样式 | 纯 CSS，CSS Variables，手写组件样式 |
-| 图表 | SVG 手绘曲线（`<path>` + 贝塞尔插值） |
-| 存储 | localStorage |
-| 同步 | Cloudflare Worker + D1（可选） |
-| 部署 | PWA，可安装到主屏幕 |
+| App | React 19 + Vite 8 |
+| UI | 手写 CSS、CSS Variables、移动端优先布局 |
+| Charts | 纯 SVG 曲线，无图表库依赖 |
+| Storage | localStorage 本地持久化 |
+| Backup | JSON 备份导入导出，CSV/JSON 记录导出 |
+| Sync | 可选 Cloudflare Worker + D1，密码认证，revision 冲突检测 |
+| Deploy | Cloudflare Pages |
 
-## 开发
+## Architecture
+
+```text
+src/
+  components/
+    RecordForm.jsx      # 记账表单
+    RecordList.jsx      # 记录列表、编辑、备份与同步入口
+    Statistics.jsx      # 统计卡片、趋势详情、SVG 曲线
+    ManageItems.jsx     # 分类与标签管理
+    Header.jsx          # 顶部导航
+    Modal.jsx           # 底部弹窗
+    TagInput.jsx        # 标签选择
+  hooks/
+    useRecords.js
+    useCategories.js
+    useTags.js
+  utils/
+    backup.js           # 备份导入导出
+    export.js           # CSV / JSON 导出
+    format.js           # 日期与金额格式化
+    statistics.js       # 统计视图模型
+    storage.js          # localStorage 封装
+    sync.js             # 云端同步客户端
+```
+
+## Links
+
+| Link | Description |
+|---|---|
+| [Live demo](https://accounting-app-9f0.pages.dev) | Cloudflare Pages 线上版本 |
+| [Cloud Sync Worker](cloudflare/worker/README.md) | D1 数据库、同步接口和部署说明 |
+| [Screenshot script](screenshots/take-screenshots.mjs) | 用 Puppeteer 生成 README 展示图 |
+| [Worker source](cloudflare/worker/src/index.js) | 私有同步 Worker 入口 |
+
+## Development
 
 ```bash
 npm install
 npm run dev
 ```
 
+Build the production version:
+
 ```bash
-npm run build    # 构建生产版本
+npm run build
 ```
 
-## 项目结构
+Refresh README screenshots after UI changes:
 
-```
-src/
-├── components/
-│   ├── RecordForm.jsx     # 记账表单
-│   ├── RecordList.jsx     # 记录列表 + 编辑 + 数据管理
-│   ├── Statistics.jsx     # 统计图表
-│   ├── ManageItems.jsx    # 分类 / 标签管理
-│   ├── Header.jsx         # 底部导航
-│   ├── Modal.jsx          # 底部弹窗
-│   └── TagInput.jsx       # 标签选择器
-├── hooks/
-│   ├── useRecords.js
-│   ├── useCategories.js
-│   └── useTags.js
-├── utils/
-│   ├── format.js          # 日期 / 金额格式化
-│   ├── statistics.js      # 统计数据计算
-│   ├── export.js          # CSV / JSON 导出
-│   ├── backup.js          # 备份导入导出
-│   ├── sync.js            # 云端同步
-│   └── storage.js         # localStorage 封装
-├── App.jsx
-└── index.css              # 全局主题变量
+```bash
+npm run dev -- --host 127.0.0.1 --port 5176
+node screenshots/take-screenshots.mjs
 ```
 
-## 设计系统
+The screenshot workflow uses the local app at `http://localhost:5176` and writes images into `screenshots/`.
 
-| 变量 | 值 | 用途 |
-|:--|:--|:--|
-| `--color-expense` | `#E8A0BF` | 支出 / 主题色 |
-| `--color-income` | `#A8D5BA` | 收入 |
-| `--color-primary` | `#d4a0c0` | 交互高亮 |
-| `--color-bg` | `#FEFBFC` | 页面背景 |
-| `--radius` | `12px` | 卡片圆角 |
+## Cloud Sync
 
-移动端优先，最大宽度 480px。
+Cloud sync is intentionally optional. The app works fully offline by default. To enable private sync, deploy the Worker in `cloudflare/worker`, create a D1 database, set `SYNC_PASSWORD`, then fill the sync endpoint and password inside the app data manager.
+
+Read the full setup guide here: [cloudflare/worker/README.md](cloudflare/worker/README.md).
 
 ## License
 
