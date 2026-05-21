@@ -67,6 +67,25 @@ export default function RecordList({
 
   useEffect(() => () => clearLongPressTimer(), [clearLongPressTimer]);
 
+  useEffect(() => {
+    if (!deleteTargetId) return undefined;
+
+    const dismissDeleteAction = (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('.record-row')) return;
+
+      clearLongPressTimer();
+      setPressedRecordId('');
+      setDeleteTargetId('');
+    };
+
+    document.addEventListener('pointerdown', dismissDeleteAction, true);
+    return () => {
+      document.removeEventListener('pointerdown', dismissDeleteAction, true);
+    };
+  }, [clearLongPressTimer, deleteTargetId]);
+
   const todayExpense = records
     .filter((record) => record.type === 'expense' && isToday(record.datetime))
     .reduce((sum, record) => sum + record.amount, 0);
