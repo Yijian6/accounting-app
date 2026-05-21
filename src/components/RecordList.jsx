@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Modal from './Modal';
 import TagInput from './TagInput';
 import { formatAmount, toDatetimeLocal, isToday, isThisMonth, getDateGroup, getDateKey } from '../utils/format';
@@ -45,6 +45,8 @@ export default function RecordList({
   const [syncBusy, setSyncBusy] = useState(false);
   const [syncConflict, setSyncConflict] = useState(null);
   const [showMoreEdit, setShowMoreEdit] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState('');
+  const [pressedRecordId, setPressedRecordId] = useState('');
   const [expandedGroups, setExpandedGroups] = useState(() => {
     const today = new Date();
     const yesterday = new Date();
@@ -53,6 +55,17 @@ export default function RecordList({
   });
   const [showMoreExport, setShowMoreExport] = useState(false);
   const fileInputRef = useRef(null);
+  const longPressTimerRef = useRef(null);
+  const longPressTriggeredRef = useRef(false);
+
+  const clearLongPressTimer = useCallback(() => {
+    if (longPressTimerRef.current) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => () => clearLongPressTimer(), [clearLongPressTimer]);
 
   const todayExpense = records
     .filter((record) => record.type === 'expense' && isToday(record.datetime))
@@ -96,6 +109,7 @@ export default function RecordList({
   };
 
   const startEdit = (record) => {
+    setDeleteTargetId('');
     setEditingRecord(record);
     setEditForm({
       amount: record.amount.toString(),
@@ -106,6 +120,51 @@ export default function RecordList({
       datetime: toDatetimeLocal(record.datetime),
     });
     setShowMoreEdit(false);
+  };
+
+  const revealDeleteAction = (record) => {
+    longPressTriggeredRef.current = true;
+    setPressedRecordId('');
+    setDeleteTargetId(record.id);
+    if (window.navigator?.vibrate) {
+      window.navigator.vibrate(8);
+    }
+  };
+
+  const startRecordPress = (record, event) => {
+    if (event.button && event.button !== 0) return;
+    clearLongPressTimer();
+    longPressTriggeredRef.current = false;
+    setPressedRecordId(record.id);
+    longPressTimerRef.current = window.setTimeout(() => {
+      revealDeleteAction(record);
+    }, 520);
+  };
+
+  const endRecordPress = () => {
+    clearLongPressTimer();
+    setPressedRecordId('');
+  };
+
+  const handleRecordClick = (record) => {
+    if (longPressTriggeredRef.current) {
+      longPressTriggeredRef.current = false;
+      return;
+    }
+
+    if (deleteTargetId === record.id) {
+      setDeleteTargetId('');
+      return;
+    }
+
+    startEdit(record);
+  };
+
+  const handleRecordDelete = (recordId) => {
+    clearLongPressTimer();
+    setDeleteTargetId('');
+    setPressedRecordId('');
+    onDelete(recordId);
   };
 
   const getAvailableTagsForCategory = (type, categoryName) => {
@@ -344,16 +403,43 @@ export default function RecordList({
               </button>
             ) : (
               isGroupExpanded(getDateKey(item.datetime)) && (
-                <button
+                <div
                   key={item.id}
-                  className="record-item"
-                  onClick={() => startEdit(item)}
+                  className={`record-row ${deleteTargetId === item.id ? 'delete-open' : ''}`}
                 >
-                  <span className="record-category">{item.category}</span>
-                  <span className={`record-amount ${item.type}`}>
-                    {item.type === 'expense' ? '-' : '+'}{formatAmount(item.amount)}
-                  </span>
-                </button>
+                  <button
+                    className={`record-item ${pressedRecordId === item.id ? 'pressing' : ''}`}
+                    onPointerDown={(event) => startRecordPress(item, event)}
+                    onPointerUp={endRecordPress}
+                    onPointerCancel={endRecordPress}
+                    onPointerLeave={endRecordPress}
+                    onContextMenu={(event) => {
+                      event.preventDefault();
+                      revealDeleteAction(item);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Delete' || event.key === 'Backspace') {
+                        event.preventDefault();
+                        revealDeleteAction(item);
+                      }
+                    }}
+                    onClick={() => handleRecordClick(item)}
+                  >
+                    <span className="record-category">{item.category}</span>
+                    <span className={`record-amount ${item.type}`}>
+                      {item.type === 'expense' ? '-' : '+'}{formatAmount(item.amount)}
+                    </span>
+                  </button>
+                  {deleteTargetId === item.id && (
+                    <button
+                      type="button"
+                      className="record-delete-btn"
+                      onClick={() => handleRecordDelete(item.id)}
+                    >
+                      删除
+                    </button>
+                  )}
+                </div>
               )
             )
           )}
