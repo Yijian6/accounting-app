@@ -8,26 +8,29 @@ const DEFAULT_INCOME_DESTINATIONS = ['工资', '兼职', '理财', '其他'];
 
 function sortCommonDestinations(categories, type) {
   const preferred = type === 'expense' ? DEFAULT_EXPENSE_DESTINATIONS : DEFAULT_INCOME_DESTINATIONS;
+  const preferredOrder = new Map(preferred.map((name, index) => [name, index]));
   const existingNames = categories
     .filter((item) => item.type === type)
-    .map((item) => item.name);
-  const names = [];
+    .map((item) => item.name)
+    .filter((name, index, names) => name && names.indexOf(name) === index);
+  const hasOther = existingNames.includes('其他');
+  const sortedNames = existingNames
+    .filter((name) => name !== '其他')
+    .sort((left, right) => {
+      const leftOrder = preferredOrder.has(left) ? preferredOrder.get(left) : Number.MAX_SAFE_INTEGER;
+      const rightOrder = preferredOrder.has(right) ? preferredOrder.get(right) : Number.MAX_SAFE_INTEGER;
 
-  preferred.forEach((name) => {
-    if (!names.includes(name)) {
-      names.push(name);
-    }
-  });
+      if (leftOrder !== rightOrder) {
+        return leftOrder - rightOrder;
+      }
 
-  existingNames.forEach((name) => {
-    if (name !== '其他' && !names.includes(name)) {
-      names.push(name);
-    }
-  });
+      return existingNames.indexOf(left) - existingNames.indexOf(right);
+    });
 
-  const withoutOther = names.filter((name) => name !== '其他');
-  const hasOther = names.includes('其他') || existingNames.includes('其他');
-  return [...withoutOther.slice(0, 7), ...(hasOther ? ['其他'] : [])].slice(0, 8);
+  return [
+    ...sortedNames.slice(0, hasOther ? 7 : 8),
+    ...(hasOther ? ['其他'] : []),
+  ];
 }
 
 export default function RecordForm({

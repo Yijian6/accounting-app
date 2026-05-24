@@ -131,26 +131,6 @@ function AttentionCard({ attention }) {
   );
 }
 
-function DayStrip({ series }) {
-  if (!series?.length) return null;
-
-  const maxAmount = Math.max(...series.map((item) => item.amount), 0);
-  const safeMax = maxAmount > 0 ? maxAmount : 1;
-
-  return (
-    <div className="stats-day-strip" aria-label="每日支出">
-      {series.map((item) => (
-        <span key={item.key} className="stats-day-bar-wrap" title={`${item.label} ${money(item.amount)}`}>
-          <span
-            className="stats-day-bar"
-            style={{ height: `${Math.max((item.amount / safeMax) * 100, item.amount > 0 ? 12 : 4)}%` }}
-          />
-        </span>
-      ))}
-    </div>
-  );
-}
-
 function SelectedCategoryDetail({ detail }) {
   if (!detail) {
     return (
@@ -174,7 +154,11 @@ function SelectedCategoryDetail({ detail }) {
         </div>
       </div>
 
-      <DayStrip series={detail.series} />
+      <div className="stats-detail-summary">
+        <span>占本期 {percent(detail.share)}</span>
+        <span>日均 {money(detail.dailyAverage)}</span>
+        <span className={detail.changeState}>{getChangeLabel(detail)}</span>
+      </div>
 
       {detail.recentRecords.length > 0 ? (
         <div className="stats-recent-records">

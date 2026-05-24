@@ -95,7 +95,7 @@ The homepage should not feel like it is showing every possible category. The sec
 
 Display up to eight destination buttons.
 
-Preferred default order for expense:
+Preferred sort order for expense, only when these categories already exist:
 
 1. 餐饮
 2. 交通
@@ -108,10 +108,12 @@ Preferred default order for expense:
 
 Implementation rule:
 
-- Use existing user categories first when names match the preferred defaults.
+- Only show existing user categories after storage normalization.
+- Use preferred defaults as a sorting reference, not as categories to create.
 - Include remaining user expense categories until eight total destinations are shown.
 - Keep "其他" last when present.
 - If the user has fewer categories, show what exists and keep the manage button available.
+- Do not invent missing categories such as "咖啡", "订阅", or "日用" when they are not in the user's saved category list.
 
 The design should make each destination easy to tap, but not oversized. Four columns on normal mobile width is acceptable if the 360px layout remains stable.
 
