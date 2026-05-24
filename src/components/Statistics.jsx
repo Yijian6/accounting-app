@@ -1,373 +1,248 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { formatAmount, getDateGroup, getDateKey } from '../utils/format';
-import { getStatisticsViewModel } from '../utils/statistics';
+import { useMemo, useState } from 'react';
+import { getStatisticsInsightViewModel } from '../utils/statistics';
+import { formatAmount } from '../utils/format';
 import './Statistics.css';
 
 const PERIOD_OPTIONS = [
-  { value: 7, label: '近七日' },
-  { value: 30, label: '近三十天' },
+  { value: 7, label: '近7天' },
+  { value: 30, label: '近30天' },
 ];
 
-const WEEKDAY_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+const SEGMENT_COLORS = ['#E8A0BF', '#D9B85F', '#8BB8A8', '#8EA4D2', '#D29A8E', '#B8A6D9'];
 
-function buildCurvePath(points) {
-  if (!points.length) return '';
-  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
-
-  let path = `M ${points[0].x} ${points[0].y}`;
-  for (let i = 0; i < points.length - 1; i += 1) {
-    const c = points[i];
-    const n = points[i + 1];
-    const cx = (c.x + n.x) / 2;
-    path += ` C ${cx} ${c.y}, ${cx} ${n.y}, ${n.x} ${n.y}`;
-  }
-  return path;
+function money(amount) {
+  return `¥${formatAmount(amount || 0)}`;
 }
 
-function getChartGeometry(series, width, height) {
-  const padding = { top: 12, right: 8, bottom: 20, left: 8 };
-  const innerW = width - padding.left - padding.right;
-  const innerH = height - padding.top - padding.bottom;
-  const maxAmt = Math.max(...series.map((d) => d.amount), 0);
-  const safeMax = maxAmt > 0 ? maxAmt : 1;
-
-  const points = series.map((d, i) => ({
-    ...d,
-    x: series.length === 1
-      ? padding.left + innerW / 2
-      : padding.left + (innerW * i) / (series.length - 1),
-    y: padding.top + innerH - (d.amount / safeMax) * innerH,
-  }));
-
-  return { padding, innerWidth: innerW, innerHeight: innerH, baseY: padding.top + innerH, points };
+function percent(value) {
+  return `${Math.round((value || 0) * 100)}%`;
 }
 
-function CurveChart({ series, selectedKey, onSelect }) {
-  const W = 320, H = 220;
-  const { padding, innerWidth, innerHeight, baseY, points } = getChartGeometry(series, W, H);
-  const linePath = buildCurvePath(points);
-  const areaPath = points.length
-    ? `${linePath} L ${points[points.length - 1].x} ${baseY} L ${points[0].x} ${baseY} Z`
-    : '';
-  const peak = points.reduce((p, c) => (!p || c.amount > p.amount ? c : p), null);
-  const last = points[points.length - 1] || null;
-  const sel = points.find((p) => p.key === selectedKey) || null;
-  const ticks = [...new Set([0, Math.floor((series.length - 1) / 2), series.length - 1])].filter((i) => i >= 0);
+function formatSignedMoney(amount) {
+  if (Math.abs(amount || 0) < 0.01) return '持平';
+  return `${amount > 0 ? '+' : '-'}${money(Math.abs(amount))}`;
+}
 
+function getChangeLabel(item) {
+  if (!item) return '';
+  if (item.changeState === 'new') return '本期新增';
+  if (item.changeState === 'none' || item.changeState === 'flat') return '基本持平';
+  return formatSignedMoney(item.changeAmount);
+}
+
+function formatRecordDate(dateString) {
+  const date = new Date(dateString);
+  if (!Number.isFinite(date.getTime())) return '';
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${month}/${day}`;
+}
+
+function PeriodSwitch({ value, onChange }) {
   return (
-    <div className="curve-chart">
-      <svg viewBox={`0 0 ${W} ${H}`} className="curve-chart-svg" preserveAspectRatio="none">
-        {[0, 1, 2].map((lv) => (
-          <line key={lv} x1={padding.left} x2={padding.left + innerWidth}
-            y1={padding.top + (innerHeight * lv) / 2} y2={padding.top + (innerHeight * lv) / 2}
-            className="curve-grid-line" />
-        ))}
-        {areaPath && <path d={areaPath} className="curve-area" />}
-        {linePath && <path d={linePath} className="curve-line" />}
-        {sel && <line x1={sel.x} x2={sel.x} y1={padding.top} y2={baseY} className="curve-focus-line" />}
-        {peak && <circle cx={peak.x} cy={peak.y} r={2.8} className="curve-point peak" />}
-        {last && (
-          <>
-            <circle cx={last.x} cy={last.y} r={3.5} className="curve-point last-halo" />
-            <circle cx={last.x} cy={last.y} r={2.7} className="curve-point last" />
-          </>
-        )}
-        {sel && (
-          <>
-            <circle cx={sel.x} cy={sel.y} r={7} className="curve-point selected-halo" />
-            <circle cx={sel.x} cy={sel.y} r={3.6} className="curve-point selected" />
-          </>
-        )}
-        {points.map((p) => (
-          <circle key={`${p.key}-hit`} cx={p.x} cy={p.y} r={12} className="curve-hit-area"
-            onClick={() => onSelect(p.key)} />
-        ))}
-        {ticks.map((i) => {
-          const p = points[i];
-          return (
-            <text key={p.key} x={p.x} y={H - 6}
-              textAnchor={i === 0 ? 'start' : i === series.length - 1 ? 'end' : 'middle'}
-              className="curve-axis-label">{p.label}</text>
-          );
-        })}
-      </svg>
+    <div className="stats-period-switch" aria-label="统计周期">
+      {PERIOD_OPTIONS.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          className={`stats-period-option ${value === option.value ? 'active' : ''}`}
+          onClick={() => onChange(option.value)}
+        >
+          {option.label}
+        </button>
+      ))}
     </div>
   );
 }
 
-/* ── Compact Stats Card ── */
-
-function CompactStatsCard({ todayAmount, yesterdayAmount, todayLabel, weekSeries, onExpand }) {
-  const [displayAmount, setDisplayAmount] = useState(0);
-  const [drawn, setDrawn] = useState(false);
-  const rafRef = useRef(null);
-
-  // Animated number counting
-  useEffect(() => {
-    const start = performance.now();
-    const dur = 600;
-    const step = (now) => {
-      const t = Math.min((now - start) / dur, 1);
-      const ease = 1 - (1 - t) * (1 - t); // ease-out quad
-      setDisplayAmount(todayAmount * ease);
-      if (t < 1) rafRef.current = requestAnimationFrame(step);
-    };
-    rafRef.current = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [todayAmount]);
-
-  // Trigger sparkline draw animation
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setDrawn(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
-  // Day-over-day comparison
-  let changePercent = 0;
-  let changeDir = 0;
-  if (yesterdayAmount > 0 && todayAmount > 0) {
-    changePercent = Math.round(((todayAmount - yesterdayAmount) / yesterdayAmount) * 100);
-    changeDir = todayAmount >= yesterdayAmount ? 1 : -1;
-  } else if (todayAmount > 0 && yesterdayAmount === 0) {
-    changePercent = 100;
-    changeDir = 1;
-  }
-
-  // Sparkline
-  const SW = 280, SH = 52;
-  const { points } = getChartGeometry(weekSeries, SW, SH);
-  const linePath = buildCurvePath(points);
-  const areaPath = points.length
-    ? `${linePath} L ${points[points.length - 1].x} ${SH} L ${points[0].x} ${SH} Z`
-    : '';
+function CompositionBar({ segments }) {
+  if (!segments.length) return null;
 
   return (
-    <button className="compact-card" onClick={onExpand}>
-      <div className="compact-card-inner">
-        <span className="compact-date">{todayLabel}</span>
-        <span className="compact-amount">¥ {formatAmount(displayAmount)}</span>
-        {yesterdayAmount > 0 && (
-          <span className="compact-compare">
-            昨日 ¥{formatAmount(yesterdayAmount)}
-            {changeDir !== 0 && (
-              <span className={changeDir > 0 ? 'compact-change-up' : 'compact-change-down'}>
-                {' '}{changeDir > 0 ? '↑' : '↓'}{Math.abs(changePercent)}%
+    <div className="stats-composition-bar" aria-label="分类占比">
+      {segments.map((segment, index) => (
+        <span
+          key={segment.name}
+          className="stats-composition-segment"
+          title={`${segment.name} ${percent(segment.share)}`}
+          style={{
+            flexGrow: Math.max(segment.share, 0.02),
+            '--segment-color': SEGMENT_COLORS[index % SEGMENT_COLORS.length],
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function CategoryDestination({ vm, activeName, onSelect }) {
+  if (!vm.topCategories.length) {
+    return (
+      <section className="stats-section stats-empty-section">
+        <h3>分类去向</h3>
+        <p>这段时间还没有可以分析的支出分类。</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="stats-section">
+      <div className="stats-section-head">
+        <div>
+          <h3>钱去了哪里</h3>
+          <p>按分类看清本期支出的主要去向。</p>
+        </div>
+      </div>
+
+      <CompositionBar segments={vm.compositionSegments} />
+
+      <div className="stats-category-list">
+        {vm.topCategories.map((category) => (
+          <button
+            key={category.name}
+            type="button"
+            className={`stats-category-row ${activeName === category.name ? 'active' : ''}`}
+            onClick={() => onSelect(category.name)}
+          >
+            <span className="stats-category-main">
+              <span className="stats-category-name">{category.name}</span>
+              <span className={`stats-category-change ${category.changeState}`}>
+                {getChangeLabel(category)}
               </span>
-            )}
-          </span>
-        )}
-        {yesterdayAmount === 0 && todayAmount > 0 && (
-          <span className="compact-compare">昨日无支出</span>
-        )}
-        <svg viewBox={`0 0 ${SW} ${SH}`} className="compact-sparkline" preserveAspectRatio="none">
-          {areaPath && <path d={areaPath} className="sparkline-area" />}
-          {linePath && (
-            <path d={linePath} className={`sparkline-line ${drawn ? 'drawn' : ''}`} />
-          )}
-        </svg>
-        <span className="compact-expand-hint">
-          详情
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </span>
+            </span>
+            <span className="stats-category-numbers">
+              <strong>{money(category.currentAmount)}</strong>
+              <span>{percent(category.share)}</span>
+            </span>
+          </button>
+        ))}
       </div>
-    </button>
+    </section>
   );
 }
 
-/* ── Stats Detail Modal ── */
+function AttentionCard({ attention }) {
+  return (
+    <section className={`stats-attention-card ${attention.tone}`}>
+      <span className="stats-attention-kicker">值得留意</span>
+      <h3>{attention.title}</h3>
+      <p>{attention.body}</p>
+    </section>
+  );
+}
 
-function StatsDetailModal({ open, onClose, records, categories, tags }) {
-  const [periodDays, setPeriodDays] = useState(7);
-  const [selCat, setSelCat] = useState('all');
-  const [selTag, setSelTag] = useState('all');
-  const [selPointKey, setSelPointKey] = useState('');
+function DayStrip({ series }) {
+  if (!series?.length) return null;
 
-  useEffect(() => {
-    if (open) document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
-  }, [open]);
-
-  const expenseCats = useMemo(() => categories.filter((c) => c.type === 'expense'), [categories]);
-  const catOpts = useMemo(() => [{ id: 'all', name: '全部分类' }, ...expenseCats], [expenseCats]);
-
-  const activeCat = catOpts.some((c) => (c.id === 'all' ? 'all' : c.name) === selCat) ? selCat : 'all';
-
-  const tagOpts = useMemo(() => {
-    if (activeCat === 'all') return [{ id: 'all', name: '全部标签' }];
-    const cat = expenseCats.find((c) => c.name === activeCat);
-    if (!cat) return [{ id: 'all', name: '全部标签' }];
-    return [{ id: 'all', name: '全部标签' }, ...tags.filter((t) => t.categoryId === cat.id)];
-  }, [activeCat, expenseCats, tags]);
-
-  const activeTag = tagOpts.some((t) => (t.id === 'all' ? 'all' : t.name) === selTag) ? selTag : 'all';
-
-  const vm = useMemo(() => getStatisticsViewModel(records, periodDays, activeCat, activeTag), [records, periodDays, activeCat, activeTag]);
-  const selPoint = vm.series.find((p) => p.key === selPointKey) || null;
-
-  if (!open) return null;
+  const maxAmount = Math.max(...series.map((item) => item.amount), 0);
+  const safeMax = maxAmount > 0 ? maxAmount : 1;
 
   return (
-    <div className="stats-detail-overlay" onClick={onClose}>
-      <div className="stats-detail-modal" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="stats-detail-header">
-          <span className="stats-detail-title">支出趋势</span>
-          <button className="stats-detail-close" onClick={onClose}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="stats-detail-body">
-          {/* Filters */}
-          <div className="stats-filters">
-            <div className="stats-periods">
-              {PERIOD_OPTIONS.map((opt) => (
-                <button key={opt.value}
-                  className={`stats-period-btn ${periodDays === opt.value ? 'active' : ''}`}
-                  onClick={() => { setPeriodDays(opt.value); setSelPointKey(''); }}>
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-            <div className="stats-tags-scroll">
-              <div className="stats-tags">
-                {catOpts.map((c) => {
-                  const v = c.id === 'all' ? 'all' : c.name;
-                  return (
-                    <button key={c.id}
-                      className={`stats-tag-btn ${activeCat === v ? 'active' : ''}`}
-                      onClick={() => { setSelCat(v); setSelTag('all'); setSelPointKey(''); }}>
-                      {c.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            {activeCat !== 'all' && (
-              <>
-                <div className="stats-tags-scroll">
-                  <div className="stats-tags">
-                    {tagOpts.map((t) => {
-                      const v = t.id === 'all' ? 'all' : t.name;
-                      return (
-                        <button key={t.id}
-                          className={`stats-tag-btn ${activeTag === v ? 'active' : ''}`}
-                          onClick={() => { setSelTag(v); setSelPointKey(''); }}>
-                          {t.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                {tagOpts.length === 1 && (
-                  <span className="stats-filter-hint">这个分类下还没有已归属的细分标签。</span>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Summary + Chart */}
-          <div className="stats-chart-section">
-            <div className="stats-chart-head">
-              <div className="stats-summary-grid">
-                <div className="stats-summary">
-                  <strong className="stats-summary-amount">{formatAmount(vm.totalAmount)}</strong>
-                  <span className="stats-summary-caption">{vm.filterLabel} 总支出</span>
-                </div>
-                <div className="stats-summary">
-                  <strong className="stats-summary-amount stats-summary-amount-secondary">
-                    {formatAmount(vm.averageAmount)}
-                  </strong>
-                  <span className="stats-summary-caption">日均（{vm.activeDays} 天）</span>
-                </div>
-              </div>
-              {selPoint && (
-                <div className="chart-readout">
-                  <strong>{selPoint.label}</strong>
-                  <span>{formatAmount(selPoint.amount)}</span>
-                </div>
-              )}
-            </div>
-            {vm.hasRecords ? (
-              <CurveChart series={vm.series} selectedKey={selPointKey} onSelect={setSelPointKey} />
-            ) : (
-              <div className="stats-empty">
-                <h3>当前筛选条件下没有支出记录</h3>
-                <p>换一个时间范围、分类或细分标签后，这里会显示对应花费曲线。</p>
-              </div>
-            )}
-          </div>
-
-          {/* Recent records */}
-          <div className="stats-recent-section">
-            {vm.recentRecords.length > 0 ? (
-              <div className="detail-records">
-                {(() => {
-                  let ck = '';
-                  return vm.recentRecords.map((r) => {
-                    const k = getDateKey(r.datetime);
-                    const items = [];
-                    if (k !== ck) {
-                      ck = k;
-                      items.push(<div key={`h-${k}`} className="date-group-header"><span>{getDateGroup(r.datetime)}</span></div>);
-                    }
-                    items.push(
-                      <div key={r.id} className="detail-record">
-                        <span className="detail-record-category">{r.note || r.category}</span>
-                        <strong className="detail-record-amount">{formatAmount(r.amount)}</strong>
-                      </div>
-                    );
-                    return items;
-                  });
-                })()}
-              </div>
-            ) : (
-              <div className="stats-empty stats-empty-compact"><p>当前筛选条件下没有最近记录。</p></div>
-            )}
-          </div>
-        </div>
-      </div>
+    <div className="stats-day-strip" aria-label="每日支出">
+      {series.map((item) => (
+        <span key={item.key} className="stats-day-bar-wrap" title={`${item.label} ${money(item.amount)}`}>
+          <span
+            className="stats-day-bar"
+            style={{ height: `${Math.max((item.amount / safeMax) * 100, item.amount > 0 ? 12 : 4)}%` }}
+          />
+        </span>
+      ))}
     </div>
   );
 }
 
-/* ── Main Statistics ── */
+function SelectedCategoryDetail({ detail }) {
+  if (!detail) {
+    return (
+      <section className="stats-detail-card">
+        <h3>分类细节</h3>
+        <p className="stats-muted">记录几笔支出后，这里会展示最主要分类的趋势和最近记录。</p>
+      </section>
+    );
+  }
 
-export default function Statistics({ records, categories, tags }) {
-  const [showDetail, setShowDetail] = useState(false);
+  return (
+    <section className="stats-detail-card">
+      <div className="stats-detail-head">
+        <div>
+          <span className="stats-detail-kicker">当前分类</span>
+          <h3>{detail.name}</h3>
+        </div>
+        <div className="stats-detail-total">
+          <strong>{money(detail.currentAmount)}</strong>
+          <span>日均 {money(detail.dailyAverage)}</span>
+        </div>
+      </div>
 
-  const weekVm = useMemo(() => getStatisticsViewModel(records, 7, 'all', 'all'), [records]);
+      <DayStrip series={detail.series} />
 
-  const lastPoint = weekVm.series[weekVm.series.length - 1];
-  const prevPoint = weekVm.series[weekVm.series.length - 2];
+      {detail.recentRecords.length > 0 ? (
+        <div className="stats-recent-records">
+          {detail.recentRecords.map((record) => (
+            <div key={record.id} className="stats-recent-row">
+              <span>
+                <strong>{record.note || record.category}</strong>
+                <small>{formatRecordDate(record.datetime)}</small>
+              </span>
+              <b>{money(record.amount)}</b>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="stats-muted">这个分类在当前周期没有支出记录。</p>
+      )}
+    </section>
+  );
+}
 
-  const todayLabel = (() => {
-    if (!lastPoint) return '';
-    const d = new Date(lastPoint.key);
-    return `${d.getMonth() + 1}月${d.getDate()}日 ${WEEKDAY_NAMES[d.getDay()]}`;
-  })();
+export default function Statistics({ records }) {
+  const [periodDays, setPeriodDays] = useState(7);
+  const [selectedCategory, setSelectedCategory] = useState('');
+
+  const vm = useMemo(
+    () => getStatisticsInsightViewModel(records, periodDays, selectedCategory),
+    [records, periodDays, selectedCategory]
+  );
+
+  const activeCategoryName = vm.selectedCategoryDetail?.name || '';
 
   return (
     <div className="statistics">
-      <CompactStatsCard
-        todayAmount={lastPoint?.amount || 0}
-        yesterdayAmount={prevPoint?.amount || 0}
-        todayLabel={todayLabel}
-        weekSeries={weekVm.series}
-        onExpand={() => setShowDetail(true)}
+      <div className="stats-topbar">
+        <div>
+          <span className="stats-page-kicker">统计</span>
+          <h2>钱到底去了哪里</h2>
+        </div>
+        <PeriodSwitch value={periodDays} onChange={setPeriodDays} />
+      </div>
+
+      <section className="stats-insight-card">
+        <div className="stats-insight-copy">
+          <span>{vm.periodLabel}</span>
+          <h3>{vm.insightTitle}</h3>
+          <p>{vm.insightBody}</p>
+        </div>
+        <div className="stats-insight-total">
+          <span>本期支出</span>
+          <strong>{money(vm.currentTotal)}</strong>
+          <small className={vm.changeState}>{getChangeLabel(vm)}</small>
+        </div>
+      </section>
+
+      <CategoryDestination
+        vm={vm}
+        activeName={activeCategoryName}
+        onSelect={setSelectedCategory}
       />
-      <StatsDetailModal
-        open={showDetail}
-        onClose={() => setShowDetail(false)}
-        records={records}
-        categories={categories}
-        tags={tags}
-      />
+
+      {vm.hasRecords && <AttentionCard attention={vm.attention} />}
+
+      <section className="stats-fixed-card">
+        <span>固定支出</span>
+        <p>{vm.fixedExpenseSummary.description}</p>
+      </section>
+
+      <SelectedCategoryDetail detail={vm.selectedCategoryDetail} />
     </div>
   );
 }
