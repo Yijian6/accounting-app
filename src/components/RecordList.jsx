@@ -137,6 +137,7 @@ export default function RecordList({
       tags: [...record.tags],
       note: record.note || '',
       datetime: toDatetimeLocal(record.datetime),
+      recurrence: record.recurrence || null,
     });
     setShowMoreEdit(false);
   };
@@ -211,6 +212,7 @@ export default function RecordList({
       tags: nextTags,
       amount: parseFloat(editForm.amount),
       datetime: new Date(editForm.datetime).toISOString(),
+      recurrence: editForm.type === 'expense' ? editForm.recurrence : null,
     });
     setEditingRecord(null);
   };
@@ -555,6 +557,39 @@ export default function RecordList({
                   value={editForm.datetime}
                   onChange={(event) => setEditForm((form) => ({ ...form, datetime: event.target.value }))}
                 />
+                {editForm.type === 'expense' && (
+                  <div className="edit-fixed-section">
+                    <label className="edit-fixed-toggle">
+                      <input
+                        type="checkbox"
+                        checked={!!editForm.recurrence}
+                        onChange={(event) => setEditForm((form) => ({
+                          ...form,
+                          recurrence: event.target.checked ? { type: form.recurrence?.type || 'monthly' } : null,
+                        }))}
+                      />
+                      <span>这是固定支出</span>
+                    </label>
+                    {editForm.recurrence && (
+                      <div className="edit-recurrence-switch">
+                        <button
+                          type="button"
+                          className={editForm.recurrence.type === 'monthly' ? 'active' : ''}
+                          onClick={() => setEditForm((form) => ({ ...form, recurrence: { type: 'monthly' } }))}
+                        >
+                          月
+                        </button>
+                        <button
+                          type="button"
+                          className={editForm.recurrence.type === 'yearly' ? 'active' : ''}
+                          onClick={() => setEditForm((form) => ({ ...form, recurrence: { type: 'yearly' } }))}
+                        >
+                          年
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

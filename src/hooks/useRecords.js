@@ -28,6 +28,18 @@ function normalizeText(value) {
   return LEGACY_TEXT_MAP[value] || value;
 }
 
+function normalizeRecurrence(value) {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  if (value.type !== 'monthly' && value.type !== 'yearly') {
+    return null;
+  }
+
+  return { type: value.type };
+}
+
 function normalizeRecord(record) {
   if (!record || typeof record !== 'object') {
     return null;
@@ -43,6 +55,7 @@ function normalizeRecord(record) {
     tags: Array.isArray(record.tags) ? record.tags.map(normalizeText).filter(Boolean) : [],
     note: typeof record.note === 'string' ? record.note : '',
     datetime: record.datetime || new Date().toISOString(),
+    recurrence: record.type === 'income' ? null : normalizeRecurrence(record.recurrence),
   };
 }
 
@@ -69,6 +82,7 @@ export function useRecords() {
       tags: data.tags || [],
       note: data.note || '',
       datetime: data.datetime || new Date().toISOString(),
+      recurrence: data.recurrence || null,
     });
 
     setRecords((prev) => [record, ...prev]);
