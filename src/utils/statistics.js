@@ -57,6 +57,49 @@ function isDateInRange(date, range) {
   return date >= range.start && date < range.endExclusive;
 }
 
+function maxDate(left, right) {
+  return left > right ? left : right;
+}
+
+function minDate(left, right) {
+  return left < right ? left : right;
+}
+
+function getDaysBetween(start, endExclusive) {
+  return Math.max(0, Math.round((startOfDay(endExclusive) - startOfDay(start)) / DAY_MS));
+}
+
+function isFixedExpenseRecord(record) {
+  return record?.recurrence?.type === 'monthly' || record?.recurrence?.type === 'yearly';
+}
+
+function getServiceRange(record) {
+  const paymentDate = parseRecordDate(record);
+  if (!paymentDate || !isFixedExpenseRecord(record)) {
+    return null;
+  }
+
+  const start = startOfDay(paymentDate);
+
+  if (record.recurrence.type === 'monthly') {
+    return {
+      start: new Date(start.getFullYear(), start.getMonth(), 1),
+      endExclusive: new Date(start.getFullYear(), start.getMonth() + 1, 1),
+    };
+  }
+
+  return {
+    start,
+    endExclusive: addDays(start, 365),
+  };
+}
+
+function getOverlapDays(leftRange, rightRange) {
+  const start = maxDate(leftRange.start, rightRange.start);
+  const endExclusive = minDate(leftRange.endExclusive, rightRange.endExclusive);
+  return getDaysBetween(start, endExclusive);
+}
+
 function isExpenseRecord(record) {
   if (record?.type !== 'expense' || !record?.datetime || !record?.category) {
     return false;
@@ -103,18 +146,44 @@ function buildPeriodSnapshot(records, range, periodDays) {
   const seriesByKey = new Map(series.map((item) => [item.key, item]));
   const categories = new Map();
   const periodRecords = [];
+  const periodRecordIds = new Set();
+  const fixedRecordIds = new Set();
+  let fixedTotal = 0;
 
   records.forEach((record) => {
     const date = parseRecordDate(record);
-    if (!date || !isDateInRange(date, range)) return;
+    if (!date) return;
 
     const amount = Number(record.amount);
     const categoryName = record.category;
-    const dayKey = getDateKey(date);
-    const bucket = seriesByKey.get(dayKey);
+    const serviceRange = getServiceRange(record);
+    const contributions = [];
 
-    if (bucket) {
-      bucket.amount += amount;
+    if (serviceRange) {
+      const serviceDays = getDaysBetween(serviceRange.start, serviceRange.endExclusive);
+      const overlapDays = getOverlapDays(serviceRange, range);
+      if (serviceDays <= 0 || overlapDays <= 0) return;
+
+      const dailyAmount = amount / serviceDays;
+      fixedRecordIds.add(record.id);
+      fixedTotal += dailyAmount * overlapDays;
+
+      series.forEach((item) => {
+        const day = new Date(item.key);
+        if (day >= serviceRange.start && day < serviceRange.endExclusive) {
+          contributions.push({ key: item.key, amount: dailyAmount });
+        }
+      });
+    } else {
+      if (!isDateInRange(date, range)) return;
+      contributions.push({ key: getDateKey(date), amount });
+    }
+
+    if (!contributions.length) return;
+
+    if (!periodRecordIds.has(record.id)) {
+      periodRecordIds.add(record.id);
+      periodRecords.push(record);
     }
 
     if (!categories.has(categoryName)) {
@@ -127,13 +196,20 @@ function buildPeriodSnapshot(records, range, periodDays) {
     }
 
     const category = categories.get(categoryName);
-    category.amount += amount;
-    const categoryDay = category.series.find((item) => item.key === dayKey);
-    if (categoryDay) {
-      categoryDay.amount += amount;
-    }
+    contributions.forEach((contribution) => {
+      const bucket = seriesByKey.get(contribution.key);
+      if (bucket) {
+        bucket.amount += contribution.amount;
+      }
+
+      category.amount += contribution.amount;
+      const categoryDay = category.series.find((item) => item.key === contribution.key);
+      if (categoryDay) {
+        categoryDay.amount += contribution.amount;
+      }
+    });
+
     category.recentRecords.push(record);
-    periodRecords.push(record);
   });
 
   const sortedRecords = periodRecords.sort((left, right) => (
@@ -151,6 +227,11 @@ function buildPeriodSnapshot(records, range, periodDays) {
     series,
     categories,
     records: sortedRecords,
+    fixedExpenseSummary: {
+      total: fixedTotal,
+      dailyAverage: periodDays > 0 ? fixedTotal / periodDays : 0,
+      count: fixedRecordIds.size,
+    },
   };
 }
 
@@ -286,12 +367,23 @@ function buildSelectedCategoryDetail(categoryItems, selectedCategory) {
   };
 }
 
-function buildFixedExpenseSummary() {
+function buildFixedExpenseSummary(snapshot, periodLabel) {
+  const { total, dailyAverage, count } = snapshot.fixedExpenseSummary;
+
+  if (!count) {
+    return {
+      total: 0,
+      dailyAverage: 0,
+      count: 0,
+      description: '本期没有归属进来的固定支出。',
+    };
+  }
+
   return {
-    total: 0,
-    dailyAverage: 0,
-    count: 0,
-    description: '当前记录都按付款日计入；固定支出归属入口已预留。',
+    total,
+    dailyAverage,
+    count,
+    description: `${periodLabel}固定支出归属 ${formatMoney(total)}，日均 ${formatMoney(dailyAverage)}，来自 ${count} 笔固定支出。`,
   };
 }
 
@@ -343,7 +435,7 @@ export function getStatisticsInsightViewModel(
     compositionSegments: buildCompositionSegments(categoryItems, currentSnapshot.total),
     attention: buildAttention(categoryItems, periodLabel, previousPeriodLabel),
     selectedCategoryDetail,
-    fixedExpenseSummary: buildFixedExpenseSummary(),
+    fixedExpenseSummary: buildFixedExpenseSummary(currentSnapshot, periodLabel),
     series: currentSnapshot.series,
     recentRecords: currentSnapshot.records.slice(0, 8),
     hasRecords: currentSnapshot.records.length > 0,

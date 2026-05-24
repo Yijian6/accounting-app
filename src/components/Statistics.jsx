@@ -97,15 +97,19 @@ function CategoryDestination({ vm, activeName, onSelect }) {
       <CompositionBar segments={vm.compositionSegments} />
 
       <div className="stats-category-list">
-        {vm.topCategories.map((category) => (
+        {vm.topCategories.map((category, index) => (
           <button
             key={category.name}
             type="button"
             className={`stats-category-row ${activeName === category.name ? 'active' : ''}`}
+            style={{ '--category-color': SEGMENT_COLORS[index % SEGMENT_COLORS.length] }}
             onClick={() => onSelect(category.name)}
           >
             <span className="stats-category-main">
-              <span className="stats-category-name">{category.name}</span>
+              <span className="stats-category-name-line">
+                <span className="stats-category-color" aria-hidden="true" />
+                <span className="stats-category-name">{category.name}</span>
+              </span>
               <span className={`stats-category-change ${category.changeState}`}>
                 {getChangeLabel(category)}
               </span>
