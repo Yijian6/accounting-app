@@ -13,6 +13,8 @@ This redesign focuses on two user questions only:
 
 Everything else is out of scope for this pass: budgeting, monthly reports, net worth, income analysis, reminders, and deep accounting summaries.
 
+This page should use the product principle in `docs/product/expense-attribution-principles.md`: the record page preserves payment-date truth, while the statistics page should answer spending-attribution truth.
+
 ## Product Goal
 
 When the user opens the statistics tab, they should see a plain-language insight first, then the numbers and category breakdown that support it. The page should feel like a quiet personal finance assistant, not a chart gallery.
@@ -150,6 +152,26 @@ Only records with `type === "expense"` count toward the statistics page. Invalid
 
 No storage migration is needed.
 
+### Expense Attribution
+
+Statistics should eventually distinguish between immediate expenses and fixed recurring expenses.
+
+Immediate expenses:
+
+- Count toward statistics on the payment date.
+- Use the existing record amount directly.
+
+Fixed or recurring expenses:
+
+- Keep the original payment date and full amount in the record page.
+- Count toward statistics across the service period.
+- Use attributed amount for period totals, category share, trend comparison, and attention callouts.
+- Can be surfaced as a supporting "fixed expenses" insight, such as daily baseline cost.
+
+Example: a GPT subscription of CNY 140 paid on 2026-05-01 for the 2026-05 calendar month should remain a CNY 140 record on 2026-05-01, but statistics should attribute about CNY 4.52 per day across May.
+
+For the first implementation, this can be introduced after the visual statistics redesign if the current storage model does not yet capture recurrence metadata. The calculation layer should still be designed so attributed amounts can replace raw payment-date amounts without rewriting the whole page.
+
 ## View Model Requirements
 
 Create or replace the statistics view model so the component receives data that is already shaped for display.
@@ -169,6 +191,7 @@ The view model should provide:
 - `compositionSegments`
 - `attention`
 - `selectedCategoryDetail`
+- `fixedExpenseSummary`, when fixed-expense attribution exists
 
 Each category item should include:
 
@@ -183,6 +206,8 @@ Each category item should include:
 - `recentRecords`
 
 The calculation layer must be pure functions so it can be tested without rendering React.
+
+When fixed-expense attribution exists, `currentAmount`, `previousAmount`, `currentTotal`, and `previousTotal` should represent attributed spending for the selected period. Raw payment-date cash flow can be shown as secondary context only.
 
 ## Visual Direction
 
@@ -259,6 +284,8 @@ Calculation tests or focused runtime checks should cover:
 - Last 7 days vs previous 7 days.
 - Last 30 days vs previous 30 days.
 - Invalid records ignored safely.
+- Fixed recurring expense attributed across a service period.
+- Fixed recurring expense partially overlapping the selected period.
 
 Manual UI verification should cover:
 
@@ -276,5 +303,6 @@ Manual UI verification should cover:
 - The first screen also communicates whether spending is up, down, flat, new, or absent compared with the previous equal-length period.
 - The page no longer relies on a decorative sparkline as the primary meaning.
 - The user can inspect a selected category inline.
+- The statistics calculation is compatible with the expense attribution principle for fixed recurring expenses.
 - The design remains visually aligned with the app: refined, quiet, mobile-first, and not dashboard-heavy.
 - `npm run lint` and `npm run build` pass.
