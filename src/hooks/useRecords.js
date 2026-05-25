@@ -55,7 +55,7 @@ function normalizeRecord(record) {
     tags: Array.isArray(record.tags) ? record.tags.map(normalizeText).filter(Boolean) : [],
     note: typeof record.note === 'string' ? record.note : '',
     datetime: record.datetime || new Date().toISOString(),
-    recurrence: record.type === 'income' ? null : normalizeRecurrence(record.recurrence),
+    recurrence: normalizeRecurrence(record.recurrence),
   };
 }
 

@@ -38,8 +38,9 @@ function normalizeCategory(category) {
 
   const id = typeof category.id === 'string' && category.id ? category.id : generateId();
   const fallbackName = CATEGORY_ID_NAME_MAP[id];
-  const mappedName = LEGACY_CATEGORY_NAME_MAP[category.name];
-  const name = fallbackName || mappedName || category.name;
+  const rawName = typeof category.name === 'string' ? category.name : '';
+  const mappedName = LEGACY_CATEGORY_NAME_MAP[rawName];
+  const name = mappedName || rawName || fallbackName;
 
   if (typeof name !== 'string' || !name.trim()) {
     return null;

@@ -47,7 +47,7 @@ export default function RecordForm({
   const [note, setNote] = useState('');
   const [datetime, setDatetime] = useState(toDatetimeLocal());
   const [showMore, setShowMore] = useState(false);
-  const [isFixedExpense, setIsFixedExpense] = useState(false);
+  const [isFixedRecurring, setIsFixedRecurring] = useState(false);
   const [recurrenceType, setRecurrenceType] = useState('monthly');
 
   const filteredCategories = useMemo(
@@ -77,7 +77,7 @@ export default function RecordForm({
     setNote('');
     setDatetime(toDatetimeLocal());
     setShowMore(false);
-    setIsFixedExpense(false);
+    setIsFixedRecurring(false);
     setRecurrenceType('monthly');
   };
 
@@ -94,7 +94,7 @@ export default function RecordForm({
       tags: type === 'expense' ? selectedTags : [],
       note,
       datetime: new Date(datetime).toISOString(),
-      recurrence: type === 'expense' && isFixedExpense ? { type: recurrenceType } : null,
+      recurrence: isFixedRecurring ? { type: recurrenceType } : null,
     });
 
     resetAfterSubmit();
@@ -104,10 +104,6 @@ export default function RecordForm({
     setType(nextType);
     setCategory('');
     setSelectedTags([]);
-    if (nextType === 'income') {
-      setIsFixedExpense(false);
-      setRecurrenceType('monthly');
-    }
   };
 
   const handleCategoryChange = (nextCategory) => {
@@ -202,7 +198,7 @@ export default function RecordForm({
           onClick={() => setShowMore(!showMore)}
         >
           <span>{showMore ? '收起更多' : '更多'}</span>
-          <small>备注 / 时间 / 固定支出</small>
+          <small>备注 / 时间 / 固定收支</small>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="6 9 12 15 18 9" />
           </svg>
@@ -251,39 +247,41 @@ export default function RecordForm({
               />
             </div>
 
-            {type === 'expense' && (
-              <div className="quick-fixed-box">
-                <label className="quick-fixed-toggle">
-                  <input
-                    type="checkbox"
-                    checked={isFixedExpense}
-                    onChange={(event) => setIsFixedExpense(event.target.checked)}
-                  />
-                  <span>这是固定支出</span>
-                </label>
-                {(isSubscriptionLike || isFixedExpense) && (
-                  <p>{isSubscriptionLike ? '订阅通常适合标记为固定支出。' : '固定支出会在后续统计中按周期归属。'}</p>
-                )}
-                {isFixedExpense && (
-                  <div className="quick-recurrence-switch">
-                    <button
-                      type="button"
-                      className={recurrenceType === 'monthly' ? 'active' : ''}
-                      onClick={() => setRecurrenceType('monthly')}
-                    >
-                      月
-                    </button>
-                    <button
-                      type="button"
-                      className={recurrenceType === 'yearly' ? 'active' : ''}
-                      onClick={() => setRecurrenceType('yearly')}
-                    >
-                      年
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+            <div className={`quick-fixed-box ${type}`}>
+              <label className="quick-fixed-toggle">
+                <input
+                  type="checkbox"
+                  checked={isFixedRecurring}
+                  onChange={(event) => setIsFixedRecurring(event.target.checked)}
+                />
+                <span>{type === 'income' ? '这是固定收入' : '这是固定支出'}</span>
+              </label>
+              {(isSubscriptionLike || isFixedRecurring) && (
+                <p>
+                  {type === 'income'
+                    ? '固定收入会按周期分摊，让每日净额更接近真实生活。'
+                    : (isSubscriptionLike ? '订阅通常适合标记为固定支出。' : '固定支出会在统计中按周期归属。')}
+                </p>
+              )}
+              {isFixedRecurring && (
+                <div className="quick-recurrence-switch">
+                  <button
+                    type="button"
+                    className={recurrenceType === 'monthly' ? 'active' : ''}
+                    onClick={() => setRecurrenceType('monthly')}
+                  >
+                    月
+                  </button>
+                  <button
+                    type="button"
+                    className={recurrenceType === 'yearly' ? 'active' : ''}
+                    onClick={() => setRecurrenceType('yearly')}
+                  >
+                    年
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </section>

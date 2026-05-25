@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Modal from './Modal';
 import TagInput from './TagInput';
-import { formatAmount, toDatetimeLocal, isToday, isThisMonth, getDateGroup, getDateKey } from '../utils/format';
+import { formatAmount, toDatetimeLocal, getDateGroup, getDateKey } from '../utils/format';
 import { exportBackupJSON, exportCSV, exportJSON } from '../utils/export';
 import { formatBackupSummary, parseBackupFileContent } from '../utils/backup';
+import { getRecordAmountInRange } from '../utils/statistics';
 import {
   buildSyncPayload,
   fetchSyncStatus,
@@ -166,8 +167,9 @@ function recordMatchesSearch(record, query) {
   }
 
   const amount = Number(record.amount);
+  const recurrenceLabel = record.type === 'income' ? '固定收入' : '固定支出';
   const recurrenceLabels = record.recurrence
-    ? ['固定', '固定支出', record.recurrence.type === 'yearly' ? '年' : '月']
+    ? ['固定', recurrenceLabel, record.recurrence.type === 'yearly' ? '年' : '月']
     : [];
   const fields = [
     record.category,
@@ -192,9 +194,32 @@ function getRecordSearchMeta(record) {
     meta.push(record.note);
   }
   if (record.recurrence) {
-    meta.push(record.recurrence.type === 'yearly' ? '固定支出 · 年' : '固定支出 · 月');
+    const label = record.type === 'income' ? '固定收入' : '固定支出';
+    meta.push(record.recurrence.type === 'yearly' ? `${label} · 年` : `${label} · 月`);
   }
   return meta.join(' · ');
+}
+
+function getTodayRange() {
+  const start = startOfDay(new Date());
+  return {
+    start,
+    endExclusive: new Date(start.getTime() + 24 * 60 * 60 * 1000),
+  };
+}
+
+function getThisMonthRange() {
+  const now = new Date();
+  return {
+    start: new Date(now.getFullYear(), now.getMonth(), 1),
+    endExclusive: new Date(now.getFullYear(), now.getMonth() + 1, 1),
+  };
+}
+
+function sumRecordsInRange(records, type, range) {
+  return records
+    .filter((record) => record.type === type)
+    .reduce((sum, record) => sum + getRecordAmountInRange(record, range), 0);
 }
 
 export default function RecordList({
@@ -262,19 +287,13 @@ export default function RecordList({
     };
   }, [clearLongPressTimer, deleteTargetId]);
 
-  const todayExpense = records
-    .filter((record) => record.type === 'expense' && isToday(record.datetime))
-    .reduce((sum, record) => sum + record.amount, 0);
-  const todayIncome = records
-    .filter((record) => record.type === 'income' && isToday(record.datetime))
-    .reduce((sum, record) => sum + record.amount, 0);
+  const todayRange = getTodayRange();
+  const monthRange = getThisMonthRange();
+  const todayExpense = sumRecordsInRange(records, 'expense', todayRange);
+  const todayIncome = sumRecordsInRange(records, 'income', todayRange);
   const todayNet = todayIncome - todayExpense;
-  const monthExpense = records
-    .filter((record) => record.type === 'expense' && isThisMonth(record.datetime))
-    .reduce((sum, record) => sum + record.amount, 0);
-  const monthIncome = records
-    .filter((record) => record.type === 'income' && isThisMonth(record.datetime))
-    .reduce((sum, record) => sum + record.amount, 0);
+  const monthExpense = sumRecordsInRange(records, 'expense', monthRange);
+  const monthIncome = sumRecordsInRange(records, 'income', monthRange);
   const monthNet = monthIncome - monthExpense;
 
   const normalizedSearchQuery = normalizeSearchText(searchQuery);
@@ -403,7 +422,7 @@ export default function RecordList({
       tags: nextTags,
       amount: parseFloat(editForm.amount),
       datetime: new Date(editForm.datetime).toISOString(),
-      recurrence: editForm.type === 'expense' ? editForm.recurrence : null,
+      recurrence: editForm.recurrence || null,
     });
     setEditingRecord(null);
   };
@@ -817,39 +836,37 @@ export default function RecordList({
                   value={editForm.datetime}
                   onChange={(event) => setEditForm((form) => ({ ...form, datetime: event.target.value }))}
                 />
-                {editForm.type === 'expense' && (
-                  <div className="edit-fixed-section">
-                    <label className="edit-fixed-toggle">
-                      <input
-                        type="checkbox"
-                        checked={!!editForm.recurrence}
-                        onChange={(event) => setEditForm((form) => ({
-                          ...form,
-                          recurrence: event.target.checked ? { type: form.recurrence?.type || 'monthly' } : null,
-                        }))}
-                      />
-                      <span>这是固定支出</span>
-                    </label>
-                    {editForm.recurrence && (
-                      <div className="edit-recurrence-switch">
-                        <button
-                          type="button"
-                          className={editForm.recurrence.type === 'monthly' ? 'active' : ''}
-                          onClick={() => setEditForm((form) => ({ ...form, recurrence: { type: 'monthly' } }))}
-                        >
-                          月
-                        </button>
-                        <button
-                          type="button"
-                          className={editForm.recurrence.type === 'yearly' ? 'active' : ''}
-                          onClick={() => setEditForm((form) => ({ ...form, recurrence: { type: 'yearly' } }))}
-                        >
-                          年
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                <div className={`edit-fixed-section ${editForm.type}`}>
+                  <label className="edit-fixed-toggle">
+                    <input
+                      type="checkbox"
+                      checked={!!editForm.recurrence}
+                      onChange={(event) => setEditForm((form) => ({
+                        ...form,
+                        recurrence: event.target.checked ? { type: form.recurrence?.type || 'monthly' } : null,
+                      }))}
+                    />
+                    <span>{editForm.type === 'income' ? '这是固定收入' : '这是固定支出'}</span>
+                  </label>
+                  {editForm.recurrence && (
+                    <div className="edit-recurrence-switch">
+                      <button
+                        type="button"
+                        className={editForm.recurrence.type === 'monthly' ? 'active' : ''}
+                        onClick={() => setEditForm((form) => ({ ...form, recurrence: { type: 'monthly' } }))}
+                      >
+                        月
+                      </button>
+                      <button
+                        type="button"
+                        className={editForm.recurrence.type === 'yearly' ? 'active' : ''}
+                        onClick={() => setEditForm((form) => ({ ...form, recurrence: { type: 'yearly' } }))}
+                      >
+                        年
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

@@ -490,6 +490,11 @@
   background: var(--color-primary-light);
 }
 
+.edit-fixed-section.income {
+  border-color: rgba(168, 213, 186, 0.34);
+  background: rgba(244, 250, 246, 0.88);
+}
+
 .edit-fixed-toggle {
   display: flex;
   align-items: center;

@@ -30,7 +30,14 @@ function normalizeRecord(record) {
     tags,
     note,
     datetime: datetime.toISOString(),
+    recurrence: normalizeRecurrence(record.recurrence),
   };
+}
+
+function normalizeRecurrence(value) {
+  if (!isObject(value)) return null;
+  if (value.type !== 'monthly' && value.type !== 'yearly') return null;
+  return { type: value.type };
 }
 
 function normalizeCategory(category) {

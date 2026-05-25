@@ -38,6 +38,16 @@ function formatRecordDate(dateString) {
   return `${month}/${day}`;
 }
 
+function getRecordDestinationTitle(record) {
+  if (Array.isArray(record.tags) && record.tags.length > 0) {
+    return record.tags.join(' / ');
+  }
+  if (record.note) {
+    return record.note;
+  }
+  return '未标记';
+}
+
 function PeriodSwitch({ value, onChange }) {
   return (
     <div className="stats-period-switch" aria-label="统计周期">
@@ -169,7 +179,7 @@ function SelectedCategoryDetail({ detail }) {
           {detail.recentRecords.map((record) => (
             <div key={record.id} className="stats-recent-row">
               <span>
-                <strong>{record.note || record.category}</strong>
+                <strong>{getRecordDestinationTitle(record)}</strong>
                 <small>{formatRecordDate(record.datetime)}</small>
               </span>
               <b>{money(record.amount)}</b>
@@ -226,8 +236,9 @@ export default function Statistics({ records }) {
       {vm.hasRecords && <AttentionCard attention={vm.attention} />}
 
       <section className="stats-fixed-card">
-        <span>固定支出</span>
+        <span>固定收支</span>
         <p>{vm.fixedExpenseSummary.description}</p>
+        <p>{vm.fixedIncomeSummary.description}</p>
       </section>
 
       <SelectedCategoryDetail detail={vm.selectedCategoryDetail} />

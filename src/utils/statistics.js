@@ -69,13 +69,13 @@ function getDaysBetween(start, endExclusive) {
   return Math.max(0, Math.round((startOfDay(endExclusive) - startOfDay(start)) / DAY_MS));
 }
 
-function isFixedExpenseRecord(record) {
+function isRecurringRecord(record) {
   return record?.recurrence?.type === 'monthly' || record?.recurrence?.type === 'yearly';
 }
 
 function getServiceRange(record) {
   const paymentDate = parseRecordDate(record);
-  if (!paymentDate || !isFixedExpenseRecord(record)) {
+  if (!paymentDate || !isRecurringRecord(record)) {
     return null;
   }
 
@@ -100,8 +100,8 @@ function getOverlapDays(leftRange, rightRange) {
   return getDaysBetween(start, endExclusive);
 }
 
-function isExpenseRecord(record) {
-  if (record?.type !== 'expense' || !record?.datetime || !record?.category) {
+function isFlowRecord(record, type) {
+  if (record?.type !== type || !record?.datetime || !record?.category) {
     return false;
   }
 
@@ -111,6 +111,26 @@ function isExpenseRecord(record) {
   }
 
   return !!parseRecordDate(record);
+}
+
+export function getRecordAmountInRange(record, range) {
+  if (!record || !range) return 0;
+
+  const date = parseRecordDate(record);
+  if (!date) return 0;
+
+  const amount = Number(record.amount);
+  if (!Number.isFinite(amount) || amount <= 0) return 0;
+
+  const serviceRange = getServiceRange(record);
+  if (serviceRange) {
+    const serviceDays = getDaysBetween(serviceRange.start, serviceRange.endExclusive);
+    const overlapDays = getOverlapDays(serviceRange, range);
+    if (serviceDays <= 0 || overlapDays <= 0) return 0;
+    return (amount / serviceDays) * overlapDays;
+  }
+
+  return isDateInRange(date, range) ? amount : 0;
 }
 
 function getChangeState(currentAmount, previousAmount) {
@@ -154,7 +174,6 @@ function buildPeriodSnapshot(records, range, periodDays) {
     const date = parseRecordDate(record);
     if (!date) return;
 
-    const amount = Number(record.amount);
     const categoryName = record.category;
     const serviceRange = getServiceRange(record);
     const contributions = [];
@@ -164,7 +183,7 @@ function buildPeriodSnapshot(records, range, periodDays) {
       const overlapDays = getOverlapDays(serviceRange, range);
       if (serviceDays <= 0 || overlapDays <= 0) return;
 
-      const dailyAmount = amount / serviceDays;
+      const dailyAmount = Number(record.amount) / serviceDays;
       fixedRecordIds.add(record.id);
       fixedTotal += dailyAmount * overlapDays;
 
@@ -176,7 +195,7 @@ function buildPeriodSnapshot(records, range, periodDays) {
       });
     } else {
       if (!isDateInRange(date, range)) return;
-      contributions.push({ key: getDateKey(date), amount });
+      contributions.push({ key: getDateKey(date), amount: Number(record.amount) });
     }
 
     if (!contributions.length) return;
@@ -367,15 +386,16 @@ function buildSelectedCategoryDetail(categoryItems, selectedCategory) {
   };
 }
 
-function buildFixedExpenseSummary(snapshot, periodLabel) {
+function buildFixedFlowSummary(snapshot, periodLabel, type) {
   const { total, dailyAverage, count } = snapshot.fixedExpenseSummary;
+  const label = type === 'income' ? '固定收入' : '固定支出';
 
   if (!count) {
     return {
       total: 0,
       dailyAverage: 0,
       count: 0,
-      description: '本期没有归属进来的固定支出。',
+      description: `本期没有归属进来的${label}。`,
     };
   }
 
@@ -383,7 +403,7 @@ function buildFixedExpenseSummary(snapshot, periodLabel) {
     total,
     dailyAverage,
     count,
-    description: `${periodLabel}固定支出归属 ${formatMoney(total)}，日均 ${formatMoney(dailyAverage)}，来自 ${count} 笔固定支出。`,
+    description: `${periodLabel}${label}归属 ${formatMoney(total)}，日均 ${formatMoney(dailyAverage)}，来自 ${count} 笔${label}。`,
   };
 }
 
@@ -402,9 +422,12 @@ export function getStatisticsInsightViewModel(
     end: addDays(currentRange.end, -safePeriodDays),
     endExclusive: currentRange.start,
   };
-  const expenseRecords = Array.isArray(records) ? records.filter(isExpenseRecord) : [];
+  const safeRecords = Array.isArray(records) ? records : [];
+  const expenseRecords = safeRecords.filter((record) => isFlowRecord(record, 'expense'));
+  const incomeRecords = safeRecords.filter((record) => isFlowRecord(record, 'income'));
   const currentSnapshot = buildPeriodSnapshot(expenseRecords, currentRange, safePeriodDays);
   const previousSnapshot = buildPeriodSnapshot(expenseRecords, previousRange, safePeriodDays);
+  const currentIncomeSnapshot = buildPeriodSnapshot(incomeRecords, currentRange, safePeriodDays);
   const categoryItems = buildCategoryItems(currentSnapshot, previousSnapshot, currentSnapshot.total);
   const topCategories = categoryItems
     .filter((item) => item.currentAmount > 0)
@@ -425,6 +448,7 @@ export function getStatisticsInsightViewModel(
     periodLabel,
     previousPeriodLabel,
     currentTotal: currentSnapshot.total,
+    currentIncomeTotal: currentIncomeSnapshot.total,
     previousTotal: previousSnapshot.total,
     changeAmount,
     changePercent: getChangePercent(currentSnapshot.total, previousSnapshot.total),
@@ -435,7 +459,8 @@ export function getStatisticsInsightViewModel(
     compositionSegments: buildCompositionSegments(categoryItems, currentSnapshot.total),
     attention: buildAttention(categoryItems, periodLabel, previousPeriodLabel),
     selectedCategoryDetail,
-    fixedExpenseSummary: buildFixedExpenseSummary(currentSnapshot, periodLabel),
+    fixedExpenseSummary: buildFixedFlowSummary(currentSnapshot, periodLabel, 'expense'),
+    fixedIncomeSummary: buildFixedFlowSummary(currentIncomeSnapshot, periodLabel, 'income'),
     series: currentSnapshot.series,
     recentRecords: currentSnapshot.records.slice(0, 8),
     hasRecords: currentSnapshot.records.length > 0,
