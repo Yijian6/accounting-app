@@ -89,9 +89,17 @@ export default function RecordList({
   const todayExpense = records
     .filter((record) => record.type === 'expense' && isToday(record.datetime))
     .reduce((sum, record) => sum + record.amount, 0);
+  const todayIncome = records
+    .filter((record) => record.type === 'income' && isToday(record.datetime))
+    .reduce((sum, record) => sum + record.amount, 0);
+  const todayNet = todayIncome - todayExpense;
   const monthExpense = records
     .filter((record) => record.type === 'expense' && isThisMonth(record.datetime))
     .reduce((sum, record) => sum + record.amount, 0);
+  const monthIncome = records
+    .filter((record) => record.type === 'income' && isThisMonth(record.datetime))
+    .reduce((sum, record) => sum + record.amount, 0);
+  const monthNet = monthIncome - monthExpense;
 
   const sortedRecords = [...records].sort(
     (left, right) => new Date(right.datetime) - new Date(left.datetime)
@@ -387,13 +395,41 @@ export default function RecordList({
   return (
     <div className="record-list">
       <div className="summary-cards">
-        <div className="summary-card">
-          <span className="summary-label">今日支出</span>
-          <span className="summary-value expense">{formatAmount(todayExpense)}</span>
+        <div className="summary-card summary-card-flow">
+          <div className="summary-card-head">
+            <span className="summary-label">今日净额</span>
+            <span className={`summary-value ${todayNet >= 0 ? 'income' : 'expense'}`}>
+              {todayNet >= 0 ? '+' : '-'}{formatAmount(Math.abs(todayNet))}
+            </span>
+          </div>
+          <div className="summary-flow-pair">
+            <span>
+              <small>支出</small>
+              <strong className="expense">{formatAmount(todayExpense)}</strong>
+            </span>
+            <span>
+              <small>收入</small>
+              <strong className="income">{formatAmount(todayIncome)}</strong>
+            </span>
+          </div>
         </div>
-        <div className="summary-card">
-          <span className="summary-label">本月支出</span>
-          <span className="summary-value expense">{formatAmount(monthExpense)}</span>
+        <div className="summary-card summary-card-flow">
+          <div className="summary-card-head">
+            <span className="summary-label">本月净额</span>
+            <span className={`summary-value ${monthNet >= 0 ? 'income' : 'expense'}`}>
+              {monthNet >= 0 ? '+' : '-'}{formatAmount(Math.abs(monthNet))}
+            </span>
+          </div>
+          <div className="summary-flow-pair">
+            <span>
+              <small>支出</small>
+              <strong className="expense">{formatAmount(monthExpense)}</strong>
+            </span>
+            <span>
+              <small>收入</small>
+              <strong className="income">{formatAmount(monthIncome)}</strong>
+            </span>
+          </div>
         </div>
       </div>
 
