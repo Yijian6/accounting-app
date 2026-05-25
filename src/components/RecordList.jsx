@@ -22,6 +22,181 @@ function buildImportResultMessage(summary) {
   return `已新增 ${summary.addedRecords} 条记录、${summary.addedCategories} 个分类、${summary.addedTags} 个标签；跳过 ${summary.skippedRecords} 条重复记录、${summary.skippedCategories} 个重复分类、${summary.skippedTags} 个重复标签。`;
 }
 
+function normalizeSearchText(value) {
+  return String(value ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function startOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function endOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+}
+
+function startOfWeek(date) {
+  const day = date.getDay() || 7;
+  const start = startOfDay(date);
+  start.setDate(start.getDate() - day + 1);
+  return start;
+}
+
+function endOfWeek(date) {
+  const end = startOfWeek(date);
+  end.setDate(end.getDate() + 6);
+  return endOfDay(end);
+}
+
+function getSearchDateRange(query) {
+  const text = normalizeSearchText(query).replace(/\s/g, '');
+  const now = new Date();
+
+  if (text === '今天') return { start: startOfDay(now), end: endOfDay(now) };
+  if (text === '昨天') {
+    const date = new Date(now);
+    date.setDate(date.getDate() - 1);
+    return { start: startOfDay(date), end: endOfDay(date) };
+  }
+  if (text === '前天') {
+    const date = new Date(now);
+    date.setDate(date.getDate() - 2);
+    return { start: startOfDay(date), end: endOfDay(date) };
+  }
+  if (text === '本周') return { start: startOfWeek(now), end: endOfWeek(now) };
+  if (text === '上周') {
+    const date = new Date(now);
+    date.setDate(date.getDate() - 7);
+    return { start: startOfWeek(date), end: endOfWeek(date) };
+  }
+  if (text === '本月') {
+    return {
+      start: new Date(now.getFullYear(), now.getMonth(), 1),
+      end: endOfDay(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
+    };
+  }
+  if (text === '上月') {
+    return {
+      start: new Date(now.getFullYear(), now.getMonth() - 1, 1),
+      end: endOfDay(new Date(now.getFullYear(), now.getMonth(), 0)),
+    };
+  }
+  if (text === '今年') {
+    return {
+      start: new Date(now.getFullYear(), 0, 1),
+      end: endOfDay(new Date(now.getFullYear(), 11, 31)),
+    };
+  }
+  if (text === '去年') {
+    return {
+      start: new Date(now.getFullYear() - 1, 0, 1),
+      end: endOfDay(new Date(now.getFullYear() - 1, 11, 31)),
+    };
+  }
+
+  const fullDateMatch = text.match(/^(\d{4})[-/.年](\d{1,2})[-/.月](\d{1,2})日?$/);
+  if (fullDateMatch) {
+    const [, year, month, day] = fullDateMatch.map(Number);
+    const date = new Date(year, month - 1, day);
+    if (!Number.isNaN(date.getTime())) return { start: startOfDay(date), end: endOfDay(date) };
+  }
+
+  const monthDayMatch = text.match(/^(\d{1,2})(?:[-/.月])(\d{1,2})日?$/);
+  if (monthDayMatch) {
+    const [, month, day] = monthDayMatch.map(Number);
+    const date = new Date(now.getFullYear(), month - 1, day);
+    if (!Number.isNaN(date.getTime())) return { start: startOfDay(date), end: endOfDay(date) };
+  }
+
+  const yearMonthMatch = text.match(/^(\d{4})年?(\d{1,2})月$/);
+  if (yearMonthMatch) {
+    const [, year, month] = yearMonthMatch.map(Number);
+    return {
+      start: new Date(year, month - 1, 1),
+      end: endOfDay(new Date(year, month, 0)),
+    };
+  }
+
+  const monthMatch = text.match(/^(\d{1,2})月$/);
+  if (monthMatch) {
+    const month = Number(monthMatch[1]);
+    return {
+      start: new Date(now.getFullYear(), month - 1, 1),
+      end: endOfDay(new Date(now.getFullYear(), month, 0)),
+    };
+  }
+
+  return null;
+}
+
+function formatRecordDateTexts(datetime) {
+  const date = new Date(datetime);
+  if (Number.isNaN(date.getTime())) return [];
+
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const paddedMonth = String(month).padStart(2, '0');
+  const paddedDay = String(day).padStart(2, '0');
+
+  return [
+    `${year}-${paddedMonth}-${paddedDay}`,
+    `${year}/${paddedMonth}/${paddedDay}`,
+    `${paddedMonth}-${paddedDay}`,
+    `${month}-${day}`,
+    `${month}月${day}`,
+    `${month}月`,
+    `${year}年${month}月`,
+    getDateGroup(datetime),
+  ];
+}
+
+function recordMatchesSearch(record, query) {
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) return true;
+
+  const dateRange = getSearchDateRange(normalizedQuery);
+  const recordDate = new Date(record.datetime);
+  if (
+    dateRange
+    && !Number.isNaN(recordDate.getTime())
+    && recordDate >= dateRange.start
+    && recordDate <= dateRange.end
+  ) {
+    return true;
+  }
+
+  const amount = Number(record.amount);
+  const recurrenceLabels = record.recurrence
+    ? ['固定', '固定支出', record.recurrence.type === 'yearly' ? '年' : '月']
+    : [];
+  const fields = [
+    record.category,
+    record.note,
+    record.type === 'income' ? '收入' : '支出',
+    Number.isFinite(amount) ? String(amount) : '',
+    Number.isFinite(amount) ? formatAmount(amount) : '',
+    ...(Array.isArray(record.tags) ? record.tags : []),
+    ...recurrenceLabels,
+    ...formatRecordDateTexts(record.datetime),
+  ];
+
+  return fields.some((field) => normalizeSearchText(field).includes(normalizedQuery));
+}
+
+function getRecordSearchMeta(record) {
+  const meta = [];
+  if (Array.isArray(record.tags) && record.tags.length > 0) {
+    meta.push(record.tags.join(' / '));
+  }
+  if (record.note) {
+    meta.push(record.note);
+  }
+  if (record.recurrence) {
+    meta.push(record.recurrence.type === 'yearly' ? '固定支出 · 年' : '固定支出 · 月');
+  }
+  return meta.join(' · ');
+}
+
 export default function RecordList({
   records,
   categories,
@@ -45,6 +220,7 @@ export default function RecordList({
   const [syncBusy, setSyncBusy] = useState(false);
   const [syncConflict, setSyncConflict] = useState(null);
   const [showMoreEdit, setShowMoreEdit] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [deleteTargetId, setDeleteTargetId] = useState('');
   const [pressedRecordId, setPressedRecordId] = useState('');
   const [expandedGroups, setExpandedGroups] = useState(() => {
@@ -101,7 +277,13 @@ export default function RecordList({
     .reduce((sum, record) => sum + record.amount, 0);
   const monthNet = monthIncome - monthExpense;
 
-  const sortedRecords = [...records].sort(
+  const normalizedSearchQuery = normalizeSearchText(searchQuery);
+  const isSearching = normalizedSearchQuery.length > 0;
+  const visibleRecords = isSearching
+    ? records.filter((record) => recordMatchesSearch(record, normalizedSearchQuery))
+    : records;
+
+  const sortedRecords = [...visibleRecords].sort(
     (left, right) => new Date(right.datetime) - new Date(left.datetime)
   );
 
@@ -130,6 +312,7 @@ export default function RecordList({
   };
 
   const isGroupExpanded = (key) => {
+    if (isSearching) return true;
     if (expandedGroups.has(key)) return true;
     if (expandedGroups.has('__all__')) return true;
     return false;
@@ -433,6 +616,37 @@ export default function RecordList({
         </div>
       </div>
 
+      <div className="record-search">
+        <label className="record-search-label" htmlFor="record-search-input">搜索记录</label>
+        <div className="record-search-input-wrap">
+          <svg className="record-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            id="record-search-input"
+            type="search"
+            value={searchQuery}
+            placeholder="输入日期、分类、标签、备注或金额"
+            onChange={(event) => setSearchQuery(event.target.value)}
+          />
+          {isSearching && (
+            <button
+              type="button"
+              className="record-search-clear"
+              onClick={() => setSearchQuery('')}
+            >
+              清空
+            </button>
+          )}
+        </div>
+        {isSearching && (
+          <div className="record-search-status">
+            找到 {sortedRecords.length} 条相关记录
+          </div>
+        )}
+      </div>
+
       <div className="list-actions">
         <button className="manage-icon-btn-inline" onClick={openDataManager} title="数据管理">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -442,8 +656,13 @@ export default function RecordList({
         </button>
       </div>
 
-      {sortedRecords.length === 0 ? (
+      {records.length === 0 ? (
         <div className="empty-state">暂无记录</div>
+      ) : sortedRecords.length === 0 ? (
+        <div className="empty-state search-empty">
+          <strong>没有找到相关记录</strong>
+          <span>换个日期、分类、标签或备注试试</span>
+        </div>
       ) : (
         <div className="records">
           {groupedRecords.map((item) =>
@@ -482,7 +701,12 @@ export default function RecordList({
                     }}
                     onClick={() => handleRecordClick(item)}
                   >
-                    <span className="record-category">{item.category}</span>
+                    <span className="record-main">
+                      <span className="record-category">{item.category}</span>
+                      {isSearching && getRecordSearchMeta(item) && (
+                        <span className="record-meta">{getRecordSearchMeta(item)}</span>
+                      )}
+                    </span>
                     <span className={`record-amount ${item.type}`}>
                       {item.type === 'expense' ? '-' : '+'}{formatAmount(item.amount)}
                     </span>
