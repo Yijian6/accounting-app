@@ -161,6 +161,17 @@ function buildEmptySeries(range, periodDays) {
   });
 }
 
+function buildAttributedRecord(record, contributions, isAttributed) {
+  const attributedAmount = contributions.reduce((sum, contribution) => sum + contribution.amount, 0);
+
+  return {
+    ...record,
+    attributedAmount,
+    originalAmount: Number(record.amount),
+    isAttributedAmount: isAttributed,
+  };
+}
+
 function buildPeriodSnapshot(records, range, periodDays) {
   const series = buildEmptySeries(range, periodDays);
   const seriesByKey = new Map(series.map((item) => [item.key, item]));
@@ -176,6 +187,7 @@ function buildPeriodSnapshot(records, range, periodDays) {
 
     const categoryName = record.category;
     const serviceRange = getServiceRange(record);
+    const isAttributed = !!serviceRange;
     const contributions = [];
 
     if (serviceRange) {
@@ -200,9 +212,11 @@ function buildPeriodSnapshot(records, range, periodDays) {
 
     if (!contributions.length) return;
 
+    const attributedRecord = buildAttributedRecord(record, contributions, isAttributed);
+
     if (!periodRecordIds.has(record.id)) {
       periodRecordIds.add(record.id);
-      periodRecords.push(record);
+      periodRecords.push(attributedRecord);
     }
 
     if (!categories.has(categoryName)) {
@@ -228,7 +242,7 @@ function buildPeriodSnapshot(records, range, periodDays) {
       }
     });
 
-    category.recentRecords.push(record);
+    category.recentRecords.push(attributedRecord);
   });
 
   const sortedRecords = periodRecords.sort((left, right) => (

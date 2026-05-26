@@ -48,6 +48,15 @@ function getRecordDestinationTitle(record) {
   return '未标记';
 }
 
+function getRecordDisplayAmount(record) {
+  return Number.isFinite(record.attributedAmount) ? record.attributedAmount : record.amount;
+}
+
+function getRecordDateLabel(record) {
+  const date = formatRecordDate(record.datetime);
+  return record.isAttributedAmount ? `${date} · 本期归属` : date;
+}
+
 function PeriodSwitch({ value, onChange }) {
   return (
     <div className="stats-period-switch" aria-label="统计周期">
@@ -180,9 +189,9 @@ function SelectedCategoryDetail({ detail }) {
             <div key={record.id} className="stats-recent-row">
               <span>
                 <strong>{getRecordDestinationTitle(record)}</strong>
-                <small>{formatRecordDate(record.datetime)}</small>
+                <small>{getRecordDateLabel(record)}</small>
               </span>
-              <b>{money(record.amount)}</b>
+              <b>{money(getRecordDisplayAmount(record))}</b>
             </div>
           ))}
         </div>
