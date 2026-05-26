@@ -14,7 +14,14 @@ export default function App() {
   const [manageType, setManageType] = useState(null); // 'categories-expense' | 'categories-income' | 'tags'
   const [manageInitialCategoryId, setManageInitialCategoryId] = useState(null);
 
-  const { records, addRecord, updateRecord, deleteRecord, replaceRecords } = useRecords();
+  const {
+    records,
+    addRecord,
+    updateRecord,
+    deleteRecord,
+    renameRecordCategory,
+    replaceRecords,
+  } = useRecords();
   const {
     categories,
     addCategory,
@@ -39,6 +46,14 @@ export default function App() {
   const closeManage = () => {
     setManageType(null);
     setManageInitialCategoryId(null);
+  };
+
+  const handleUpdateCategory = (id, name) => {
+    const category = categories.find((item) => item.id === id);
+    updateCategory(id, name);
+    if (category) {
+      renameRecordCategory(category.type, category.name, name);
+    }
   };
 
   const handleImportBackup = (payload, mode) => {
@@ -80,7 +95,7 @@ export default function App() {
         itemType: 'category',
         items: getCategoriesByType('expense'),
         onAdd: (name) => addCategory(name, 'expense'),
-        onUpdate: updateCategory,
+        onUpdate: handleUpdateCategory,
         onDelete: deleteCategory,
       };
     }
@@ -90,7 +105,7 @@ export default function App() {
         itemType: 'category',
         items: getCategoriesByType('income'),
         onAdd: (name) => addCategory(name, 'income'),
-        onUpdate: updateCategory,
+        onUpdate: handleUpdateCategory,
         onDelete: deleteCategory,
       };
     }

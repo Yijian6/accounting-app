@@ -105,9 +105,23 @@ export function useRecords() {
     setRecords((prev) => prev.filter((record) => record.id !== id));
   }, []);
 
+  const renameRecordCategory = useCallback((type, oldName, newName) => {
+    const normalizedOldName = normalizeText(oldName);
+    const normalizedNewName = normalizeText(newName);
+    if (!normalizedOldName || !normalizedNewName || normalizedOldName === normalizedNewName) {
+      return;
+    }
+
+    setRecords((prev) => prev.map((record) => (
+      record.type === type && record.category === normalizedOldName
+        ? { ...record, category: normalizedNewName }
+        : record
+    )));
+  }, []);
+
   const replaceRecords = useCallback((nextRecords) => {
     setRecords(Array.isArray(nextRecords) ? normalizeRecords(nextRecords) : []);
   }, []);
 
-  return { records, addRecord, updateRecord, deleteRecord, replaceRecords };
+  return { records, addRecord, updateRecord, deleteRecord, renameRecordCategory, replaceRecords };
 }
