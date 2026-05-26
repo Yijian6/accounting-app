@@ -163,7 +163,7 @@ export default function RecordForm({
         </div>
       </section>
 
-      {type === 'expense' && selectedCategory && availableTags.length > 0 && (
+      {type === 'expense' && selectedCategory && (
         <section className="quick-section quick-tags-section">
           <div className="quick-section-head">
             <div>
@@ -186,7 +186,7 @@ export default function RecordForm({
             tags={availableTags}
             selectedTags={selectedTags}
             onChange={setSelectedTags}
-            emptyMessage=""
+            emptyMessage="还没有细分标签，点右侧设置添加"
           />
         </section>
       )}
