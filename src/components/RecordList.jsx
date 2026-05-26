@@ -167,9 +167,15 @@ function recordMatchesSearch(record, query) {
   }
 
   const amount = Number(record.amount);
-  const recurrenceLabel = record.type === 'income' ? '固定收入' : '固定支出';
+  const recurrenceLabel = record.type === 'income' ? '周期收入' : '周期支出';
   const recurrenceLabels = record.recurrence
-    ? ['固定', recurrenceLabel, record.recurrence.type === 'yearly' ? '年' : '月']
+    ? [
+      '周期',
+      '固定',
+      recurrenceLabel,
+      record.type === 'income' ? '固定收入' : '固定支出',
+      record.recurrence.type === 'yearly' ? '年' : '月',
+    ]
     : [];
   const fields = [
     record.category,
@@ -194,7 +200,7 @@ function getRecordSearchMeta(record) {
     meta.push(record.note);
   }
   if (record.recurrence) {
-    const label = record.type === 'income' ? '固定收入' : '固定支出';
+    const label = record.type === 'income' ? '周期收入' : '周期支出';
     meta.push(record.recurrence.type === 'yearly' ? `${label} · 年` : `${label} · 月`);
   }
   return meta.join(' · ');
@@ -846,7 +852,7 @@ export default function RecordList({
                         recurrence: event.target.checked ? { type: form.recurrence?.type || 'monthly' } : null,
                       }))}
                     />
-                    <span>{editForm.type === 'income' ? '这是固定收入' : '这是固定支出'}</span>
+                    <span>{editForm.type === 'income' ? '这是周期收入' : '这是周期支出'}</span>
                   </label>
                   {editForm.recurrence && (
                     <div className="edit-recurrence-switch">

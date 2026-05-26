@@ -388,7 +388,7 @@ function buildSelectedCategoryDetail(categoryItems, selectedCategory) {
 
 function buildFixedFlowSummary(snapshot, periodLabel, type) {
   const { total, dailyAverage, count } = snapshot.fixedExpenseSummary;
-  const label = type === 'income' ? '固定收入' : '固定支出';
+  const label = type === 'income' ? '周期收入' : '周期支出';
 
   if (!count) {
     return {

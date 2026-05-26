@@ -236,7 +236,7 @@ export default function Statistics({ records }) {
       {vm.hasRecords && <AttentionCard attention={vm.attention} />}
 
       <section className="stats-fixed-card">
-        <span>固定收支</span>
+        <span>周期收支</span>
         <p>{vm.fixedExpenseSummary.description}</p>
         <p>{vm.fixedIncomeSummary.description}</p>
       </section>

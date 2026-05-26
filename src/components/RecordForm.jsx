@@ -198,7 +198,7 @@ export default function RecordForm({
           onClick={() => setShowMore(!showMore)}
         >
           <span>{showMore ? '收起更多' : '更多'}</span>
-          <small>备注 / 时间 / 固定收支</small>
+          <small>备注 / 时间 / 周期收支</small>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="6 9 12 15 18 9" />
           </svg>
@@ -254,13 +254,13 @@ export default function RecordForm({
                   checked={isFixedRecurring}
                   onChange={(event) => setIsFixedRecurring(event.target.checked)}
                 />
-                <span>{type === 'income' ? '这是固定收入' : '这是固定支出'}</span>
+                <span>{type === 'income' ? '这是周期收入' : '这是周期支出'}</span>
               </label>
               {(isSubscriptionLike || isFixedRecurring) && (
                 <p>
                   {type === 'income'
-                    ? '固定收入会按周期分摊，让每日净额更接近真实生活。'
-                    : (isSubscriptionLike ? '订阅通常适合标记为固定支出。' : '固定支出会在统计中按周期归属。')}
+                    ? '周期收入会按天分摊，让每日净额更接近真实生活。'
+                    : (isSubscriptionLike ? '订阅通常适合标记为周期支出。' : '周期支出会在统计中按周期归属。')}
                 </p>
               )}
               {isFixedRecurring && (
