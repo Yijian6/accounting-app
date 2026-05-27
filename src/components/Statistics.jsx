@@ -48,6 +48,18 @@ function getRecordDestinationTitle(record) {
   return '未标记';
 }
 
+function getRecordSubtitle(record) {
+  const dateLabel = getRecordDateLabel(record);
+  const hasTags = Array.isArray(record.tags) && record.tags.length > 0;
+  const note = typeof record.note === 'string' ? record.note.trim() : '';
+
+  if (hasTags && note) {
+    return `${note} · ${dateLabel}`;
+  }
+
+  return dateLabel;
+}
+
 function getRecordDisplayAmount(record) {
   return Number.isFinite(record.attributedAmount) ? record.attributedAmount : record.amount;
 }
@@ -189,7 +201,7 @@ function SelectedCategoryDetail({ detail }) {
             <div key={record.id} className="stats-recent-row">
               <span>
                 <strong>{getRecordDestinationTitle(record)}</strong>
-                <small>{getRecordDateLabel(record)}</small>
+                <small>{getRecordSubtitle(record)}</small>
               </span>
               <b>{money(getRecordDisplayAmount(record))}</b>
             </div>

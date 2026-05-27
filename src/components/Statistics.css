@@ -433,9 +433,12 @@
 }
 
 .stats-recent-row small {
+  overflow: hidden;
   color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .stats-recent-row b {
