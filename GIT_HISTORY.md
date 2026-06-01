@@ -4,10 +4,11 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Planned Current Commit
 
-- 2026-06-01T14:30:44+08:00 | pending | style: align app with life order principles
+- 2026-06-01T14:35:40+08:00 | pending | docs: clarify product principles
 
 ## Existing Commits
 
+- 2026-06-01T14:32:23+08:00 | 308b4d5 | style: align app with life order principles
 - 2026-05-27T10:02:14+08:00 | c258962 | feat: show notes in category detail
 - 2026-05-26T20:17:07+08:00 | 34886a9 | fix: keep tag manager visible for empty categories
 - 2026-05-26T13:47:24+08:00 | 984e9df | fix: show attributed amounts in category detail
