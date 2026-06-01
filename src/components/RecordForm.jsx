@@ -134,7 +134,7 @@ export default function RecordForm({
         <div className="quick-section-head">
           <div>
             <h3>{type === 'expense' ? '常用去向' : '收入来源'}</h3>
-            <p>{type === 'expense' ? '选择这笔钱去了哪里。' : '选择这笔钱从哪里来。'}</p>
+            <p>{type === 'expense' ? '把这笔钱放回它的位置。' : '记下它从哪里来。'}</p>
           </div>
           <button
             type="button"
@@ -198,7 +198,7 @@ export default function RecordForm({
           onClick={() => setShowMore(!showMore)}
         >
           <span>{showMore ? '收起更多' : '更多'}</span>
-          <small>备注 / 时间 / 周期收支</small>
+          <small>备注 / 时间 / 周期</small>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="6 9 12 15 18 9" />
           </svg>

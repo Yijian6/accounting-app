@@ -228,6 +228,40 @@ function sumRecordsInRange(records, type, range) {
     .reduce((sum, record) => sum + getRecordAmountInRange(record, range), 0);
 }
 
+function getTopExpenseDestination(records, range) {
+  const total = sumRecordsInRange(records, 'expense', range);
+  if (total <= 0) {
+    return {
+      name: '还没有支出',
+      amount: 0,
+      total: 0,
+      share: 0,
+      summary: '这段时间还很安静',
+    };
+  }
+
+  const byCategory = new Map();
+  records
+    .filter((record) => record.type === 'expense')
+    .forEach((record) => {
+      const amount = getRecordAmountInRange(record, range);
+      if (amount <= 0) return;
+      byCategory.set(record.category, (byCategory.get(record.category) || 0) + amount);
+    });
+
+  const [name, amount] = [...byCategory.entries()]
+    .sort((left, right) => right[1] - left[1])[0] || ['未分类', 0];
+  const share = total > 0 ? amount / total : 0;
+
+  return {
+    name,
+    amount,
+    total,
+    share,
+    summary: `占支出 ${Math.round(share * 100)}%`,
+  };
+}
+
 export default function RecordList({
   records,
   categories,
@@ -295,12 +329,12 @@ export default function RecordList({
 
   const todayRange = getTodayRange();
   const monthRange = getThisMonthRange();
+  const todayDestination = getTopExpenseDestination(records, todayRange);
+  const monthDestination = getTopExpenseDestination(records, monthRange);
   const todayExpense = sumRecordsInRange(records, 'expense', todayRange);
   const todayIncome = sumRecordsInRange(records, 'income', todayRange);
-  const todayNet = todayIncome - todayExpense;
   const monthExpense = sumRecordsInRange(records, 'expense', monthRange);
   const monthIncome = sumRecordsInRange(records, 'income', monthRange);
-  const monthNet = monthIncome - monthExpense;
 
   const normalizedSearchQuery = normalizeSearchText(searchQuery);
   const isSearching = normalizedSearchQuery.length > 0;
@@ -603,38 +637,36 @@ export default function RecordList({
   return (
     <div className="record-list">
       <div className="summary-cards">
-        <div className="summary-card summary-card-flow">
+        <div className="summary-card summary-card-destination">
           <div className="summary-card-head">
-            <span className="summary-label">今日净额</span>
-            <span className={`summary-value ${todayNet >= 0 ? 'income' : 'expense'}`}>
-              {todayNet >= 0 ? '+' : '-'}{formatAmount(Math.abs(todayNet))}
-            </span>
+            <span className="summary-label">今日主要去向</span>
+            <span className="summary-value destination">{todayDestination.name}</span>
+            <small>{todayDestination.summary}</small>
           </div>
           <div className="summary-flow-pair">
             <span>
-              <small>支出</small>
+              <small>今日支出</small>
               <strong className="expense">{formatAmount(todayExpense)}</strong>
             </span>
             <span>
-              <small>收入</small>
+              <small>今日收入</small>
               <strong className="income">{formatAmount(todayIncome)}</strong>
             </span>
           </div>
         </div>
-        <div className="summary-card summary-card-flow">
+        <div className="summary-card summary-card-destination">
           <div className="summary-card-head">
-            <span className="summary-label">本月净额</span>
-            <span className={`summary-value ${monthNet >= 0 ? 'income' : 'expense'}`}>
-              {monthNet >= 0 ? '+' : '-'}{formatAmount(Math.abs(monthNet))}
-            </span>
+            <span className="summary-label">本月主要去向</span>
+            <span className="summary-value destination">{monthDestination.name}</span>
+            <small>{monthDestination.summary}</small>
           </div>
           <div className="summary-flow-pair">
             <span>
-              <small>支出</small>
+              <small>本月支出</small>
               <strong className="expense">{formatAmount(monthExpense)}</strong>
             </span>
             <span>
-              <small>收入</small>
+              <small>本月收入</small>
               <strong className="income">{formatAmount(monthIncome)}</strong>
             </span>
           </div>
@@ -728,7 +760,7 @@ export default function RecordList({
                   >
                     <span className="record-main">
                       <span className="record-category">{item.category}</span>
-                      {isSearching && getRecordSearchMeta(item) && (
+                      {getRecordSearchMeta(item) && (
                         <span className="record-meta">{getRecordSearchMeta(item)}</span>
                       )}
                     </span>

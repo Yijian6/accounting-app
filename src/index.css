@@ -1,22 +1,24 @@
 :root {
-  --color-primary: #d4a0c0;
-  --color-primary-light: #fbf3f8;
-  --color-primary-dark: #ba7fa6;
-  --color-bg: #FEFBFC;
+  --color-primary: #b9819c;
+  --color-primary-light: #f7eff3;
+  --color-primary-dark: #8e5f76;
+  --color-bg: #fbfafb;
   --color-surface: #FFFFFF;
-  --color-text: #2D2D2D;
-  --color-text-secondary: #8E8E93;
-  --color-border: #F0E4E9;
-  --color-expense: #E8A0BF;
-  --color-income: #A8D5BA;
-  --color-danger: #E07A7A;
-  --color-danger-light: #FFF0F0;
+  --color-surface-soft: #f3f1f3;
+  --color-ink: #211d1f;
+  --color-text: #292524;
+  --color-text-secondary: #8b817b;
+  --color-border: #e7e2e5;
+  --color-expense: #c98296;
+  --color-income: #769f88;
+  --color-danger: #c76d61;
+  --color-danger-light: #fff2ef;
 
-  --radius: 12px;
+  --radius: 10px;
   --radius-sm: 8px;
   --radius-pill: 999px;
-  --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 6px 16px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 14px 32px rgba(15, 23, 42, 0.10);
+  --shadow: 0 1px 2px rgba(41, 37, 36, 0.06), 0 10px 28px rgba(41, 37, 36, 0.05);
+  --shadow-lg: 0 18px 40px rgba(41, 37, 36, 0.12);
   --transition: 0.2s ease;
   --text-xs: 12px;
   --text-sm: 14px;
@@ -46,6 +48,19 @@ body {
   color: var(--color-text);
   line-height: 1.5;
   min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(251, 250, 251, 0.92)),
+    radial-gradient(circle at top left, rgba(185, 129, 156, 0.08), transparent 34%),
+    linear-gradient(90deg, rgba(41, 37, 36, 0.025) 1px, transparent 1px);
+  background-size: auto, auto, 28px 28px;
 }
 
 #root {

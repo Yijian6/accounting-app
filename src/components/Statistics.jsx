@@ -159,7 +159,7 @@ function CategoryDestination({ vm, activeName, onSelect }) {
 function AttentionCard({ attention }) {
   return (
     <section className={`stats-attention-card ${attention.tone}`}>
-      <span className="stats-attention-kicker">值得留意</span>
+      <span className="stats-attention-kicker">变化</span>
       <h3>{attention.title}</h3>
       <p>{attention.body}</p>
     </section>
@@ -230,7 +230,7 @@ export default function Statistics({ records }) {
       <div className="stats-topbar">
         <div>
           <span className="stats-page-kicker">统计</span>
-          <h2>钱到底去了哪里</h2>
+          <h2>钱去了哪里</h2>
         </div>
         <PeriodSwitch value={periodDays} onChange={setPeriodDays} />
       </div>
@@ -242,7 +242,7 @@ export default function Statistics({ records }) {
           <p>{vm.insightBody}</p>
         </div>
         <div className="stats-insight-total">
-          <span>本期支出</span>
+          <span>本期已看见</span>
           <strong>{money(vm.currentTotal)}</strong>
           <small className={vm.changeState}>{getChangeLabel(vm)}</small>
         </div>
@@ -257,7 +257,7 @@ export default function Statistics({ records }) {
       {vm.hasRecords && <AttentionCard attention={vm.attention} />}
 
       <section className="stats-fixed-card">
-        <span>周期收支</span>
+        <span>周期归属</span>
         <p>{vm.fixedExpenseSummary.description}</p>
         <p>{vm.fixedIncomeSummary.description}</p>
       </section>
