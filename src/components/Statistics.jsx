@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
+import Modal from './Modal';
 import { getStatisticsInsightViewModel } from '../utils/statistics';
 import { formatAmount } from '../utils/format';
+import { exportDataBook } from '../utils/dataBookExport';
 import './Statistics.css';
 
 const PERIOD_OPTIONS = [
@@ -9,6 +11,18 @@ const PERIOD_OPTIONS = [
 ];
 
 const SEGMENT_COLORS = ['#E8A0BF', '#D9B85F', '#8BB8A8', '#8EA4D2', '#D29A8E', '#B8A6D9'];
+
+const EXPORT_RANGE_OPTIONS = [
+  { value: 'week', label: '周数据' },
+  { value: 'month', label: '月数据' },
+  { value: 'year', label: '年数据' },
+  { value: 'all', label: '全部数据' },
+];
+
+const EXPORT_FORMAT_OPTIONS = [
+  { value: 'xlsx', label: 'Excel 数据册' },
+  { value: 'json', label: 'JSON 基础数据' },
+];
 
 function money(amount) {
   return `¥${formatAmount(amount || 0)}`;
@@ -217,6 +231,9 @@ function SelectedCategoryDetail({ detail }) {
 export default function Statistics({ records }) {
   const [periodDays, setPeriodDays] = useState(7);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [showDataExport, setShowDataExport] = useState(false);
+  const [exportRangeType, setExportRangeType] = useState('month');
+  const [exportFormat, setExportFormat] = useState('xlsx');
 
   const vm = useMemo(
     () => getStatisticsInsightViewModel(records, periodDays, selectedCategory),
@@ -225,6 +242,14 @@ export default function Statistics({ records }) {
 
   const activeCategoryName = vm.selectedCategoryDetail?.name || '';
 
+  const handleDataBookExport = () => {
+    exportDataBook(records, {
+      rangeType: exportRangeType,
+      format: exportFormat,
+    });
+    setShowDataExport(false);
+  };
+
   return (
     <div className="statistics">
       <div className="stats-topbar">
@@ -232,7 +257,22 @@ export default function Statistics({ records }) {
           <span className="stats-page-kicker">统计</span>
           <h2>钱去了哪里</h2>
         </div>
-        <PeriodSwitch value={periodDays} onChange={setPeriodDays} />
+        <div className="stats-top-actions">
+          <button
+            type="button"
+            className="stats-export-btn"
+            onClick={() => setShowDataExport(true)}
+            title="导出数据册"
+            aria-label="导出数据册"
+          >
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          </button>
+          <PeriodSwitch value={periodDays} onChange={setPeriodDays} />
+        </div>
       </div>
 
       <section className="stats-insight-card">
@@ -263,6 +303,62 @@ export default function Statistics({ records }) {
       </section>
 
       <SelectedCategoryDetail detail={vm.selectedCategoryDetail} />
+
+      <Modal
+        open={showDataExport}
+        title="导出数据册"
+        onClose={() => setShowDataExport(false)}
+      >
+        <div className="data-book-export">
+          <p>
+            生成一份优雅的结构化表格，只呈现数据，不做消费评价。
+          </p>
+
+          <div className="export-field">
+            <span>范围</span>
+            <div className="export-choice-grid">
+              {EXPORT_RANGE_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={exportRangeType === option.value ? 'active' : ''}
+                  onClick={() => setExportRangeType(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="export-field">
+            <span>格式</span>
+            <div className="export-choice-grid format">
+              {EXPORT_FORMAT_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={exportFormat === option.value ? 'active' : ''}
+                  onClick={() => setExportFormat(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="data-book-note">
+            Excel 数据册包含总览、分类汇总、时间汇总、记录明细和周期归属。
+          </div>
+
+          <button
+            type="button"
+            className="data-book-submit"
+            onClick={handleDataBookExport}
+          >
+            导出
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }

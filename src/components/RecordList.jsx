@@ -4,7 +4,6 @@ import TagInput from './TagInput';
 import { formatAmount, toDatetimeLocal, getDateGroup, getDateKey } from '../utils/format';
 import { exportBackupJSON, exportCSV, exportJSON } from '../utils/export';
 import { formatBackupSummary, parseBackupFileContent } from '../utils/backup';
-import { getRecordAmountInRange } from '../utils/statistics';
 import {
   buildSyncPayload,
   fetchSyncStatus,
@@ -46,6 +45,20 @@ function endOfWeek(date) {
   const end = startOfWeek(date);
   end.setDate(end.getDate() + 6);
   return endOfDay(end);
+}
+
+function addDays(date, amount) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + amount);
+  return next;
+}
+
+function addMonths(date, amount) {
+  return new Date(date.getFullYear(), date.getMonth() + amount, 1);
+}
+
+function getMonthStart(date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
 function getSearchDateRange(query) {
@@ -206,60 +219,67 @@ function getRecordSearchMeta(record) {
   return meta.join(' · ');
 }
 
-function getTodayRange() {
-  const start = startOfDay(new Date());
-  return {
-    start,
-    endExclusive: new Date(start.getTime() + 24 * 60 * 60 * 1000),
-  };
-}
+function getReviewRange(mode, date) {
+  if (mode === 'all') return null;
 
-function getThisMonthRange() {
-  const now = new Date();
-  return {
-    start: new Date(now.getFullYear(), now.getMonth(), 1),
-    endExclusive: new Date(now.getFullYear(), now.getMonth() + 1, 1),
-  };
-}
-
-function sumRecordsInRange(records, type, range) {
-  return records
-    .filter((record) => record.type === type)
-    .reduce((sum, record) => sum + getRecordAmountInRange(record, range), 0);
-}
-
-function getTopExpenseDestination(records, range) {
-  const total = sumRecordsInRange(records, 'expense', range);
-  if (total <= 0) {
+  if (mode === 'month') {
+    const start = getMonthStart(date);
     return {
-      name: '还没有支出',
-      amount: 0,
-      total: 0,
-      share: 0,
-      summary: '这段时间还很安静',
+      start,
+      endExclusive: new Date(start.getFullYear(), start.getMonth() + 1, 1),
     };
   }
 
-  const byCategory = new Map();
-  records
-    .filter((record) => record.type === 'expense')
-    .forEach((record) => {
-      const amount = getRecordAmountInRange(record, range);
-      if (amount <= 0) return;
-      byCategory.set(record.category, (byCategory.get(record.category) || 0) + amount);
-    });
-
-  const [name, amount] = [...byCategory.entries()]
-    .sort((left, right) => right[1] - left[1])[0] || ['未分类', 0];
-  const share = total > 0 ? amount / total : 0;
-
+  const start = startOfDay(date);
   return {
-    name,
-    amount,
-    total,
-    share,
-    summary: `占支出 ${Math.round(share * 100)}%`,
+    start,
+    endExclusive: addDays(start, 1),
   };
+}
+
+function isRecordInPaymentRange(record, range) {
+  if (!range) return true;
+  const date = new Date(record.datetime);
+  if (Number.isNaN(date.getTime())) return false;
+  return date >= range.start && date < range.endExclusive;
+}
+
+function sumPaymentRecordsInRange(records, type, range) {
+  return records
+    .filter((record) => record.type === type && isRecordInPaymentRange(record, range))
+    .reduce((sum, record) => sum + Number(record.amount || 0), 0);
+}
+
+function countRecordsInRange(records, range) {
+  return records.filter((record) => isRecordInPaymentRange(record, range)).length;
+}
+
+function formatReviewLabel(mode, date) {
+  if (mode === 'all') return '全部记录';
+  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  if (mode === 'month') {
+    return `${date.getFullYear()}年${date.getMonth() + 1}月`;
+  }
+  return `${date.getMonth() + 1}月${date.getDate()}日 ${weekdays[date.getDay()]}`;
+}
+
+function toDateInputValue(date) {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function toMonthInputValue(date) {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `${date.getFullYear()}-${month}`;
+}
+
+function isCurrentOrFutureReview(mode, date) {
+  const now = new Date();
+  if (mode === 'month') {
+    return getMonthStart(date).getTime() >= getMonthStart(now).getTime();
+  }
+  return startOfDay(date).getTime() >= startOfDay(now).getTime();
 }
 
 export default function RecordList({
@@ -286,6 +306,8 @@ export default function RecordList({
   const [syncConflict, setSyncConflict] = useState(null);
   const [showMoreEdit, setShowMoreEdit] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [reviewMode, setReviewMode] = useState('day');
+  const [reviewDate, setReviewDate] = useState(() => new Date());
   const [deleteTargetId, setDeleteTargetId] = useState('');
   const [pressedRecordId, setPressedRecordId] = useState('');
   const [expandedGroups, setExpandedGroups] = useState(() => {
@@ -296,6 +318,9 @@ export default function RecordList({
   });
   const [showMoreExport, setShowMoreExport] = useState(false);
   const fileInputRef = useRef(null);
+  const reviewDateInputRef = useRef(null);
+  const reviewMonthInputRef = useRef(null);
+  const touchStartXRef = useRef(null);
   const longPressTimerRef = useRef(null);
   const longPressTriggeredRef = useRef(false);
 
@@ -327,20 +352,18 @@ export default function RecordList({
     };
   }, [clearLongPressTimer, deleteTargetId]);
 
-  const todayRange = getTodayRange();
-  const monthRange = getThisMonthRange();
-  const todayDestination = getTopExpenseDestination(records, todayRange);
-  const monthDestination = getTopExpenseDestination(records, monthRange);
-  const todayExpense = sumRecordsInRange(records, 'expense', todayRange);
-  const todayIncome = sumRecordsInRange(records, 'income', todayRange);
-  const monthExpense = sumRecordsInRange(records, 'expense', monthRange);
-  const monthIncome = sumRecordsInRange(records, 'income', monthRange);
+  const reviewRange = getReviewRange(reviewMode, reviewDate);
+  const reviewExpense = sumPaymentRecordsInRange(records, 'expense', reviewRange);
+  const reviewIncome = sumPaymentRecordsInRange(records, 'income', reviewRange);
+  const reviewCount = countRecordsInRange(records, reviewRange);
+  const reviewLabel = formatReviewLabel(reviewMode, reviewDate);
 
   const normalizedSearchQuery = normalizeSearchText(searchQuery);
   const isSearching = normalizedSearchQuery.length > 0;
+  const rangeRecords = records.filter((record) => isRecordInPaymentRange(record, reviewRange));
   const visibleRecords = isSearching
-    ? records.filter((record) => recordMatchesSearch(record, normalizedSearchQuery))
-    : records;
+    ? rangeRecords.filter((record) => recordMatchesSearch(record, normalizedSearchQuery))
+    : rangeRecords;
 
   const sortedRecords = [...visibleRecords].sort(
     (left, right) => new Date(right.datetime) - new Date(left.datetime)
@@ -375,6 +398,48 @@ export default function RecordList({
     if (expandedGroups.has(key)) return true;
     if (expandedGroups.has('__all__')) return true;
     return false;
+  };
+
+  const shiftReview = (direction) => {
+    if (reviewMode === 'all') return;
+    setReviewDate((date) => {
+      const next = reviewMode === 'month'
+        ? addMonths(date, direction)
+        : addDays(date, direction);
+      if (direction > 0 && isCurrentOrFutureReview(reviewMode, date)) {
+        return date;
+      }
+      return next;
+    });
+  };
+
+  const selectReviewMode = (mode) => {
+    setReviewMode(mode);
+    setSearchQuery('');
+  };
+
+  const showReviewPicker = () => {
+    const input = reviewMode === 'month' ? reviewMonthInputRef.current : reviewDateInputRef.current;
+    if (!input) return;
+    if (input.showPicker) {
+      input.showPicker();
+      return;
+    }
+    input.click();
+  };
+
+  const handleTouchStart = (event) => {
+    touchStartXRef.current = event.touches[0]?.clientX ?? null;
+  };
+
+  const handleTouchEnd = (event) => {
+    const startX = touchStartXRef.current;
+    touchStartXRef.current = null;
+    if (startX == null || reviewMode === 'all') return;
+    const endX = event.changedTouches[0]?.clientX ?? startX;
+    const delta = endX - startX;
+    if (Math.abs(delta) < 48) return;
+    shiftReview(delta > 0 ? -1 : 1);
   };
 
   const startEdit = (record) => {
@@ -636,42 +701,99 @@ export default function RecordList({
 
   return (
     <div className="record-list">
-      <div className="summary-cards">
-        <div className="summary-card summary-card-destination">
-          <div className="summary-card-head">
-            <span className="summary-label">今日主要去向</span>
-            <span className="summary-value destination">{todayDestination.name}</span>
-            <small>{todayDestination.summary}</small>
-          </div>
-          <div className="summary-flow-pair">
-            <span>
-              <small>今日支出</small>
-              <strong className="expense">{formatAmount(todayExpense)}</strong>
-            </span>
-            <span>
-              <small>今日收入</small>
-              <strong className="income">{formatAmount(todayIncome)}</strong>
-            </span>
-          </div>
-        </div>
-        <div className="summary-card summary-card-destination">
-          <div className="summary-card-head">
-            <span className="summary-label">本月主要去向</span>
-            <span className="summary-value destination">{monthDestination.name}</span>
-            <small>{monthDestination.summary}</small>
-          </div>
-          <div className="summary-flow-pair">
-            <span>
-              <small>本月支出</small>
-              <strong className="expense">{formatAmount(monthExpense)}</strong>
-            </span>
-            <span>
-              <small>本月收入</small>
-              <strong className="income">{formatAmount(monthIncome)}</strong>
-            </span>
+      <section
+        className="time-review-card"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div className="time-review-top">
+          <span>时间回顾</span>
+          <div className="review-mode-switch" aria-label="回顾范围">
+            <button
+              type="button"
+              className={reviewMode === 'day' ? 'active' : ''}
+              onClick={() => selectReviewMode('day')}
+            >
+              日
+            </button>
+            <button
+              type="button"
+              className={reviewMode === 'month' ? 'active' : ''}
+              onClick={() => selectReviewMode('month')}
+            >
+              月
+            </button>
+            <button
+              type="button"
+              className={reviewMode === 'all' ? 'active' : ''}
+              onClick={() => selectReviewMode('all')}
+            >
+              全部
+            </button>
           </div>
         </div>
-      </div>
+
+        <div className="time-review-nav">
+          <button
+            type="button"
+            className="time-review-arrow"
+            disabled={reviewMode === 'all'}
+            onClick={() => shiftReview(-1)}
+            aria-label="上一段时间"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            className="time-review-title"
+            onClick={showReviewPicker}
+            disabled={reviewMode === 'all'}
+          >
+            {reviewLabel}
+          </button>
+          <button
+            type="button"
+            className="time-review-arrow"
+            disabled={reviewMode === 'all' || isCurrentOrFutureReview(reviewMode, reviewDate)}
+            onClick={() => shiftReview(1)}
+            aria-label="下一段时间"
+          >
+            ›
+          </button>
+        </div>
+
+        <input
+          ref={reviewDateInputRef}
+          className="review-date-input"
+          type="date"
+          value={toDateInputValue(reviewDate)}
+          max={toDateInputValue(new Date())}
+          onChange={(event) => setReviewDate(new Date(`${event.target.value}T12:00:00`))}
+        />
+        <input
+          ref={reviewMonthInputRef}
+          className="review-date-input"
+          type="month"
+          value={toMonthInputValue(reviewDate)}
+          max={toMonthInputValue(new Date())}
+          onChange={(event) => setReviewDate(new Date(`${event.target.value}-01T12:00:00`))}
+        />
+
+        <div className="time-review-metrics">
+          <span>
+            <small>支出</small>
+            <strong className="expense">{formatAmount(reviewExpense)}</strong>
+          </span>
+          <span>
+            <small>收入</small>
+            <strong className="income">{formatAmount(reviewIncome)}</strong>
+          </span>
+          <span>
+            <small>记录</small>
+            <strong>{reviewCount} 笔</strong>
+          </span>
+        </div>
+      </section>
 
       <div className="record-search">
         <label className="record-search-label" htmlFor="record-search-input">搜索记录</label>
@@ -705,6 +827,9 @@ export default function RecordList({
       </div>
 
       <div className="list-actions">
+        <button className="review-all-btn" onClick={() => selectReviewMode('all')}>
+          全部记录
+        </button>
         <button className="manage-icon-btn-inline" onClick={openDataManager} title="数据管理">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />
@@ -717,8 +842,8 @@ export default function RecordList({
         <div className="empty-state">暂无记录</div>
       ) : sortedRecords.length === 0 ? (
         <div className="empty-state search-empty">
-          <strong>没有找到相关记录</strong>
-          <span>换个日期、分类、标签或备注试试</span>
+          <strong>{isSearching ? '没有找到相关记录' : '这段时间还没有记录'}</strong>
+          <span>{isSearching ? '换个日期、分类、标签或备注试试' : '可以切换时间，回看别的日子。'}</span>
         </div>
       ) : (
         <div className="records">

@@ -109,11 +109,147 @@
   color: var(--color-income);
 }
 
+.time-review-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 15px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(41, 37, 36, 0.06);
+  box-shadow: var(--shadow);
+}
+
+.time-review-top,
+.time-review-nav,
+.time-review-metrics {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.time-review-top > span {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.review-mode-switch {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(44px, 1fr));
+  gap: 3px;
+  padding: 3px;
+  border-radius: 9px;
+  background: rgba(41, 37, 36, 0.045);
+}
+
+.review-mode-switch button {
+  min-height: 30px;
+  padding: 0 9px;
+  border-radius: 7px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.review-mode-switch button.active {
+  background: #fff;
+  color: var(--color-ink);
+  box-shadow: 0 5px 12px rgba(41, 37, 36, 0.07);
+}
+
+.time-review-nav {
+  padding: 2px 0 0;
+}
+
+.time-review-arrow {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(41, 37, 36, 0.06);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.time-review-arrow:disabled,
+.time-review-title:disabled {
+  cursor: default;
+  opacity: 0.34;
+}
+
+.time-review-title {
+  min-width: 0;
+  flex: 1;
+  color: var(--color-text);
+  font-size: 22px;
+  font-weight: 780;
+  line-height: 1.15;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.review-date-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.time-review-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-top: 12px;
+  border-top: 1px solid rgba(41, 37, 36, 0.06);
+}
+
+.time-review-metrics span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.time-review-metrics small {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.time-review-metrics strong {
+  min-width: 0;
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 780;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.time-review-metrics strong.expense {
+  color: var(--color-expense);
+}
+
+.time-review-metrics strong.income {
+  color: var(--color-income);
+}
+
 .list-actions {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   min-height: 18px;
+}
+
+.review-all-btn {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .manage-icon-btn-inline {
@@ -572,6 +708,14 @@
 
   .summary-cards {
     grid-template-columns: 1fr;
+  }
+
+  .time-review-title {
+    font-size: 20px;
+  }
+
+  .time-review-card {
+    padding: 14px;
   }
 
   .edit-form .category-grid {
