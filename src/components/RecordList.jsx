@@ -282,11 +282,19 @@ function isCurrentOrFutureReview(mode, date) {
   return startOfDay(date).getTime() >= startOfDay(now).getTime();
 }
 
+function buildReviewDateTime(date) {
+  const now = new Date();
+  const target = new Date(date);
+  target.setHours(now.getHours(), now.getMinutes(), 0, 0);
+  return toDatetimeLocal(target.toISOString());
+}
+
 export default function RecordList({
   records,
   categories,
   tags,
   snapshot,
+  onAdd,
   onUpdate,
   onDelete,
   onImportBackup,
@@ -294,6 +302,15 @@ export default function RecordList({
 }) {
   const [editingRecord, setEditingRecord] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [creatingRecord, setCreatingRecord] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    amount: '',
+    type: 'expense',
+    category: '',
+    tags: [],
+    note: '',
+    datetime: '',
+  });
   const [showDataManager, setShowDataManager] = useState(false);
   const [pendingBackup, setPendingBackup] = useState(null);
   const [importError, setImportError] = useState('');
@@ -310,6 +327,7 @@ export default function RecordList({
   const [reviewDate, setReviewDate] = useState(() => new Date());
   const [deleteTargetId, setDeleteTargetId] = useState('');
   const [pressedRecordId, setPressedRecordId] = useState('');
+  const [showMoreCreate, setShowMoreCreate] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState(() => {
     const today = new Date();
     const yesterday = new Date();
@@ -380,6 +398,7 @@ export default function RecordList({
     }
     groupedRecords.push({ type: 'record', ...record });
   }
+  const showDateGroupHeaders = reviewMode === 'all';
 
   const toggleGroup = (key) => {
     setExpandedGroups((prev) => {
@@ -394,6 +413,7 @@ export default function RecordList({
   };
 
   const isGroupExpanded = (key) => {
+    if (!showDateGroupHeaders) return true;
     if (isSearching) return true;
     if (expandedGroups.has(key)) return true;
     if (expandedGroups.has('__all__')) return true;
@@ -515,6 +535,57 @@ export default function RecordList({
     return tags.filter((tag) => tag.categoryId === category.id);
   };
 
+  const getDefaultCategoryName = (type) => {
+    return categories.find((category) => category.type === type)?.name || '';
+  };
+
+  const openCreateForReviewDay = () => {
+    const type = 'expense';
+    setCreatingRecord(true);
+    setShowMoreCreate(false);
+    setCreateForm({
+      amount: '',
+      type,
+      category: getDefaultCategoryName(type),
+      tags: [],
+      note: '',
+      datetime: buildReviewDateTime(reviewDate),
+    });
+  };
+
+  const closeCreate = () => {
+    setCreatingRecord(false);
+    setShowMoreCreate(false);
+  };
+
+  const saveCreate = () => {
+    const amount = parseFloat(createForm.amount);
+    const date = new Date(createForm.datetime);
+    if (!onAdd || !Number.isFinite(amount) || amount <= 0 || !createForm.category || Number.isNaN(date.getTime())) {
+      return;
+    }
+
+    const allowedTagNames = new Set(filteredCreateTags.map((tag) => tag.name));
+    const nextTags = createForm.type === 'expense'
+      ? createForm.tags.filter((tag) => allowedTagNames.has(tag))
+      : [];
+
+    onAdd({
+      amount,
+      type: createForm.type,
+      category: createForm.category,
+      tags: nextTags,
+      note: createForm.note || '',
+      datetime: date.toISOString(),
+      recurrence: null,
+    });
+
+    setReviewMode('day');
+    setReviewDate(date);
+    setSearchQuery('');
+    closeCreate();
+  };
+
   const saveEdit = () => {
     if (!editForm.amount || !editForm.category) return;
     const allowedTagNames = new Set(filteredEditTags.map((tag) => tag.name));
@@ -534,6 +605,8 @@ export default function RecordList({
 
   const filteredEditCategories = categories.filter((category) => category.type === editForm.type);
   const filteredEditTags = getAvailableTagsForCategory(editForm.type, editForm.category);
+  const filteredCreateCategories = categories.filter((category) => category.type === createForm.type);
+  const filteredCreateTags = getAvailableTagsForCategory(createForm.type, createForm.category);
 
   const openDataManager = () => {
     setImportError('');
@@ -793,6 +866,18 @@ export default function RecordList({
             <strong>{reviewCount} 笔</strong>
           </span>
         </div>
+
+        {reviewMode === 'day' && (
+          <div className="time-review-footer">
+            <button
+              type="button"
+              className="time-review-add-btn"
+              onClick={openCreateForReviewDay}
+            >
+              补记这天
+            </button>
+          </div>
+        )}
       </section>
 
       <div className="record-search">
@@ -827,8 +912,13 @@ export default function RecordList({
       </div>
 
       <div className="list-actions">
-        <button className="review-all-btn" onClick={() => selectReviewMode('all')}>
-          全部记录
+        {reviewMode === 'all' && <span className="list-scope-label">全部记录</span>}
+        <button
+          className="review-all-btn"
+          hidden={reviewMode === 'all'}
+          onClick={() => selectReviewMode('all')}
+        >
+          查看全部
         </button>
         <button className="manage-icon-btn-inline" onClick={openDataManager} title="数据管理">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -848,7 +938,7 @@ export default function RecordList({
       ) : (
         <div className="records">
           {groupedRecords.map((item) =>
-            item.type === 'header' ? (
+            item.type === 'header' ? showDateGroupHeaders && (
               <button
                 key={item.key}
                 className={`date-group-header ${isGroupExpanded(item.key) ? 'expanded' : ''}`}
@@ -908,6 +998,116 @@ export default function RecordList({
           )}
         </div>
       )}
+
+      <Modal
+        open={creatingRecord}
+        title="为这一天记一笔"
+        onClose={closeCreate}
+      >
+        {creatingRecord && (
+          <div className="edit-form create-form">
+            <div className="create-date-note">{formatReviewLabel('day', reviewDate)}</div>
+
+            <div className="edit-type-switch">
+              <button
+                type="button"
+                className={`type-btn ${createForm.type === 'expense' ? 'active expense' : ''}`}
+                onClick={() => {
+                  const type = 'expense';
+                  setCreateForm((form) => ({
+                    ...form,
+                    type,
+                    category: getDefaultCategoryName(type),
+                    tags: [],
+                  }));
+                }}
+              >
+                支出
+              </button>
+              <button
+                type="button"
+                className={`type-btn ${createForm.type === 'income' ? 'active income' : ''}`}
+                onClick={() => {
+                  const type = 'income';
+                  setCreateForm((form) => ({
+                    ...form,
+                    type,
+                    category: getDefaultCategoryName(type),
+                    tags: [],
+                  }));
+                }}
+              >
+                收入
+              </button>
+            </div>
+
+            <div className="edit-amount-input">
+              <span className="amount-symbol">{createForm.type === 'expense' ? '-' : '+'}</span>
+              <input
+                type="number"
+                step="0.01"
+                inputMode="decimal"
+                value={createForm.amount}
+                onChange={(event) => setCreateForm((form) => ({ ...form, amount: event.target.value }))}
+                autoFocus
+              />
+            </div>
+
+            <div className="category-grid">
+              {filteredCreateCategories.map((category) => (
+                <button
+                  key={category.id}
+                  type="button"
+                  className={`category-item ${createForm.category === category.name ? 'active' : ''}`}
+                  onClick={() => setCreateForm((form) => ({ ...form, category: category.name, tags: [] }))}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
+
+            {createForm.type === 'expense' && (
+              <TagInput
+                tags={filteredCreateTags}
+                selectedTags={createForm.tags}
+                onChange={(nextTags) => setCreateForm((form) => ({ ...form, tags: nextTags }))}
+                emptyMessage={createForm.category ? '这个分类下还没有细分标签' : '先选分类，再选细分标签'}
+              />
+            )}
+
+            <button
+              type="button"
+              className={`more-toggle ${showMoreCreate ? 'expanded' : ''}`}
+              onClick={() => setShowMoreCreate(!showMoreCreate)}
+            >
+              {showMoreCreate ? '收起' : '更多选项'}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+
+            {showMoreCreate && (
+              <div className="more-section">
+                <input
+                  type="text"
+                  placeholder="添加备注..."
+                  value={createForm.note}
+                  onChange={(event) => setCreateForm((form) => ({ ...form, note: event.target.value }))}
+                />
+                <input
+                  type="datetime-local"
+                  value={createForm.datetime}
+                  onChange={(event) => setCreateForm((form) => ({ ...form, datetime: event.target.value }))}
+                />
+              </div>
+            )}
+
+            <button className="submit-btn" onClick={saveCreate}>
+              记录
+            </button>
+          </div>
+        )}
+      </Modal>
 
       <Modal
         open={!!editingRecord}

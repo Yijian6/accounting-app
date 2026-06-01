@@ -134,6 +134,7 @@ export default function App() {
           categories={categories}
           tags={tags}
           snapshot={snapshot}
+          onAdd={addRecord}
           onUpdate={updateRecord}
           onDelete={deleteRecord}
           onImportBackup={handleImportBackup}
