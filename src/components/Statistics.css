@@ -519,7 +519,7 @@
 }
 
 .export-choice-grid.format {
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .export-choice-grid button {
@@ -532,6 +532,7 @@
   font-size: 13px;
   font-weight: 720;
   text-align: left;
+  overflow-wrap: anywhere;
 }
 
 .export-choice-grid button.active {
@@ -577,6 +578,10 @@
     display: grid;
     grid-template-columns: 38px minmax(0, 1fr);
     width: 100%;
+  }
+
+  .export-choice-grid.format {
+    grid-template-columns: 1fr;
   }
 
   .stats-period-switch {

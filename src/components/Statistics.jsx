@@ -20,6 +20,7 @@ const EXPORT_RANGE_OPTIONS = [
 ];
 
 const EXPORT_FORMAT_OPTIONS = [
+  { value: 'html', label: 'HTML 数据册' },
   { value: 'xlsx', label: 'Excel 数据册' },
   { value: 'json', label: 'JSON 基础数据' },
 ];
@@ -233,7 +234,7 @@ export default function Statistics({ records }) {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showDataExport, setShowDataExport] = useState(false);
   const [exportRangeType, setExportRangeType] = useState('month');
-  const [exportFormat, setExportFormat] = useState('xlsx');
+  const [exportFormat, setExportFormat] = useState('html');
 
   const vm = useMemo(
     () => getStatisticsInsightViewModel(records, periodDays, selectedCategory),
@@ -311,7 +312,7 @@ export default function Statistics({ records }) {
       >
         <div className="data-book-export">
           <p>
-            生成一份优雅的结构化表格，只呈现数据，不做消费评价。
+            生成一份结构化数据册。HTML 更适合优雅查看，Excel 适合继续分析，JSON 适合保存基础数据。
           </p>
 
           <div className="export-field">
@@ -347,7 +348,7 @@ export default function Statistics({ records }) {
           </div>
 
           <div className="data-book-note">
-            Excel 数据册包含总览、分类汇总、时间汇总、记录明细和周期归属。
+            HTML 数据册包含总览、分类去向、时间轨迹、记录明细和周期归属；只呈现数据，不做消费评价。
           </div>
 
           <button

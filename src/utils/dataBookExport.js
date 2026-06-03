@@ -1,4 +1,5 @@
 import { getRecordAmountInRange } from './statistics';
+import { formatAmount } from './format';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const APP_NAME = '生活记账';
@@ -621,6 +622,565 @@ function buildXlsx(book) {
   return createZip(files);
 }
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatMoneyText(value) {
+  return `¥${formatAmount(money(value))}`;
+}
+
+function formatPercentText(value) {
+  const percent = Number(value || 0) * 100;
+  return `${percent.toFixed(percent >= 10 ? 0 : 1)}%`;
+}
+
+function buildHtmlMetric(label, value, tone = '') {
+  return `
+    <div class="metric ${tone}">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </div>`;
+}
+
+function buildHtmlRows(rows, emptyText) {
+  if (!rows.length) {
+    return `<tr class="empty-row"><td colspan="9">${escapeHtml(emptyText)}</td></tr>`;
+  }
+  return rows.join('');
+}
+
+function buildHtmlDocument(book) {
+  const meta = book.metadata;
+  const overview = book.overview;
+  const maxCategoryAmount = Math.max(...book.categorySummary.map((item) => item.expenseAmount), 1);
+  const maxTimeAmount = Math.max(...book.timeSummary.map((item) => item.expenseAmount), 1);
+
+  const categoryRows = buildHtmlRows(book.categorySummary.map((item) => {
+    const width = Math.max(4, Math.round((Number(item.expenseAmount || 0) / maxCategoryAmount) * 100));
+    return `
+      <tr>
+        <td><strong>${escapeHtml(item.category)}</strong></td>
+        <td class="num expense">${formatMoneyText(item.expenseAmount)}</td>
+        <td class="num income">${formatMoneyText(item.incomeAmount)}</td>
+        <td class="num">${escapeHtml(item.recordCount)}</td>
+        <td>
+          <div class="share-cell">
+            <span class="share-track"><i style="width:${width}%"></i></span>
+            <b>${escapeHtml(formatPercentText(item.expenseShare))}</b>
+          </div>
+        </td>
+      </tr>`;
+  }), '这个范围内还没有分类数据。');
+
+  const timeRows = buildHtmlRows(book.timeSummary.map((item) => {
+    const width = Math.max(4, Math.round((Number(item.expenseAmount || 0) / maxTimeAmount) * 100));
+    return `
+      <tr>
+        <td><strong>${escapeHtml(item.periodLabel)}</strong><small>${escapeHtml(item.periodKey)}</small></td>
+        <td class="num expense">${formatMoneyText(item.expenseAmount)}</td>
+        <td class="num income">${formatMoneyText(item.incomeAmount)}</td>
+        <td class="num">${escapeHtml(item.recordCount)}</td>
+        <td><span class="line-bar"><i style="width:${width}%"></i></span></td>
+      </tr>`;
+  }), '这个范围内还没有时间汇总。');
+
+  const recordRows = buildHtmlRows(book.records.map((record) => {
+    const searchText = [
+      record.date,
+      record.time,
+      record.type,
+      record.category,
+      record.tags,
+      record.note,
+      record.amount,
+    ].join(' ');
+    return `
+      <tr data-search="${escapeHtml(searchText.toLowerCase())}">
+        <td>${escapeHtml(record.date)}<small>${escapeHtml(record.time)}</small></td>
+        <td><span class="pill">${escapeHtml(record.type)}</span></td>
+        <td><strong>${escapeHtml(record.category)}</strong></td>
+        <td>${escapeHtml(record.tags || '-')}</td>
+        <td>${escapeHtml(record.note || '-')}</td>
+        <td class="num ${record.type === '收入' ? 'income' : 'expense'}">${formatMoneyText(record.amount)}</td>
+        <td>${escapeHtml(record.isPeriodic)}</td>
+      </tr>`;
+  }), '这个范围内还没有记录明细。');
+
+  const periodicRows = buildHtmlRows(book.periodicAttribution.map((item) => `
+      <tr>
+        <td>${escapeHtml(item.originalPaymentDate)}</td>
+        <td><strong>${escapeHtml(item.category)}</strong></td>
+        <td class="num">${formatMoneyText(item.originalAmount)}</td>
+        <td>${escapeHtml(item.periodicType)}</td>
+        <td>${escapeHtml(item.serviceStart)}<small>${escapeHtml(item.serviceEnd)}</small></td>
+        <td class="num">${escapeHtml(item.rangeOverlapDays)}</td>
+        <td class="num expense">${formatMoneyText(item.attributedAmount)}</td>
+        <td class="num">${formatMoneyText(item.dailyAttributedAmount)}</td>
+      </tr>`), '这个范围内没有需要呈现的周期归属。');
+
+  return `<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${escapeHtml(meta.appName)} · ${escapeHtml(meta.rangeLabel)}</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #25211f;
+      --muted: #817771;
+      --line: #e8e1dd;
+      --paper: #fffaf6;
+      --surface: rgba(255, 255, 255, 0.86);
+      --accent: #b9819c;
+      --accent-soft: #f5e7ee;
+      --gold: #c3a044;
+      --green: #5f9471;
+      --shadow: 0 24px 70px rgba(51, 42, 36, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        repeating-linear-gradient(90deg, rgba(37, 33, 31, 0.018) 0 1px, transparent 1px 36px),
+        repeating-linear-gradient(180deg, rgba(37, 33, 31, 0.014) 0 1px, transparent 1px 36px),
+        linear-gradient(135deg, rgba(185, 129, 156, 0.12), transparent 32%),
+        linear-gradient(180deg, #fffdf9 0%, var(--paper) 100%);
+      font-family: "Avenir Next", "Segoe UI", "Microsoft YaHei", sans-serif;
+      line-height: 1.5;
+    }
+    .page {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 44px 0 60px;
+    }
+    .hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+      gap: 24px;
+      align-items: end;
+      padding: 34px;
+      border: 1px solid rgba(37, 33, 31, 0.08);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 8px;
+      background: linear-gradient(180deg, var(--ink), var(--accent), var(--gold));
+    }
+    .hero > * {
+      position: relative;
+    }
+    .kicker {
+      display: inline-flex;
+      width: fit-content;
+      padding: 6px 10px;
+      border: 1px solid rgba(185, 129, 156, 0.22);
+      border-radius: 999px;
+      color: var(--accent);
+      background: rgba(245, 231, 238, 0.62);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    h1 {
+      margin: 16px 0 10px;
+      font-size: clamp(34px, 6vw, 62px);
+      line-height: 0.98;
+      letter-spacing: 0;
+      font-family: "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      font-weight: 850;
+    }
+    .range-line {
+      display: inline-flex;
+      margin-bottom: 12px;
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 800;
+    }
+    .hero p,
+    .section-head p,
+    .footer-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .hero-meta {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: right;
+    }
+    .hero-meta strong {
+      color: var(--ink);
+      font-size: 17px;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 20px 0 26px;
+    }
+    .metric,
+    .section {
+      border: 1px solid rgba(37, 33, 31, 0.07);
+      border-radius: 14px;
+      background: var(--surface);
+      box-shadow: 0 14px 36px rgba(51, 42, 36, 0.07);
+    }
+    .metric {
+      min-width: 0;
+      padding: 16px;
+    }
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 760;
+    }
+    .metric strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 22px;
+      font-weight: 850;
+      font-variant-numeric: tabular-nums;
+      overflow-wrap: anywhere;
+    }
+    .toc {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .toc a {
+      min-width: 0;
+      padding: 12px 14px;
+      border: 1px solid rgba(37, 33, 31, 0.07);
+      border-radius: 12px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.58);
+      font-size: 12px;
+      font-weight: 820;
+      text-decoration: none;
+      transition: transform 160ms ease, background 160ms ease;
+    }
+    .toc a:hover {
+      transform: translateY(-1px);
+      background: #fff;
+    }
+    .metric.expense strong { color: var(--ink); }
+    .metric.income strong { color: var(--green); }
+    .section {
+      margin-top: 18px;
+      overflow: hidden;
+    }
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--line);
+    }
+    .section-title {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .section-index {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+    h2 {
+      margin: 0 0 4px;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+    }
+    th,
+    td {
+      padding: 13px 16px;
+      border-bottom: 1px solid rgba(232, 225, 221, 0.78);
+      text-align: left;
+      vertical-align: middle;
+      font-size: 13px;
+    }
+    tbody tr {
+      transition: background 160ms ease;
+    }
+    tbody tr:hover {
+      background: rgba(245, 231, 238, 0.28);
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      color: var(--muted);
+      background: rgba(255, 250, 246, 0.96);
+      font-size: 11px;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+    td small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .expense { color: var(--ink); }
+    .income { color: var(--green); }
+    .share-cell {
+      display: grid;
+      grid-template-columns: minmax(96px, 1fr) 46px;
+      gap: 10px;
+      align-items: center;
+    }
+    .share-track,
+    .line-bar {
+      display: block;
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(37, 33, 31, 0.07);
+    }
+    .share-track i,
+    .line-bar i {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--gold));
+    }
+    .share-cell b {
+      color: var(--muted);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+    .pill {
+      display: inline-flex;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 780;
+    }
+    .record-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .record-tools input {
+      width: 210px;
+      max-width: 44vw;
+      min-height: 34px;
+      padding: 0 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.72);
+      outline: none;
+    }
+    .record-tools button {
+      min-height: 34px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 999px;
+      color: #fff;
+      background: var(--ink);
+      font-weight: 760;
+      cursor: pointer;
+    }
+    .empty-row td {
+      color: var(--muted);
+      text-align: center;
+      padding: 26px 16px;
+    }
+    .footer-note {
+      padding: 22px 4px 0;
+      text-align: center;
+    }
+    @media (max-width: 760px) {
+      .page {
+        width: min(100% - 24px, 520px);
+        padding: 18px 0 32px;
+      }
+      .hero {
+        grid-template-columns: 1fr;
+        padding: 22px;
+      }
+      .hero-meta {
+        text-align: left;
+      }
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .toc {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .section-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .record-tools {
+        width: 100%;
+      }
+      .record-tools input {
+        flex: 1;
+        max-width: none;
+      }
+    }
+    @media print {
+      body { background: #fff; }
+      .page { width: 100%; padding: 0; }
+      .hero,
+      .metric,
+      .section { box-shadow: none; }
+      .toc { display: none; }
+      .record-tools { display: none; }
+      th { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div>
+        <span class="kicker">数据留在自己手里</span>
+        <h1>生活数据册</h1>
+        <span class="range-line">${escapeHtml(meta.rangeLabel)}</span>
+        <p>这是一份结构化的消费去向记录，只呈现数据，不评价消费行为。</p>
+      </div>
+      <div class="hero-meta">
+        <span>导出时间 <strong>${escapeHtml(meta.exportedAt)}</strong></span>
+        <span>日期范围 <strong>${escapeHtml(meta.rangeStart)} - ${escapeHtml(meta.rangeEnd)}</strong></span>
+        <span>数据版本 <strong>${escapeHtml(meta.schemaVersion)}</strong></span>
+      </div>
+    </section>
+
+    <section class="metrics">
+      ${buildHtmlMetric('支出总额', formatMoneyText(overview.expenseTotal), 'expense')}
+      ${buildHtmlMetric('收入总额', formatMoneyText(overview.incomeTotal), 'income')}
+      ${buildHtmlMetric('记录数量', `${overview.recordCount} 笔`)}
+      ${buildHtmlMetric('周期归属', formatMoneyText(overview.periodicAttributedTotal))}
+    </section>
+
+    <nav class="toc" aria-label="数据册目录">
+      <a href="#category">01 分类去向</a>
+      <a href="#time">02 时间轨迹</a>
+      <a href="#records">03 记录明细</a>
+      <a href="#periodic">04 周期归属</a>
+    </nav>
+
+    <section class="section" id="category">
+      <div class="section-head">
+        <div>
+          <div class="section-title"><span class="section-index">01</span><h2>分类去向</h2></div>
+          <p>按分类呈现支出、收入与记录数量。</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>分类</th><th class="num">支出</th><th class="num">收入</th><th class="num">记录</th><th>支出占比</th></tr></thead>
+          <tbody>${categoryRows}</tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="time">
+      <div class="section-head">
+        <div>
+          <div class="section-title"><span class="section-index">02</span><h2>时间轨迹</h2></div>
+          <p>按时间呈现记录的自然分布。</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>周期</th><th class="num">支出</th><th class="num">收入</th><th class="num">记录</th><th>支出条</th></tr></thead>
+          <tbody>${timeRows}</tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="records">
+      <div class="section-head">
+        <div>
+          <div class="section-title"><span class="section-index">03</span><h2>记录明细</h2></div>
+          <p>保留每一笔记录的付款真实。</p>
+        </div>
+        <div class="record-tools">
+          <input id="recordSearch" type="search" placeholder="搜索明细" />
+          <button type="button" onclick="window.print()">打印</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>日期</th><th>类型</th><th>分类</th><th>标签</th><th>备注</th><th class="num">金额</th><th>周期</th></tr></thead>
+          <tbody id="recordRows">${recordRows}</tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="periodic">
+      <div class="section-head">
+        <div>
+          <div class="section-title"><span class="section-index">04</span><h2>周期归属</h2></div>
+          <p>周期支出按所选范围呈现归属金额。</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>原付款日</th><th>分类</th><th class="num">原金额</th><th>周期</th><th>归属范围</th><th class="num">重合天数</th><th class="num">归属金额</th><th class="num">日均归属</th></tr></thead>
+          <tbody>${periodicRows}</tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="footer-note">这份数据册只帮助你看见钱去了哪里。它不提供评价、建议或压力。</p>
+  </main>
+  <script>
+    const searchInput = document.getElementById('recordSearch');
+    const recordRows = Array.from(document.querySelectorAll('#recordRows tr[data-search]'));
+    searchInput?.addEventListener('input', () => {
+      const query = searchInput.value.trim().toLowerCase();
+      recordRows.forEach((row) => {
+        row.hidden = query && !row.dataset.search.includes(query);
+      });
+    });
+  </script>
+</body>
+</html>`;
+}
+
 function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
@@ -641,6 +1201,13 @@ export function exportDataBook(records, { rangeType = 'month', format = 'xlsx' }
   if (format === 'json') {
     const blob = new Blob([JSON.stringify(book, null, 2)], { type: 'application/json;charset=utf-8' });
     downloadBlob(blob, `${filenameBase}.json`);
+    return;
+  }
+
+  if (format === 'html') {
+    const html = buildHtmlDocument(book);
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    downloadBlob(blob, `${filenameBase}.html`);
     return;
   }
 

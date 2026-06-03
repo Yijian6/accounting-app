@@ -4,10 +4,11 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Planned Current Commit
 
-- 2026-06-01T21:15:34+08:00 | pending | feat: add day review quick entry
+- 2026-06-03T16:37:35+08:00 | pending | feat: add html data book export
 
 ## Existing Commits
 
+- 2026-06-01T21:16:40+08:00 | 237da17 | feat: add day review quick entry
 - 2026-06-01T14:57:00+08:00 | 4b57be1 | feat: add record review and data book export
 - 2026-06-01T14:36:40+08:00 | 15d0ac6 | docs: clarify product principles
 - 2026-06-01T14:32:23+08:00 | 308b4d5 | style: align app with life order principles
