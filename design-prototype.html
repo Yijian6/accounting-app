@@ -208,15 +208,15 @@
   }
 
   /* ═══════════════════════════════
-     调色盘按钮 + 圆环
+     调色盘按钮 + 弧形展开（移动端优化）
   ═══════════════════════════════ */
   .palette-trigger {
     position: fixed;
-    bottom: 32px;
-    right: 32px;
+    bottom: 24px;
+    right: 20px;
     z-index: 100;
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     border: 2px solid var(--accent);
     background: var(--bg-card);
@@ -226,199 +226,122 @@
     justify-content: center;
     transition: all 0.3s ease;
     box-shadow:
-      0 2px 12px rgba(0,0,0,0.2),
+      0 2px 12px rgba(0,0,0,0.25),
       0 0 20px var(--accent-glow);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
-  .palette-trigger:hover {
-    transform: scale(1.08);
-    box-shadow:
-      0 4px 20px rgba(0,0,0,0.3),
-      0 0 30px var(--accent-glow);
+  .palette-trigger:active {
+    transform: scale(0.92);
   }
 
   .palette-trigger .inner-dot {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: var(--accent);
     transition: background 0.4s ease;
   }
 
-  /* 圆环容器 */
+  /* 弧形容器——以触发按钮为圆心，向左上方展开 */
   .palette-ring {
     position: fixed;
-    bottom: 32px;
-    right: 32px;
+    bottom: 24px;
+    right: 20px;
     z-index: 99;
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     pointer-events: none;
   }
 
   .palette-ring .theme-dot {
     position: absolute;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.1);
+    border: 2.5px solid rgba(255,255,255,0.12);
     cursor: pointer;
     pointer-events: none;
     opacity: 0;
-    transform: translate(0, 0) scale(0.5);
+    transform: translate(0, 0) scale(0.4);
     transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 
+  /* 主题名常驻显示（不依赖 hover） */
   .palette-ring .theme-dot::after {
     content: attr(data-name);
     position: absolute;
-    right: calc(100% + 10px);
+    right: calc(100% + 8px);
     white-space: nowrap;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--text-soft);
     opacity: 0;
-    transform: translateX(8px);
-    transition: all 0.2s ease;
+    transition: opacity 0.25s ease;
     pointer-events: none;
   }
 
-  .palette-ring .theme-dot:hover::after {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  .palette-ring .theme-dot:hover {
-    transform: translate(var(--tx), var(--ty)) scale(1.15) !important;
-    border-color: rgba(255,255,255,0.3);
+  .palette-ring .theme-dot:active {
+    transform: translate(var(--tx), var(--ty)) scale(0.9) !important;
   }
 
   .palette-ring .theme-dot.current {
     border-color: rgba(255,255,255,0.5);
-    box-shadow: 0 0 0 2px rgba(255,255,255,0.15), 0 2px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.12), 0 2px 10px rgba(0,0,0,0.25);
   }
 
-  /* 展开态 */
+  /* 展开态：向左上弧形，不超出屏幕 */
   .palette-ring.open .theme-dot {
     opacity: 1;
     pointer-events: auto;
   }
 
-  .palette-ring.open .theme-dot:nth-child(1) { --tx: 0px; --ty: -64px; transform: translate(0px, -64px) scale(1); transition-delay: 0.00s; }
-  .palette-ring.open .theme-dot:nth-child(2) { --tx: 56px; --ty: -36px; transform: translate(56px, -36px) scale(1); transition-delay: 0.04s; }
-  .palette-ring.open .theme-dot:nth-child(3) { --tx: 56px; --ty: 36px; transform: translate(56px, 36px) scale(1); transition-delay: 0.08s; }
-  .palette-ring.open .theme-dot:nth-child(4) { --tx: 0px; --ty: 64px; transform: translate(0px, 64px) scale(1); transition-delay: 0.12s; }
-  .palette-ring.open .theme-dot:nth-child(5) { --tx: -56px; --ty: 0px; transform: translate(-56px, 0px) scale(1); transition-delay: 0.16s; }
+  .palette-ring.open .theme-dot::after {
+    opacity: 1;
+  }
+
+  /* 5 个点沿左上方 ~110° 弧形分布，半径 74px，不超出屏幕底部 */
+  .palette-ring.open .theme-dot:nth-child(1) { --tx: -12px; --ty: -74px; transform: translate(-12px, -74px) scale(1); transition-delay: 0.00s; }
+  .palette-ring.open .theme-dot:nth-child(2) { --tx: -44px; --ty: -60px; transform: translate(-44px, -60px) scale(1); transition-delay: 0.04s; }
+  .palette-ring.open .theme-dot:nth-child(3) { --tx: -68px; --ty: -34px; transform: translate(-68px, -34px) scale(1); transition-delay: 0.08s; }
+  .palette-ring.open .theme-dot:nth-child(4) { --tx: -76px; --ty: -2px;  transform: translate(-76px, -2px)  scale(1); transition-delay: 0.12s; }
+  .palette-ring.open .theme-dot:nth-child(5) { --tx: -68px; --ty: 28px;  transform: translate(-68px, 28px)  scale(1); transition-delay: 0.16s; }
 
   /* 遮罩 */
   .palette-backdrop {
     position: fixed;
     inset: 0;
     z-index: 98;
-    display: none;
+    background: rgba(0,0,0,0);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
   }
 
   .palette-backdrop.open {
-    display: block;
+    opacity: 1;
+    pointer-events: auto;
+    background: rgba(0,0,0,0.3);
   }
+
 
   /* ═══════════════════════════════
-     介绍区
-  ═══════════════════════════════ */
-  .intro {
-    max-width: 680px;
-    margin: 0 auto;
-    padding: 80px 32px 48px;
-  }
-
-  .intro-label {
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--accent-deep);
-    margin-bottom: 20px;
-    font-weight: 600;
-    transition: color 0.4s;
-  }
-
-  .intro h1 {
-    font-family: "Noto Serif SC", serif;
-    font-size: clamp(36px, 7vw, 56px);
-    font-weight: 900;
-    line-height: 1.1;
-    letter-spacing: -0.03em;
-    margin-bottom: 16px;
-    color: var(--accent);
-    transition: color 0.4s;
-  }
-
-  .intro p {
-    color: var(--text-soft);
-    font-size: 14px;
-    line-height: 1.7;
-    max-width: 480px;
-    transition: color 0.4s;
-  }
-
-  .intro .tip {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 20px;
-    padding: 8px 16px;
-    border-radius: 999px;
-    background: var(--accent-glow);
-    border: 1px solid var(--accent-wash);
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--accent);
-    transition: all 0.4s;
-  }
-
-  .tip-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
-    animation: pulse 2s ease infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.85); }
-  }
-
-  .screen-label {
-    max-width: 420px;
-    margin: 0 auto;
-    padding: 40px 24px 10px;
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--accent-deep);
-    font-weight: 600;
-    transition: color 0.4s;
-  }
-
-  /* ═══════════════════════════════
-     手机壳
+     屏幕容器（手机全宽）
   ═══════════════════════════════ */
   .phone {
-    max-width: 420px;
-    margin: 0 auto 72px;
+    max-width: 100%;
+    margin: 0 auto 2px;
     background: var(--bg);
-    border-radius: 36px;
     overflow: hidden;
-    border: 1px solid var(--phone-border);
-    box-shadow:
-      0 0 0 1px var(--phone-glow),
-      0 40px 120px var(--phone-shadow),
-      0 0 200px var(--phone-glow);
-    transition: background 0.5s, border-color 0.4s, box-shadow 0.5s;
+    border-bottom: 1px solid var(--bg-line);
+    transition: background 0.5s, border-color 0.4s;
   }
 
   /* ═══════════════════════════════
@@ -1057,27 +980,6 @@
   <span class="inner-dot"></span>
 </button>
 
-<!-- ═══════════════════════════════
-     介绍
-═══════════════════════════════ -->
-<section class="intro">
-  <div class="intro-label">主题切换 · 原型</div>
-  <h1>你的颜色<br/>你来选</h1>
-  <p>
-    五套精心搭配的主题，每一套都确保好看。
-    点击右下角的圆点，打开调色盘，试试看。
-  </p>
-  <div class="tip">
-    <span class="tip-dot"></span>
-    点击右下角圆点切换主题
-  </div>
-</section>
-
-<!-- ═══════════════════════════════
-     01 记录页
-═══════════════════════════════ -->
-<div class="screen-label">01 · 记录</div>
-
 <div class="phone">
   <div class="form-page">
     <div class="top-bar">
@@ -1134,7 +1036,6 @@
 <!-- ═══════════════════════════════
      02 明细页
 ═══════════════════════════════ -->
-<div class="screen-label">02 · 明细</div>
 
 <div class="phone">
   <div class="list-page">
@@ -1189,7 +1090,6 @@
 <!-- ═══════════════════════════════
      03 统计页
 ═══════════════════════════════ -->
-<div class="screen-label">03 · 统计</div>
 
 <div class="phone">
   <div class="stats-page">
