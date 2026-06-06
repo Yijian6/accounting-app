@@ -1,0 +1,1280 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>记账 · 主题切换原型</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;400;700;900&display=swap');
+
+  /* ═══════════════════════════════
+     主题系统：用 CSS 变量，JS 切换
+  ═══════════════════════════════ */
+
+  /* 默认：夜樱 */
+  :root, [data-theme="nightsakura"] {
+    --bg:          #16121a;
+    --bg-up:       #1e1824;
+    --bg-card:     #221c29;
+    --bg-line:     rgba(200, 160, 190, 0.06);
+
+    --accent:      #f2b5c8;
+    --accent-deep: #d4889e;
+    --accent-pale: #f8dce6;
+    --accent-glow: rgba(242, 181, 200, 0.08);
+    --accent-wash: rgba(242, 181, 200, 0.04);
+
+    --secondary:   #c4b5d4;
+    --secondary-soft: rgba(196, 181, 212, 0.10);
+
+    --text:        #f5efe8;
+    --text-soft:   rgba(245, 239, 232, 0.55);
+    --text-muted:  rgba(245, 239, 232, 0.30);
+    --text-ghost:  rgba(245, 239, 232, 0.14);
+
+    --green:       #8cc5a0;
+    --green-soft:  rgba(140, 197, 160, 0.10);
+    --warn:        #e0c08a;
+    --warn-soft:   rgba(224, 192, 138, 0.08);
+
+    --cat-1: #f2b5c8;
+    --cat-2: #c4b5d4;
+    --cat-3: #8ab4e0;
+    --cat-4: #8cc5a0;
+    --cat-5: #e0a0a4;
+
+    --phone-border: rgba(200, 160, 190, 0.08);
+    --phone-shadow: rgba(16, 10, 20, 0.7);
+    --phone-glow:   rgba(242, 181, 200, 0.04);
+  }
+
+  [data-theme="inkgold"] {
+    --bg:          #111109;
+    --bg-up:       #1a1810;
+    --bg-card:     #22201a;
+    --bg-line:     rgba(200, 180, 120, 0.06);
+
+    --accent:      #d4b078;
+    --accent-deep: #b8924e;
+    --accent-pale: #f0dfc0;
+    --accent-glow: rgba(212, 176, 120, 0.08);
+    --accent-wash: rgba(212, 176, 120, 0.04);
+
+    --secondary:   #c4b8a0;
+    --secondary-soft: rgba(196, 184, 160, 0.10);
+
+    --text:        #f0ece4;
+    --text-soft:   rgba(240, 236, 228, 0.55);
+    --text-muted:  rgba(240, 236, 228, 0.30);
+    --text-ghost:  rgba(240, 236, 228, 0.14);
+
+    --green:       #8cb88a;
+    --green-soft:  rgba(140, 184, 138, 0.10);
+    --warn:        #d4a060;
+    --warn-soft:   rgba(212, 160, 96, 0.08);
+
+    --cat-1: #d4b078;
+    --cat-2: #c4a880;
+    --cat-3: #8ab0a0;
+    --cat-4: #8cb88a;
+    --cat-5: #d4a080;
+
+    --phone-border: rgba(200, 180, 120, 0.08);
+    --phone-shadow: rgba(10, 10, 4, 0.7);
+    --phone-glow:   rgba(212, 176, 120, 0.04);
+  }
+
+  [data-theme="deepsea"] {
+    --bg:          #0c1420;
+    --bg-up:       #132030;
+    --bg-card:     #18283c;
+    --bg-line:     rgba(100, 180, 220, 0.06);
+
+    --accent:      #6cc4e8;
+    --accent-deep: #4a9ec8;
+    --accent-pale: #b8e4f4;
+    --accent-glow: rgba(108, 196, 232, 0.08);
+    --accent-wash: rgba(108, 196, 232, 0.04);
+
+    --secondary:   #9ab0c8;
+    --secondary-soft: rgba(154, 176, 200, 0.10);
+
+    --text:        #e8f0f4;
+    --text-soft:   rgba(232, 240, 244, 0.55);
+    --text-muted:  rgba(232, 240, 244, 0.30);
+    --text-ghost:  rgba(232, 240, 244, 0.14);
+
+    --green:       #78c4a0;
+    --green-soft:  rgba(120, 196, 160, 0.10);
+    --warn:        #e0c08a;
+    --warn-soft:   rgba(224, 192, 138, 0.08);
+
+    --cat-1: #6cc4e8;
+    --cat-2: #9ab0c8;
+    --cat-3: #78c4a0;
+    --cat-4: #a8c878;
+    --cat-5: #d4a088;
+
+    --phone-border: rgba(100, 180, 220, 0.08);
+    --phone-shadow: rgba(6, 12, 20, 0.7);
+    --phone-glow:   rgba(108, 196, 232, 0.04);
+  }
+
+  [data-theme="dawn"] {
+    --bg:          #faf7f4;
+    --bg-up:       #f2ede8;
+    --bg-card:     #ffffff;
+    --bg-line:     rgba(80, 60, 50, 0.06);
+
+    --accent:      #c88a7a;
+    --accent-deep: #a86e5e;
+    --accent-pale: #f0d4cc;
+    --accent-glow: rgba(200, 138, 122, 0.08);
+    --accent-wash: rgba(200, 138, 122, 0.04);
+
+    --secondary:   #a89888;
+    --secondary-soft: rgba(168, 152, 136, 0.10);
+
+    --text:        #2c2422;
+    --text-soft:   rgba(44, 36, 34, 0.60);
+    --text-muted:  rgba(44, 36, 34, 0.32);
+    --text-ghost:  rgba(44, 36, 34, 0.12);
+
+    --green:       #6a9a7a;
+    --green-soft:  rgba(106, 154, 122, 0.10);
+    --warn:        #c8a050;
+    --warn-soft:   rgba(200, 160, 80, 0.08);
+
+    --cat-1: #c88a7a;
+    --cat-2: #b8a090;
+    --cat-3: #7a9ab0;
+    --cat-4: #6a9a7a;
+    --cat-5: #c4887a;
+
+    --phone-border: rgba(80, 60, 50, 0.10);
+    --phone-shadow: rgba(80, 60, 50, 0.08);
+    --phone-glow:   rgba(200, 138, 122, 0.04);
+  }
+
+  [data-theme="moss"] {
+    --bg:          #12160e;
+    --bg-up:       #1c2218;
+    --bg-card:     #222a1e;
+    --bg-line:     rgba(140, 180, 120, 0.06);
+
+    --accent:      #a8cc88;
+    --accent-deep: #80a868;
+    --accent-pale: #d0e8c0;
+    --accent-glow: rgba(168, 204, 136, 0.08);
+    --accent-wash: rgba(168, 204, 136, 0.04);
+
+    --secondary:   #b0b89a;
+    --secondary-soft: rgba(176, 184, 154, 0.10);
+
+    --text:        #eef0e8;
+    --text-soft:   rgba(238, 240, 232, 0.55);
+    --text-muted:  rgba(238, 240, 232, 0.30);
+    --text-ghost:  rgba(238, 240, 232, 0.14);
+
+    --green:       #8cc5a0;
+    --green-soft:  rgba(140, 197, 160, 0.10);
+    --warn:        #d4c078;
+    --warn-soft:   rgba(212, 192, 120, 0.08);
+
+    --cat-1: #a8cc88;
+    --cat-2: #88b4a0;
+    --cat-3: #90a8c0;
+    --cat-4: #c8c888;
+    --cat-5: #c8a888;
+
+    --phone-border: rgba(140, 180, 120, 0.08);
+    --phone-shadow: rgba(10, 14, 8, 0.7);
+    --phone-glow:   rgba(168, 204, 136, 0.04);
+  }
+
+  /* ═══════════════════════════════
+     基础
+  ═══════════════════════════════ */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    overflow-x: hidden;
+    transition: background 0.5s ease, color 0.4s ease;
+  }
+
+  /* ═══════════════════════════════
+     调色盘按钮 + 圆环
+  ═══════════════════════════════ */
+  .palette-trigger {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    z-index: 100;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    background: var(--bg-card);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow:
+      0 2px 12px rgba(0,0,0,0.2),
+      0 0 20px var(--accent-glow);
+  }
+
+  .palette-trigger:hover {
+    transform: scale(1.08);
+    box-shadow:
+      0 4px 20px rgba(0,0,0,0.3),
+      0 0 30px var(--accent-glow);
+  }
+
+  .palette-trigger .inner-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    transition: background 0.4s ease;
+  }
+
+  /* 圆环容器 */
+  .palette-ring {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    z-index: 99;
+    width: 44px;
+    height: 44px;
+    pointer-events: none;
+  }
+
+  .palette-ring .theme-dot {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.1);
+    cursor: pointer;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+
+  .palette-ring .theme-dot::after {
+    content: attr(data-name);
+    position: absolute;
+    right: calc(100% + 10px);
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-soft);
+    opacity: 0;
+    transform: translateX(8px);
+    transition: all 0.2s ease;
+    pointer-events: none;
+  }
+
+  .palette-ring .theme-dot:hover::after {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .palette-ring .theme-dot:hover {
+    transform: translate(var(--tx), var(--ty)) scale(1.15) !important;
+    border-color: rgba(255,255,255,0.3);
+  }
+
+  .palette-ring .theme-dot.current {
+    border-color: rgba(255,255,255,0.5);
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.15), 0 2px 10px rgba(0,0,0,0.2);
+  }
+
+  /* 展开态 */
+  .palette-ring.open .theme-dot {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .palette-ring.open .theme-dot:nth-child(1) { --tx: 0px; --ty: -64px; transform: translate(0px, -64px) scale(1); transition-delay: 0.00s; }
+  .palette-ring.open .theme-dot:nth-child(2) { --tx: 56px; --ty: -36px; transform: translate(56px, -36px) scale(1); transition-delay: 0.04s; }
+  .palette-ring.open .theme-dot:nth-child(3) { --tx: 56px; --ty: 36px; transform: translate(56px, 36px) scale(1); transition-delay: 0.08s; }
+  .palette-ring.open .theme-dot:nth-child(4) { --tx: 0px; --ty: 64px; transform: translate(0px, 64px) scale(1); transition-delay: 0.12s; }
+  .palette-ring.open .theme-dot:nth-child(5) { --tx: -56px; --ty: 0px; transform: translate(-56px, 0px) scale(1); transition-delay: 0.16s; }
+
+  /* 遮罩 */
+  .palette-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 98;
+    display: none;
+  }
+
+  .palette-backdrop.open {
+    display: block;
+  }
+
+  /* ═══════════════════════════════
+     介绍区
+  ═══════════════════════════════ */
+  .intro {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 80px 32px 48px;
+  }
+
+  .intro-label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent-deep);
+    margin-bottom: 20px;
+    font-weight: 600;
+    transition: color 0.4s;
+  }
+
+  .intro h1 {
+    font-family: "Noto Serif SC", serif;
+    font-size: clamp(36px, 7vw, 56px);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 16px;
+    color: var(--accent);
+    transition: color 0.4s;
+  }
+
+  .intro p {
+    color: var(--text-soft);
+    font-size: 14px;
+    line-height: 1.7;
+    max-width: 480px;
+    transition: color 0.4s;
+  }
+
+  .intro .tip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: var(--accent-glow);
+    border: 1px solid var(--accent-wash);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    transition: all 0.4s;
+  }
+
+  .tip-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  .screen-label {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 40px 24px 10px;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent-deep);
+    font-weight: 600;
+    transition: color 0.4s;
+  }
+
+  /* ═══════════════════════════════
+     手机壳
+  ═══════════════════════════════ */
+  .phone {
+    max-width: 420px;
+    margin: 0 auto 72px;
+    background: var(--bg);
+    border-radius: 36px;
+    overflow: hidden;
+    border: 1px solid var(--phone-border);
+    box-shadow:
+      0 0 0 1px var(--phone-glow),
+      0 40px 120px var(--phone-shadow),
+      0 0 200px var(--phone-glow);
+    transition: background 0.5s, border-color 0.4s, box-shadow 0.5s;
+  }
+
+  /* ═══════════════════════════════
+     顶部栏
+  ═══════════════════════════════ */
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px 0;
+  }
+
+  .logo {
+    font-family: "Noto Serif SC", serif;
+    font-size: 15px;
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    transition: color 0.4s;
+  }
+
+  .nav { display: flex; }
+
+  .nav button {
+    padding: 8px 14px;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.3s;
+  }
+
+  .nav button.active { color: var(--text); }
+
+  .nav button.active::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    transition: background 0.4s, box-shadow 0.4s;
+  }
+
+  /* ═══════════════════════════════
+     记录页
+  ═══════════════════════════════ */
+  .form-page {
+    min-height: 680px;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 28px;
+  }
+
+  .amount-zone {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px 32px;
+    position: relative;
+  }
+
+  .amount-zone::before {
+    content: '';
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    pointer-events: none;
+    transition: background 0.5s;
+  }
+
+  .type-badge {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    padding: 5px 16px;
+    border: 1px solid var(--text-ghost);
+    border-radius: 999px;
+    margin-bottom: 24px;
+    position: relative;
+    transition: color 0.4s, border-color 0.4s;
+  }
+
+  .amount-row {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    position: relative;
+  }
+
+  .amount-row .yen {
+    font-family: "Noto Serif SC", serif;
+    font-size: 32px;
+    font-weight: 200;
+    color: var(--text-muted);
+    line-height: 1;
+    transition: color 0.4s;
+  }
+
+  .amount-row .num {
+    font-family: "Noto Serif SC", serif;
+    font-size: 76px;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--text);
+    transition: color 0.4s;
+  }
+
+  .cursor {
+    width: 2px;
+    height: 56px;
+    background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+    margin-left: 4px;
+    align-self: center;
+    border-radius: 1px;
+    animation: blink 1.2s ease infinite;
+    box-shadow: 0 0 12px var(--accent-glow);
+    transition: background 0.4s, box-shadow 0.4s;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.15; }
+  }
+
+  .amount-hint {
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+    transition: color 0.4s;
+  }
+
+  .form-bottom { padding: 0 20px; }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    padding-left: 4px;
+    font-weight: 600;
+    transition: color 0.4s;
+  }
+
+  .cat-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    margin-bottom: 18px;
+    scrollbar-width: none;
+  }
+  .cat-scroll::-webkit-scrollbar { display: none; }
+
+  .cat-chip {
+    flex-shrink: 0;
+    padding: 14px 22px;
+    border: 1px solid var(--bg-line);
+    border-radius: 14px;
+    background: var(--bg-card);
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    white-space: nowrap;
+  }
+
+  .cat-chip.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+    border-color: transparent;
+    color: var(--bg);
+    box-shadow: 0 4px 16px var(--accent-glow), 0 0 40px var(--accent-wash);
+  }
+
+  .cat-chip:not(.active):hover {
+    border-color: var(--text-ghost);
+    color: var(--text-soft);
+    background: var(--accent-wash);
+  }
+
+  .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+
+  .tag-pill {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--text-ghost);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tag-pill.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-wash);
+    box-shadow: 0 0 16px var(--accent-wash);
+  }
+
+  .more-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    border: none;
+    background: none;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .more-btn .dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--accent-deep);
+    transition: background 0.4s;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 18px;
+    border: none;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+    color: var(--bg);
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .submit-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 28px var(--accent-glow), 0 0 60px var(--accent-wash);
+  }
+
+  /* ═══════════════════════════════
+     明细页
+  ═══════════════════════════════ */
+  .list-page { min-height: 680px; padding-bottom: 28px; }
+
+  .review-section { padding: 20px 24px 0; }
+
+  .review-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .review-modes {
+    display: flex;
+    background: var(--bg-card);
+    border-radius: 10px;
+    padding: 3px;
+    border: 1px solid var(--bg-line);
+    transition: all 0.4s;
+  }
+
+  .review-modes button {
+    padding: 6px 14px;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .review-modes button.active {
+    background: var(--accent-glow);
+    color: var(--accent);
+  }
+
+  .review-date-block { text-align: center; margin-bottom: 24px; }
+
+  .review-date-text {
+    font-family: "Noto Serif SC", serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    transition: color 0.4s;
+  }
+
+  .review-date-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    transition: color 0.4s;
+  }
+
+  .stats-strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    text-align: center;
+    padding: 20px 0;
+    border-top: 1px solid var(--bg-line);
+    border-bottom: 1px solid var(--bg-line);
+    margin: 0 24px 4px;
+    transition: border-color 0.4s;
+  }
+
+  .stat-cell small {
+    display: block;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+    transition: color 0.4s;
+  }
+
+  .stat-cell strong {
+    font-family: "Noto Serif SC", serif;
+    font-size: 18px;
+    font-weight: 700;
+    transition: color 0.4s;
+  }
+
+  .stat-cell strong.expense { color: var(--text); }
+  .stat-cell strong.income { color: var(--green); }
+
+  .add-day-btn {
+    display: block;
+    width: calc(100% - 48px);
+    margin: 0 auto;
+    padding: 14px;
+    border: none;
+    background: none;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    border-bottom: 1px solid var(--bg-line);
+    transition: all 0.3s;
+  }
+
+  .add-day-btn:hover { background: var(--accent-wash); }
+
+  .group-label {
+    padding: 24px 24px 8px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 700;
+    transition: color 0.4s;
+  }
+
+  .record {
+    display: flex;
+    align-items: center;
+    padding: 15px 24px;
+    gap: 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+  }
+
+  .record::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 24px;
+    right: 24px;
+    height: 1px;
+    background: var(--bg-line);
+    transition: background 0.4s;
+  }
+
+  .record:hover { background: var(--accent-wash); }
+
+  .record-bar {
+    width: 3px;
+    height: 32px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    transition: background 0.4s, box-shadow 0.4s;
+  }
+
+  .record-bar.c1 { background: var(--cat-1); box-shadow: 0 0 8px var(--accent-wash); }
+  .record-bar.c2 { background: var(--cat-2); box-shadow: 0 0 8px var(--secondary-soft); }
+  .record-bar.c3 { background: var(--cat-3); box-shadow: 0 0 8px var(--accent-wash); }
+  .record-bar.c4 { background: var(--cat-4); box-shadow: 0 0 8px var(--green-soft); }
+  .record-bar.c5 { background: var(--cat-5); box-shadow: 0 0 8px var(--accent-wash); }
+  .record-bar.cg { background: var(--green); box-shadow: 0 0 8px var(--green-soft); }
+
+  .record-body { flex: 1; min-width: 0; }
+  .record-cat { font-size: 14px; font-weight: 600; color: var(--text); transition: color 0.4s; }
+  .record-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; transition: color 0.4s; }
+
+  .record-amount {
+    font-family: "Noto Serif SC", serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    flex-shrink: 0;
+    transition: color 0.4s;
+  }
+
+  .record-amount.expense { color: var(--text); }
+  .record-amount.income { color: var(--green); }
+
+  /* ═══════════════════════════════
+     统计页
+  ═══════════════════════════════ */
+  .stats-page { min-height: 680px; padding-bottom: 32px; }
+
+  .stats-hero { padding: 32px 24px 28px; position: relative; }
+
+  .stats-hero::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -40px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, var(--accent-glow), transparent 70%);
+    pointer-events: none;
+    transition: background 0.5s;
+  }
+
+  .stats-kicker {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 12px;
+    position: relative;
+    transition: color 0.4s;
+  }
+
+  .stats-headline {
+    font-family: "Noto Serif SC", serif;
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 8px;
+    position: relative;
+    transition: color 0.4s;
+  }
+
+  .stats-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    position: relative;
+    transition: color 0.4s;
+  }
+
+  .total-strip {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 20px 24px;
+    border-top: 1px solid var(--bg-line);
+    border-bottom: 1px solid var(--bg-line);
+    transition: border-color 0.4s;
+  }
+
+  .total-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    transition: color 0.4s;
+  }
+
+  .total-num {
+    font-family: "Noto Serif SC", serif;
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    transition: color 0.4s;
+  }
+
+  .total-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    transition: all 0.4s;
+  }
+
+  .total-badge.up { background: var(--warn-soft); color: var(--warn); }
+
+  .comp-section { padding: 24px 24px 0; }
+
+  .comp-bar {
+    display: flex;
+    height: 4px;
+    border-radius: 2px;
+    overflow: hidden;
+    gap: 2px;
+    margin-bottom: 20px;
+  }
+
+  .comp-bar span { border-radius: 2px; transition: all 0.5s ease; }
+
+  .cat-row {
+    display: flex;
+    align-items: center;
+    padding: 14px 24px;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+  }
+
+  .cat-row::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 24px;
+    right: 24px;
+    height: 1px;
+    background: var(--bg-line);
+    transition: background 0.4s;
+  }
+
+  .cat-row:hover { background: var(--accent-wash); }
+
+  .cat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: all 0.4s;
+  }
+
+  .cat-name { flex: 1; font-size: 14px; font-weight: 600; color: var(--text-soft); transition: color 0.4s; }
+
+  .cat-amount {
+    font-family: "Noto Serif SC", serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    transition: color 0.4s;
+  }
+
+  .cat-pct { font-size: 11px; color: var(--text-muted); font-weight: 600; width: 36px; text-align: right; transition: color 0.4s; }
+
+  .attention {
+    margin: 20px 24px 0;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid rgba(224, 192, 138, 0.12);
+    background: var(--warn-soft);
+    transition: all 0.4s;
+  }
+
+  .attention-kicker {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--warn);
+    margin-bottom: 6px;
+    transition: color 0.4s;
+  }
+
+  .attention-title {
+    font-family: "Noto Serif SC", serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+    transition: color 0.4s;
+  }
+
+  .attention-body { font-size: 13px; color: var(--text-muted); transition: color 0.4s; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════
+     调色盘
+═══════════════════════════════ -->
+<div class="palette-backdrop" id="paletteBackdrop"></div>
+<div class="palette-ring" id="paletteRing">
+  <div class="theme-dot" data-theme="nightsakura" data-name="夜樱" style="background: #f2b5c8;"></div>
+  <div class="theme-dot" data-theme="inkgold" data-name="墨金" style="background: #d4b078;"></div>
+  <div class="theme-dot" data-theme="deepsea" data-name="深海" style="background: #6cc4e8;"></div>
+  <div class="theme-dot" data-theme="dawn" data-name="拂晓" style="background: #c88a7a;"></div>
+  <div class="theme-dot" data-theme="moss" data-name="苔" style="background: #a8cc88;"></div>
+</div>
+<button class="palette-trigger" id="paletteTrigger">
+  <span class="inner-dot"></span>
+</button>
+
+<!-- ═══════════════════════════════
+     介绍
+═══════════════════════════════ -->
+<section class="intro">
+  <div class="intro-label">主题切换 · 原型</div>
+  <h1>你的颜色<br/>你来选</h1>
+  <p>
+    五套精心搭配的主题，每一套都确保好看。
+    点击右下角的圆点，打开调色盘，试试看。
+  </p>
+  <div class="tip">
+    <span class="tip-dot"></span>
+    点击右下角圆点切换主题
+  </div>
+</section>
+
+<!-- ═══════════════════════════════
+     01 记录页
+═══════════════════════════════ -->
+<div class="screen-label">01 · 记录</div>
+
+<div class="phone">
+  <div class="form-page">
+    <div class="top-bar">
+      <span class="logo">生活记账</span>
+      <nav class="nav">
+        <button class="active">记录</button>
+        <button>明细</button>
+        <button>统计</button>
+      </nav>
+    </div>
+
+    <div class="amount-zone">
+      <div class="type-badge">支 出</div>
+      <div class="amount-row">
+        <span class="yen">¥</span>
+        <span class="num">24.50</span>
+        <span class="cursor"></span>
+      </div>
+      <div class="amount-hint">今天花了多少？</div>
+    </div>
+
+    <div class="form-bottom">
+      <div class="section-label">去 向</div>
+      <div class="cat-scroll">
+        <button class="cat-chip active">餐饮</button>
+        <button class="cat-chip">交通</button>
+        <button class="cat-chip">洗浴</button>
+        <button class="cat-chip">AI</button>
+        <button class="cat-chip">社交</button>
+        <button class="cat-chip">日用</button>
+        <button class="cat-chip">订阅</button>
+        <button class="cat-chip">其他</button>
+      </div>
+
+      <div class="section-label">细 分</div>
+      <div class="tag-row">
+        <button class="tag-pill active">午餐</button>
+        <button class="tag-pill">早餐</button>
+        <button class="tag-pill">晚餐</button>
+        <button class="tag-pill">零食</button>
+        <button class="tag-pill">饮料</button>
+      </div>
+
+      <button class="more-btn">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span>备注 · 时间 · 周期</span>
+      </button>
+
+      <button class="submit-btn">落 笔</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════
+     02 明细页
+═══════════════════════════════ -->
+<div class="screen-label">02 · 明细</div>
+
+<div class="phone">
+  <div class="list-page">
+    <div class="top-bar">
+      <span class="logo">生活记账</span>
+      <nav class="nav">
+        <button>记录</button>
+        <button class="active">明细</button>
+        <button>统计</button>
+      </nav>
+    </div>
+
+    <div class="review-section">
+      <div class="review-top">
+        <span class="section-label" style="margin:0">时间回顾</span>
+        <div class="review-modes">
+          <button class="active">日</button>
+          <button>月</button>
+          <button>全部</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-date-block" style="padding: 0 24px 4px;">
+      <div class="review-date-text">6月6日 周五</div>
+      <div class="review-date-sub">2026</div>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat-cell"><small>支出</small><strong class="expense">¥142.50</strong></div>
+      <div class="stat-cell"><small>收入</small><strong class="income">¥0.00</strong></div>
+      <div class="stat-cell"><small>记录</small><strong>5 笔</strong></div>
+    </div>
+
+    <div style="padding: 0 24px;">
+      <button class="add-day-btn">+ 补记这天</button>
+    </div>
+
+    <div class="group-label">今天</div>
+    <div class="record"><div class="record-bar c1"></div><div class="record-body"><div class="record-cat">餐饮</div><div class="record-meta">午餐</div></div><span class="record-amount expense">-24.50</span></div>
+    <div class="record"><div class="record-bar c3"></div><div class="record-body"><div class="record-cat">交通</div><div class="record-meta">地铁</div></div><span class="record-amount expense">-6.00</span></div>
+    <div class="record"><div class="record-bar c1"></div><div class="record-body"><div class="record-cat">餐饮</div><div class="record-meta">早餐 · 包子豆浆</div></div><span class="record-amount expense">-8.00</span></div>
+    <div class="record"><div class="record-bar c2"></div><div class="record-body"><div class="record-cat">AI</div><div class="record-meta">周期支出 · 月</div></div><span class="record-amount expense">-99.00</span></div>
+    <div class="record"><div class="record-bar c4"></div><div class="record-body"><div class="record-cat">洗浴</div></div><span class="record-amount expense">-5.00</span></div>
+
+    <div class="group-label">昨天</div>
+    <div class="record"><div class="record-bar c1"></div><div class="record-body"><div class="record-cat">餐饮</div><div class="record-meta">晚餐 · 食堂</div></div><span class="record-amount expense">-15.00</span></div>
+    <div class="record"><div class="record-bar cg"></div><div class="record-body"><div class="record-cat">兼职</div><div class="record-meta">周末兼职工资</div></div><span class="record-amount income">+320.00</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════
+     03 统计页
+═══════════════════════════════ -->
+<div class="screen-label">03 · 统计</div>
+
+<div class="phone">
+  <div class="stats-page">
+    <div class="top-bar">
+      <span class="logo">生活记账</span>
+      <nav class="nav">
+        <button>记录</button>
+        <button>明细</button>
+        <button class="active">统计</button>
+      </nav>
+    </div>
+
+    <div class="stats-hero">
+      <div class="stats-kicker">近 7 天</div>
+      <h2 class="stats-headline">钱主要花在餐饮</h2>
+      <p class="stats-sub">餐饮占近7天支出的 58%，比前7天多 ¥32.00。</p>
+    </div>
+
+    <div class="total-strip">
+      <span class="total-label">本期</span>
+      <span class="total-num">¥486.50</span>
+      <span class="total-badge up">+¥62</span>
+    </div>
+
+    <div class="comp-section">
+      <div class="section-label">钱去了哪里</div>
+      <div class="comp-bar">
+        <span class="cb1" style="flex-grow:0.58; background:var(--cat-1);"></span>
+        <span class="cb2" style="flex-grow:0.20; background:var(--cat-2);"></span>
+        <span class="cb3" style="flex-grow:0.12; background:var(--cat-3);"></span>
+        <span class="cb4" style="flex-grow:0.06; background:var(--cat-4);"></span>
+        <span class="cb5" style="flex-grow:0.04; background:var(--cat-5);"></span>
+      </div>
+    </div>
+
+    <div class="cat-row"><span class="cat-dot" style="background:var(--cat-1); box-shadow:0 0 6px var(--cat-1)"></span><span class="cat-name">餐饮</span><span class="cat-amount">¥282.50</span><span class="cat-pct">58%</span></div>
+    <div class="cat-row"><span class="cat-dot" style="background:var(--cat-2); box-shadow:0 0 6px var(--cat-2)"></span><span class="cat-name">AI</span><span class="cat-amount">¥99.00</span><span class="cat-pct">20%</span></div>
+    <div class="cat-row"><span class="cat-dot" style="background:var(--cat-3); box-shadow:0 0 6px var(--cat-3)"></span><span class="cat-name">交通</span><span class="cat-amount">¥58.00</span><span class="cat-pct">12%</span></div>
+    <div class="cat-row"><span class="cat-dot" style="background:var(--cat-4); box-shadow:0 0 6px var(--cat-4)"></span><span class="cat-name">洗浴</span><span class="cat-amount">¥30.00</span><span class="cat-pct">6%</span></div>
+    <div class="cat-row"><span class="cat-dot" style="background:var(--cat-5); box-shadow:0 0 6px var(--cat-5)"></span><span class="cat-name">社交</span><span class="cat-amount">¥17.00</span><span class="cat-pct">4%</span></div>
+
+    <div class="attention">
+      <div class="attention-kicker">变化</div>
+      <div class="attention-title">餐饮是主要增量</div>
+      <div class="attention-body">近7天在餐饮上比前7天多花了 ¥32.00。</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const trigger = document.getElementById('paletteTrigger');
+  const ring = document.getElementById('paletteRing');
+  const backdrop = document.getElementById('paletteBackdrop');
+  const dots = ring.querySelectorAll('.theme-dot');
+
+  let isOpen = false;
+
+  function toggle() {
+    isOpen = !isOpen;
+    ring.classList.toggle('open', isOpen);
+    backdrop.classList.toggle('open', isOpen);
+  }
+
+  function close() {
+    isOpen = false;
+    ring.classList.remove('open');
+    backdrop.classList.remove('open');
+  }
+
+  function applyTheme(name) {
+    document.documentElement.setAttribute('data-theme', name);
+    dots.forEach(d => d.classList.toggle('current', d.dataset.theme === name));
+    close();
+  }
+
+  trigger.addEventListener('click', toggle);
+  backdrop.addEventListener('click', close);
+
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => applyTheme(dot.dataset.theme));
+  });
+
+  // 默认
+  applyTheme('nightsakura');
+</script>
+
+</body>
+</html>
