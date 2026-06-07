@@ -11,6 +11,32 @@ function addDays(date, amount) {
   return new Date(startOfDay(date).getTime() + amount * DAY_MS);
 }
 
+function getDaysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+function addMonthsClamped(date, amount) {
+  const start = startOfDay(date);
+  const targetMonth = start.getMonth() + amount;
+  const targetDay = Math.min(
+    start.getDate(),
+    getDaysInMonth(start.getFullYear(), targetMonth)
+  );
+
+  return new Date(start.getFullYear(), targetMonth, targetDay);
+}
+
+function addYearsClamped(date, amount) {
+  const start = startOfDay(date);
+  const targetYear = start.getFullYear() + amount;
+  const targetDay = Math.min(
+    start.getDate(),
+    getDaysInMonth(targetYear, start.getMonth())
+  );
+
+  return new Date(targetYear, start.getMonth(), targetDay);
+}
+
 function isValidDate(date) {
   return Number.isFinite(date.getTime());
 }
@@ -83,14 +109,14 @@ function getServiceRange(record) {
 
   if (record.recurrence.type === 'monthly') {
     return {
-      start: new Date(start.getFullYear(), start.getMonth(), 1),
-      endExclusive: new Date(start.getFullYear(), start.getMonth() + 1, 1),
+      start,
+      endExclusive: addMonthsClamped(start, 1),
     };
   }
 
   return {
     start,
-    endExclusive: addDays(start, 365),
+    endExclusive: addYearsClamped(start, 1),
   };
 }
 
