@@ -205,13 +205,18 @@
     box-shadow: 0 3px 12px rgba(0,0,0,0.3);
     -webkit-tap-highlight-color: transparent;
     touch-action: none;
-    will-change: transform;
+    will-change: transform, opacity;
     top: 50%; left: 50%;
     margin: -22px 0 0 -22px;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
   }
   .ring-dot.current {
     border-color: #fff;
     box-shadow: 0 0 0 3px rgba(255,255,255,0.2), 0 3px 12px rgba(0,0,0,0.3);
+  }
+  .ring-dot.focus {
+    border-color: rgba(255,255,255,0.6);
+    box-shadow: 0 0 20px rgba(255,255,255,0.15), 0 0 40px currentColor, 0 4px 16px rgba(0,0,0,0.3);
   }
   .ring-dot-label {
     position: absolute;
@@ -220,6 +225,11 @@
     white-space: nowrap;
     pointer-events: none;
     letter-spacing: 0.04em;
+    transition: opacity 0.25s ease, color 0.25s ease;
+  }
+  .ring-dot.focus .ring-dot-label {
+    color: #fff;
+    font-size: 11px;
   }
 
   /* ═══════════════════════════════
@@ -681,7 +691,8 @@
   ];
 
   const RADIUS = 105;
-  const DOT_COUNT = THEMES.length;
+  const N = THEMES.length;
+  const TAP_THRESHOLD = 8; // px — 移动距离小于此值视为点击
 
   const trigger = document.getElementById('paletteTrigger');
   const overlay = document.getElementById('paletteOverlay');
@@ -690,52 +701,71 @@
 
   let currentTheme = 'nightsakura';
   let isOpen = false;
-  let rotation = 0;
+  let rotation = 0;          // 当前旋转弧度
   let isDragging = false;
   let dragStartAngle = 0;
   let dragStartRotation = 0;
+  let touchStartX = 0, touchStartY = 0; // 用于判断点击 vs 拖拽
   let lastAngle = 0;
   let velocity = 0;
   let lastTime = 0;
   let momentumRaf = 0;
-  let hasMoved = false;
+  let totalMoveDistance = 0;  // 累计移动像素
 
+  // ── 创建圆点 ──
   const dots = [];
-
-  THEMES.forEach((theme, i) => {
+  THEMES.forEach((theme) => {
     const dot = document.createElement('div');
     dot.className = 'ring-dot';
     dot.style.background = theme.color;
+    dot.style.color = theme.color; // for currentColor glow
     dot.dataset.theme = theme.id;
-
     const label = document.createElement('span');
     label.className = 'ring-dot-label';
     label.textContent = theme.name;
     dot.appendChild(label);
-
     ringArea.appendChild(dot);
     dots.push(dot);
   });
 
+  // ── 工具函数 ──
   function getCenterOfRing() {
-    const rect = ringArea.getBoundingClientRect();
-    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    const r = ringArea.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
   }
 
-  function angleFromCenter(clientX, clientY) {
+  function angleFromCenter(cx, cy) {
     const c = getCenterOfRing();
-    return Math.atan2(clientY - c.y, clientX - c.x);
+    return Math.atan2(cy - c.y, cx - c.x);
   }
 
+  function normAngle(a) {
+    return ((a % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+  }
+
+  // ── 3D 透视定位 ──
+  // 顶部的点最大最亮，底部的点缩小变暗 → 仿 3D 旋转深度感
   function positionDots() {
+    let focusIdx = -1, minDist = Infinity;
+    const step = (Math.PI * 2) / N;
+
     dots.forEach((dot, i) => {
-      const angle = (i / DOT_COUNT) * Math.PI * 2 + rotation - Math.PI / 2;
+      const angle = (i / N) * Math.PI * 2 + rotation - Math.PI / 2;
       const x = Math.cos(angle) * RADIUS;
       const y = Math.sin(angle) * RADIUS;
-      dot.style.transform = `translate(${x}px, ${y}px)`;
 
+      // 深度：sin(angle) 从 -1(顶) 到 1(底)
+      const depth = Math.sin(angle); // -1 ~ 1
+      const scale = 1.15 - depth * 0.3;  // 顶部 1.45, 底部 0.85
+      const opac = 1.0 - depth * 0.3;    // 顶部 1.3→clamp1, 底部 0.7
+
+      dot.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+      dot.style.opacity = Math.min(1, Math.max(0.5, opac));
+      dot.style.zIndex = Math.round((1 - depth) * 10);
+
+      // 标签定位
       const labelEl = dot.querySelector('.ring-dot-label');
-      const deg = ((angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+      const deg = normAngle(angle);
       if (deg > Math.PI * 0.25 && deg < Math.PI * 0.75) {
         labelEl.style.cssText = 'top: calc(100% + 6px); left: 50%; transform: translateX(-50%);';
       } else if (deg > Math.PI * 1.25 && deg < Math.PI * 1.75) {
@@ -746,23 +776,20 @@
         labelEl.style.cssText = 'left: calc(100% + 8px); top: 50%; transform: translateY(-50%);';
       }
 
+      // 找最接近顶部的点
+      const distToTop = Math.abs(normAngle(angle) - Math.PI * 1.5);
+      const wrapped = distToTop > Math.PI ? Math.PI * 2 - distToTop : distToTop;
+      if (wrapped < minDist) { minDist = wrapped; focusIdx = i; }
+
       dot.classList.toggle('current', dot.dataset.theme === currentTheme);
     });
 
-    const topIndex = findTopDot();
-    ringName.textContent = THEMES[topIndex].name;
+    // 焦点高亮（最靠近顶部的点）
+    dots.forEach((d, i) => d.classList.toggle('focus', i === focusIdx));
+    if (focusIdx >= 0) ringName.textContent = THEMES[focusIdx].name;
   }
 
-  function findTopDot() {
-    let minY = Infinity, topIdx = 0;
-    dots.forEach((dot, i) => {
-      const angle = (i / DOT_COUNT) * Math.PI * 2 + rotation - Math.PI / 2;
-      const y = Math.sin(angle);
-      if (y < minY) { minY = y; topIdx = i; }
-    });
-    return topIdx;
-  }
-
+  // ── 主题切换 ──
   function applyTheme(id) {
     currentTheme = id;
     document.documentElement.setAttribute('data-theme', id);
@@ -771,15 +798,18 @@
     if (t) ringName.textContent = t.name;
   }
 
+  // ── 打开/关闭 ──
   function open() {
     isOpen = true;
     overlay.classList.add('open');
     positionDots();
     dots.forEach((dot, i) => {
       dot.style.opacity = '0';
-      dot.style.transition = 'opacity 0.3s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
-      dot.style.transitionDelay = `${i * 0.03}s`;
-      requestAnimationFrame(() => { dot.style.opacity = '1'; });
+      dot.style.transition = 'opacity 0.35s ease, transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      dot.style.transitionDelay = `${i * 0.035}s`;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        positionDots(); // 会设置正确 opacity
+      }));
     });
   }
 
@@ -789,30 +819,47 @@
     cancelAnimationFrame(momentumRaf);
   }
 
-  function onTouchStart(e) {
+  // ── 找到点击位置对应的圆点 ──
+  function findDotAtPosition(clientX, clientY) {
+    for (let i = 0; i < dots.length; i++) {
+      const rect = dots[i].getBoundingClientRect();
+      // 放大点击区域（增加容错）
+      const pad = 6;
+      if (clientX >= rect.left - pad && clientX <= rect.right + pad &&
+          clientY >= rect.top - pad && clientY <= rect.bottom + pad) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  // ── 触摸事件 ──
+  function onPointerDown(clientX, clientY) {
     if (!isOpen) return;
     cancelAnimationFrame(momentumRaf);
-    const touch = e.touches[0];
-    dragStartAngle = angleFromCenter(touch.clientX, touch.clientY);
+    dragStartAngle = angleFromCenter(clientX, clientY);
     dragStartRotation = rotation;
     isDragging = true;
-    hasMoved = false;
+    totalMoveDistance = 0;
+    touchStartX = clientX;
+    touchStartY = clientY;
     lastAngle = dragStartAngle;
     velocity = 0;
     lastTime = Date.now();
-    dots.forEach(d => { d.style.transition = 'none'; });
-    e.preventDefault();
+    // 拖拽中去掉过渡，实现即时响应
+    dots.forEach(d => { d.style.transition = 'box-shadow 0.3s, border-color 0.3s'; });
   }
 
-  function onTouchMove(e) {
+  function onPointerMove(clientX, clientY) {
     if (!isDragging) return;
-    const touch = e.touches[0];
-    const angle = angleFromCenter(touch.clientX, touch.clientY);
-    let delta = angle - dragStartAngle;
+    const dx = clientX - touchStartX;
+    const dy = clientY - touchStartY;
+    totalMoveDistance = Math.sqrt(dx * dx + dy * dy);
 
+    const angle = angleFromCenter(clientX, clientY);
+    let delta = angle - dragStartAngle;
     if (delta > Math.PI) delta -= Math.PI * 2;
     if (delta < -Math.PI) delta += Math.PI * 2;
-
     rotation = dragStartRotation + delta;
 
     const now = Date.now();
@@ -821,45 +868,60 @@
       let angleDiff = angle - lastAngle;
       if (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
       if (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-      velocity = angleDiff / dt * 16;
+      // 平滑速度（加权平均）
+      velocity = velocity * 0.4 + (angleDiff / dt * 16) * 0.6;
     }
     lastAngle = angle;
     lastTime = now;
-    hasMoved = true;
-
     positionDots();
-    e.preventDefault();
   }
 
-  function onTouchEnd(e) {
+  function onPointerUp(clientX, clientY) {
     if (!isDragging) return;
     isDragging = false;
 
-    if (Math.abs(velocity) > 0.003) {
+    // 点击判定：移动距离 < 阈值 = 点击
+    if (totalMoveDistance < TAP_THRESHOLD) {
+      const dotIdx = findDotAtPosition(clientX, clientY);
+      if (dotIdx >= 0) {
+        applyTheme(THEMES[dotIdx].id);
+        // 选中动画：圆点脉冲
+        dots[dotIdx].style.transition = 'transform 0.2s ease, box-shadow 0.2s ease';
+        dots[dotIdx].style.transform += ' scale(1.3)';
+        setTimeout(() => { close(); }, 250);
+        return;
+      }
+      // 点击了空白区域（非圆点也非遮罩）→ 不做什么
+    }
+
+    // 拖拽结束：惯性 or 吸附
+    if (Math.abs(velocity) > 0.002) {
       applyMomentum();
     } else {
       snapToNearest();
     }
   }
 
+  // ── 惯性 ──
   function applyMomentum() {
-    if (Math.abs(velocity) < 0.0008) {
+    if (Math.abs(velocity) < 0.0006) {
       snapToNearest();
       return;
     }
     rotation += velocity;
-    velocity *= 0.94;
+    velocity *= 0.96; // 更丝滑的减速
     positionDots();
     momentumRaf = requestAnimationFrame(applyMomentum);
   }
 
+  // ── 吸附到最近的点 ──
   function snapToNearest() {
-    const step = (Math.PI * 2) / DOT_COUNT;
+    const step = (Math.PI * 2) / N;
     const offset = -Math.PI / 2;
     let best = 0, bestDist = Infinity;
-    for (let i = 0; i < DOT_COUNT; i++) {
-      const targetAngle = offset - i * step;
-      let diff = rotation - targetAngle;
+    for (let i = 0; i < N; i++) {
+      const target = offset - i * step;
+      let diff = rotation - target;
       diff = ((diff + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
       if (Math.abs(diff) < bestDist) { bestDist = Math.abs(diff); best = i; }
     }
@@ -869,83 +931,54 @@
     if (diff < -Math.PI) diff += Math.PI * 2;
 
     const startRot = rotation;
-    const startTime = Date.now();
-    const duration = 250;
+    const startTime = performance.now();
+    const duration = 350; // 更长 = 更优雅
 
-    function animate() {
-      const t = Math.min(1, (Date.now() - startTime) / duration);
-      const ease = 1 - Math.pow(1 - t, 3);
+    function animate(now) {
+      const t = Math.min(1, (now - startTime) / duration);
+      // 弹性缓动
+      const ease = 1 - Math.pow(1 - t, 4);
       rotation = startRot + diff * ease;
       positionDots();
       if (t < 1) requestAnimationFrame(animate);
     }
-    animate();
+    requestAnimationFrame(animate);
   }
 
-  function onMouseDown(e) {
-    if (!isOpen) return;
-    cancelAnimationFrame(momentumRaf);
-    dragStartAngle = angleFromCenter(e.clientX, e.clientY);
-    dragStartRotation = rotation;
-    isDragging = true;
-    hasMoved = false;
-    lastAngle = dragStartAngle;
-    velocity = 0;
-    lastTime = Date.now();
-    dots.forEach(d => { d.style.transition = 'none'; });
-    e.preventDefault();
-  }
-
-  function onMouseMove(e) {
-    if (!isDragging) return;
-    const angle = angleFromCenter(e.clientX, e.clientY);
-    let delta = angle - dragStartAngle;
-    if (delta > Math.PI) delta -= Math.PI * 2;
-    if (delta < -Math.PI) delta += Math.PI * 2;
-    rotation = dragStartRotation + delta;
-
-    const now = Date.now();
-    const dt = now - lastTime;
-    if (dt > 0) {
-      let angleDiff = angle - lastAngle;
-      if (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-      if (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-      velocity = angleDiff / dt * 16;
-    }
-    lastAngle = angle;
-    lastTime = now;
-    hasMoved = true;
-    positionDots();
-    e.preventDefault();
-  }
-
-  function onMouseUp(e) {
-    if (!isDragging) return;
-    isDragging = false;
-    if (Math.abs(velocity) > 0.003) applyMomentum();
-    else snapToNearest();
-  }
-
+  // ── 事件绑定 ──
   trigger.addEventListener('click', open);
-
   overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) close();
+    if (e.target === overlay && !isDragging) close();
   });
 
-  ringArea.addEventListener('touchstart', onTouchStart, { passive: false });
-  ringArea.addEventListener('touchmove', onTouchMove, { passive: false });
-  ringArea.addEventListener('touchend', onTouchEnd);
+  // 触摸
+  ringArea.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    onPointerDown(t.clientX, t.clientY);
+    e.preventDefault();
+  }, { passive: false });
 
-  ringArea.addEventListener('mousedown', onMouseDown);
-  window.addEventListener('mousemove', onMouseMove);
-  window.addEventListener('mouseup', onMouseUp);
+  ringArea.addEventListener('touchmove', (e) => {
+    const t = e.touches[0];
+    onPointerMove(t.clientX, t.clientY);
+    e.preventDefault();
+  }, { passive: false });
 
-  dots.forEach((dot, i) => {
-    dot.addEventListener('click', (e) => {
-      if (hasMoved) { e.stopPropagation(); return; }
-      applyTheme(THEMES[i].id);
-      setTimeout(close, 200);
-    });
+  ringArea.addEventListener('touchend', (e) => {
+    const t = e.changedTouches[0];
+    onPointerUp(t.clientX, t.clientY);
+  });
+
+  // 鼠标（桌面端调试）
+  ringArea.addEventListener('mousedown', (e) => {
+    onPointerDown(e.clientX, e.clientY);
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', (e) => {
+    onPointerMove(e.clientX, e.clientY);
+  });
+  window.addEventListener('mouseup', (e) => {
+    onPointerUp(e.clientX, e.clientY);
   });
 
   applyTheme('nightsakura');
