@@ -1,6 +1,6 @@
 .record-form.quick-entry {
   min-height: calc(100vh - 56px);
-  padding: 0 20px 80px;
+  padding: 0 20px 100px;
   display: flex;
   flex-direction: column;
 }
@@ -349,8 +349,8 @@
 .quick-submit-btn {
   width: 100%;
   min-height: 52px;
-  margin-top: auto;
-  margin-bottom: 24px;
+  margin-top: 12px;
+  margin-bottom: 0;
   border-radius: 16px;
   background: linear-gradient(135deg, var(--accent), var(--accent-deep));
   color: var(--bg);
