@@ -4,10 +4,23 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Planned Current Commit
 
-- 2026-06-03T16:37:35+08:00 | pending | feat: add html data book export
+- 2026-06-07T16:06:33+08:00 | pending | chore: remove cloud sync from record details
 
 ## Existing Commits
 
+- 2026-06-07T15:43:28+08:00 | 740b172 | chore: rename app to 拾序 / 拾序记账
+- 2026-06-07T15:31:38+08:00 | 8363c26 | fix: prevent submit button from sinking to bottom on refresh
+- 2026-06-07T14:26:09+08:00 | 5992f7f | refactor: restructure statistics page layout
+- 2026-06-07T11:45:30+08:00 | 05ac105 | style: raise submit button above theme trigger
+- 2026-06-07T11:42:11+08:00 | 71e167f | style: polish copy to match prototype tone
+- 2026-06-07T11:39:59+08:00 | 2f6434a | style: editorial full-bleed layout matching design prototype
+- 2026-06-07T11:30:32+08:00 | 08f0a6a | feat: apply new design system to all React components
+- 2026-06-07T11:15:57+08:00 | 6aefda8 | fix: tap-to-select themes + 3D depth ring rotation
+- 2026-06-07T11:08:17+08:00 | 0f85388 | feat: rotatable ring palette with 8 themes (4 dark + 4 light)
+- 2026-06-06T20:44:09+08:00 | c9ca6c3 | fix: move design prototype to public/ for deployment
+- 2026-06-06T20:40:26+08:00 | c7d2717 | style: optimize theme picker for mobile
+- 2026-06-06T20:34:08+08:00 | 8bdfeee | feat: add design prototype with theme system
+- 2026-06-03T16:38:42+08:00 | e27181d | feat: add html data book export
 - 2026-06-01T21:16:40+08:00 | 237da17 | feat: add day review quick entry
 - 2026-06-01T14:57:00+08:00 | 4b57be1 | feat: add record review and data book export
 - 2026-06-01T14:36:40+08:00 | 15d0ac6 | docs: clarify product principles

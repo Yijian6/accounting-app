@@ -72,14 +72,6 @@ export default function App() {
     return result.summary;
   };
 
-  const handleReplaceAllData = (payload) => {
-    const result = replaceBackupData(payload);
-    replaceRecords(result.data.records);
-    replaceCategories(result.data.categories);
-    replaceTags(result.data.tags);
-    return result.summary;
-  };
-
   const getManageItems = () => {
     if (manageType === 'tags') {
       return {
@@ -136,12 +128,10 @@ export default function App() {
           records={records}
           categories={categories}
           tags={tags}
-          snapshot={snapshot}
           onAdd={addRecord}
           onUpdate={updateRecord}
           onDelete={deleteRecord}
           onImportBackup={handleImportBackup}
-          onReplaceAllData={handleReplaceAllData}
         />
       )}
 

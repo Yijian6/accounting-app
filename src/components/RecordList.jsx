@@ -4,14 +4,6 @@ import TagInput from './TagInput';
 import { formatAmount, toDatetimeLocal, getDateGroup, getDateKey } from '../utils/format';
 import { exportBackupJSON, exportCSV, exportJSON } from '../utils/export';
 import { formatBackupSummary, parseBackupFileContent } from '../utils/backup';
-import {
-  buildSyncPayload,
-  fetchSyncStatus,
-  getSyncSettings,
-  pullSyncSnapshot,
-  pushSyncSnapshot,
-  saveSyncSettings,
-} from '../utils/sync';
 import './RecordList.css';
 
 function buildImportResultMessage(summary) {
@@ -293,12 +285,10 @@ export default function RecordList({
   records,
   categories,
   tags,
-  snapshot,
   onAdd,
   onUpdate,
   onDelete,
   onImportBackup,
-  onReplaceAllData,
 }) {
   const [editingRecord, setEditingRecord] = useState(null);
   const [editForm, setEditForm] = useState({});
@@ -315,12 +305,6 @@ export default function RecordList({
   const [pendingBackup, setPendingBackup] = useState(null);
   const [importError, setImportError] = useState('');
   const [importSuccess, setImportSuccess] = useState('');
-  const [syncSettings, setSyncSettings] = useState(() => getSyncSettings());
-  const [syncStatus, setSyncStatus] = useState(null);
-  const [syncMessage, setSyncMessage] = useState('');
-  const [syncError, setSyncError] = useState('');
-  const [syncBusy, setSyncBusy] = useState(false);
-  const [syncConflict, setSyncConflict] = useState(null);
   const [showMoreEdit, setShowMoreEdit] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [reviewMode, setReviewMode] = useState('day');
@@ -612,10 +596,6 @@ export default function RecordList({
     setImportError('');
     setImportSuccess('');
     setPendingBackup(null);
-    setSyncError('');
-    setSyncMessage('');
-    setSyncConflict(null);
-    setSyncSettings(getSyncSettings());
     setShowDataManager(true);
   };
 
@@ -623,18 +603,9 @@ export default function RecordList({
     setShowDataManager(false);
     setPendingBackup(null);
     setImportError('');
-    setSyncError('');
-    setSyncMessage('');
-    setSyncConflict(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  };
-
-  const updateSyncSettings = (patch) => {
-    const next = saveSyncSettings({ ...syncSettings, ...patch });
-    setSyncSettings(next);
-    return next;
   };
 
   const triggerImport = () => {
@@ -676,99 +647,6 @@ export default function RecordList({
     setPendingBackup(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
-    }
-  };
-
-  const readSyncStatus = async () => {
-    setSyncBusy(true);
-    setSyncError('');
-    setSyncMessage('');
-    setSyncConflict(null);
-    try {
-      const status = await fetchSyncStatus({
-        endpoint: syncSettings.syncEndpoint,
-        password: syncSettings.syncPassword,
-      });
-      setSyncStatus(status);
-      if (status.exists) {
-        setSyncMessage(`云端已存在数据，revision ${status.revision || '--'}`);
-        updateSyncSettings({ syncEnabled: true, lastKnownRevision: status.revision || '' });
-      } else {
-        setSyncMessage('云端还没有同步数据。');
-      }
-    } catch (error) {
-      setSyncError(error.message || '读取云端状态失败。');
-    } finally {
-      setSyncBusy(false);
-    }
-  };
-
-  const executePush = async (force = false) => {
-    setSyncBusy(true);
-    setSyncError('');
-    setSyncMessage('');
-    try {
-      const payload = buildSyncPayload(snapshot);
-      const result = await pushSyncSnapshot({
-        endpoint: syncSettings.syncEndpoint,
-        password: syncSettings.syncPassword,
-        payload,
-        baseRevision: syncSettings.lastKnownRevision,
-        force,
-      });
-      setSyncConflict(null);
-      setSyncStatus({
-        exists: true,
-        revision: result.revision,
-        updatedAt: result.updatedAt,
-      });
-      updateSyncSettings({
-        syncEnabled: true,
-        lastKnownRevision: result.revision,
-        lastSyncAt: result.updatedAt,
-      });
-      setSyncMessage(`已上传到云端，revision ${result.revision}`);
-    } catch (error) {
-      if (error.code === 'REVISION_CONFLICT') {
-        setSyncConflict({
-          revision: error.details?.revision || '',
-          updatedAt: error.details?.updatedAt || '',
-        });
-        setSyncError(error.message || '云端版本冲突。');
-      } else {
-        setSyncError(error.message || '上传到云端失败。');
-      }
-    } finally {
-      setSyncBusy(false);
-    }
-  };
-
-  const executePull = async () => {
-    setSyncBusy(true);
-    setSyncError('');
-    setSyncMessage('');
-    setSyncConflict(null);
-    try {
-      const result = await pullSyncSnapshot({
-        endpoint: syncSettings.syncEndpoint,
-        password: syncSettings.syncPassword,
-      });
-      const summary = onReplaceAllData(result.payload);
-      setSyncStatus({
-        exists: true,
-        revision: result.revision,
-        updatedAt: result.updatedAt,
-      });
-      updateSyncSettings({
-        syncEnabled: true,
-        lastKnownRevision: result.revision,
-        lastSyncAt: result.updatedAt,
-      });
-      setSyncMessage(`已从云端恢复 ${summary.addedRecords} 条记录。`);
-    } catch (error) {
-      setSyncError(error.message || '从云端恢复失败。');
-    } finally {
-      setSyncBusy(false);
     }
   };
 
@@ -1269,6 +1147,10 @@ export default function RecordList({
             </button>
           </div>
 
+          <div className="data-manager-note">
+            数据保存在本地。需要迁移或留存时，先导出备份，再在新设备导入。
+          </div>
+
           {importError && (
             <div className="import-status error">{importError}</div>
           )}
@@ -1358,93 +1240,6 @@ export default function RecordList({
             </button>
           </div>
 
-          <div className="data-manager-divider" />
-
-          <div className="data-manager-section">
-            <div className="sync-section-head">
-              <strong>云端同步</strong>
-              <span>Cloudflare Worker + D1</span>
-            </div>
-
-            <div className="sync-field">
-              <label>同步 API 地址</label>
-              <input
-                type="text"
-                placeholder="https://your-sync-worker.workers.dev"
-                value={syncSettings.syncEndpoint}
-                onChange={(event) => updateSyncSettings({ syncEndpoint: event.target.value })}
-              />
-            </div>
-
-            <div className="sync-field">
-              <label>同步密码</label>
-              <input
-                type="password"
-                placeholder="输入你自己的同步密码"
-                value={syncSettings.syncPassword}
-                onChange={(event) => updateSyncSettings({ syncPassword: event.target.value })}
-              />
-            </div>
-
-            <div className="sync-actions">
-              <button
-                className="export-option-btn secondary"
-                disabled={syncBusy || !syncSettings.syncEndpoint || !syncSettings.syncPassword}
-                onClick={readSyncStatus}
-              >
-                {syncBusy ? '处理中...' : '查看云端状态'}
-              </button>
-              <button
-                className="export-option-btn secondary"
-                disabled={syncBusy || !syncSettings.syncEndpoint || !syncSettings.syncPassword}
-                onClick={() => executePush(false)}
-              >
-                上传到云端
-              </button>
-              <button
-                className="export-option-btn secondary"
-                disabled={syncBusy || !syncSettings.syncEndpoint || !syncSettings.syncPassword}
-                onClick={executePull}
-              >
-                从云端恢复
-              </button>
-            </div>
-
-            {!syncSettings.syncPassword && (
-              <div className="sync-hint">输入同步密码后，云端操作按钮才会生效。</div>
-            )}
-
-            {syncStatus && (
-              <div className="sync-status-card">
-                <span>云端 revision：{syncStatus.revision || '--'}</span>
-                <span>云端更新时间：{syncStatus.updatedAt || '--'}</span>
-                <span>本地已知 revision：{syncSettings.lastKnownRevision || '--'}</span>
-              </div>
-            )}
-
-            {syncMessage && (
-              <div className="import-status success">{syncMessage}</div>
-            )}
-
-            {syncError && (
-              <div className="import-status error">{syncError}</div>
-            )}
-
-            {syncConflict && (
-              <div className="sync-conflict">
-                <strong>云端版本比本地已知版本更新</strong>
-                <span>云端 revision：{syncConflict.revision || '--'}</span>
-                <span>云端更新时间：{syncConflict.updatedAt || '--'}</span>
-                <button
-                  className="export-option-btn danger"
-                  disabled={syncBusy}
-                  onClick={() => executePush(true)}
-                >
-                  强制上传覆盖云端
-                </button>
-              </div>
-            )}
-          </div>
           </>
           )}
         </div>
