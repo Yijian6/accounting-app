@@ -4,10 +4,12 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Planned Current Commit
 
-- 2026-06-07T20:29:25+08:00 | pending | chore: bootstrap capacitor mobile app
+- None
 
 ## Existing Commits
 
+- 2026-06-07T21:20:40+08:00 | e461075 | chore: configure android debug apk build
+- 2026-06-07T20:32:18+08:00 | d180c11 | chore: bootstrap capacitor mobile app
 - 2026-06-07T20:22:22+08:00 | be7bfbc | style: update app icon
 - 2026-06-07T20:11:46+08:00 | 24d81bd | feat: theme-aware data book export (HTML + Excel)
 - 2026-06-07T17:31:17+08:00 | d1dda25 | feat: make app installable pwa
