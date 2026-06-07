@@ -295,7 +295,7 @@
 
 .stats-category-change.up,
 .stats-category-change.new {
-  color: var(--danger);
+  color: var(--warn);
 }
 
 .stats-category-change.down {
@@ -446,9 +446,9 @@
 
 .stats-detail-summary span.up,
 .stats-detail-summary span.new {
-  color: var(--danger);
-  border-color: var(--danger-soft);
-  background: var(--danger-soft);
+  color: var(--warn);
+  border-color: var(--warn-soft);
+  background: var(--warn-soft);
 }
 
 .stats-detail-summary span.down {
