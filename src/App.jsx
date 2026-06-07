@@ -4,15 +4,18 @@ import RecordForm from './components/RecordForm';
 import RecordList from './components/RecordList';
 import Statistics from './components/Statistics';
 import ManageItems from './components/ManageItems';
+import ThemePicker from './components/ThemePicker';
 import { useRecords } from './hooks/useRecords';
 import { useCategories } from './hooks/useCategories';
 import { useTags } from './hooks/useTags';
+import { useTheme } from './hooks/useTheme';
 import { mergeBackupData, replaceBackupData } from './utils/backup';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('add');
   const [manageType, setManageType] = useState(null); // 'categories-expense' | 'categories-income' | 'tags'
   const [manageInitialCategoryId, setManageInitialCategoryId] = useState(null);
+  const { theme, setTheme } = useTheme();
 
   const {
     records,
@@ -160,6 +163,8 @@ export default function App() {
           onDelete={manageProps.onDelete}
         />
       )}
+
+      <ThemePicker theme={theme} onChangeTheme={setTheme} />
     </>
   );
 }

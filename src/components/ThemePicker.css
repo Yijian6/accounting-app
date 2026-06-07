@@ -1,0 +1,129 @@
+.palette-trigger {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  z-index: 100;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: var(--bg-card);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25), 0 0 20px var(--accent-glow);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.palette-trigger:active {
+  transform: scale(0.92);
+}
+
+.palette-trigger .inner-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  transition: background 0.4s ease;
+}
+
+.palette-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0,0,0,0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.palette-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.palette-ring-area {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  touch-action: none;
+}
+
+.ring-center-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.ring-center-name {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+}
+
+.ring-center-hint {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.ring-dot {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255,255,255,0.15);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  will-change: transform, opacity;
+  top: 50%;
+  left: 50%;
+  margin: -22px 0 0 -22px;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.ring-dot.current {
+  border-color: #fff;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.2), 0 3px 12px rgba(0,0,0,0.3);
+}
+
+.ring-dot.focus {
+  border-color: rgba(255,255,255,0.6);
+  box-shadow: 0 0 20px rgba(255,255,255,0.15), 0 0 40px currentColor, 0 4px 16px rgba(0,0,0,0.3);
+}
+
+.ring-dot-label {
+  position: absolute;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  white-space: nowrap;
+  pointer-events: none;
+  letter-spacing: 0.04em;
+  transition: opacity 0.25s ease, color 0.25s ease;
+}
+
+.ring-dot.focus .ring-dot-label {
+  color: #fff;
+  font-size: 11px;
+}

@@ -1,15 +1,16 @@
 import './Header.css';
 
 const TABS = [
-  { key: 'add', label: '记账' },
-  { key: 'list', label: '记录' },
+  { key: 'add', label: '记录' },
+  { key: 'list', label: '明细' },
   { key: 'stats', label: '统计' },
 ];
 
 export default function Header({ activeTab, onTabChange }) {
   return (
     <header className="header">
-      <div className="header-tabs">
+      <span className="header-logo">生活记账</span>
+      <nav className="header-nav">
         {TABS.map(tab => (
           <button
             key={tab.key}
@@ -19,7 +20,7 @@ export default function Header({ activeTab, onTabChange }) {
             {tab.label}
           </button>
         ))}
-      </div>
+      </nav>
     </header>
   );
 }
