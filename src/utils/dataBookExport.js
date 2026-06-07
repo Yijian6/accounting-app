@@ -515,21 +515,23 @@ function workbookRelsXml(sheetCount) {
 </Relationships>`;
 }
 
-function stylesXml() {
+function stylesXml(colors) {
+  const accentArgb = hexToArgb(colors.accent);
+  const accentPaleArgb = hexToArgb(colors.accentPale);
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
   <numFmts count="1"><numFmt numFmtId="164" formatCode="¥#,##0.00"/></numFmts>
   <fonts count="4">
     <font><sz val="11"/><color rgb="FF292524"/><name val="Microsoft YaHei"/></font>
-    <font><b/><sz val="18"/><color rgb="FF211D1F"/><name val="Microsoft YaHei"/></font>
+    <font><b/><sz val="18"/><color rgb="${accentArgb}"/><name val="Microsoft YaHei"/></font>
     <font><sz val="10"/><color rgb="FF8B817B"/><name val="Microsoft YaHei"/></font>
     <font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Microsoft YaHei"/></font>
   </fonts>
   <fills count="4">
     <fill><patternFill patternType="none"/></fill>
     <fill><patternFill patternType="gray125"/></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FF211D1F"/><bgColor indexed="64"/></patternFill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FFF7EFF3"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="${accentArgb}"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="${accentPaleArgb}"/><bgColor indexed="64"/></patternFill></fill>
   </fills>
   <borders count="2">
     <border><left/><right/><top/><bottom/><diagonal/></border>
@@ -632,14 +634,14 @@ function createZip(files) {
   return concatBytes([...localParts, centralDirectory, endRecord]);
 }
 
-function buildXlsx(book) {
+function buildXlsx(book, colors) {
   const sheets = buildSheets(book);
   const files = [
     { name: '[Content_Types].xml', content: contentTypesXml(sheets.length) },
     { name: '_rels/.rels', content: rootRelsXml() },
     { name: 'xl/workbook.xml', content: workbookXml(sheets) },
     { name: 'xl/_rels/workbook.xml.rels', content: workbookRelsXml(sheets.length) },
-    { name: 'xl/styles.xml', content: stylesXml() },
+    { name: 'xl/styles.xml', content: stylesXml(colors) },
     ...sheets.map((sheet, index) => ({
       name: `xl/worksheets/sheet${index + 1}.xml`,
       content: sheetXml(sheet.rows, sheet.widths),
@@ -681,7 +683,9 @@ function buildHtmlRows(rows, emptyText) {
   return rows.join('');
 }
 
-function buildHtmlDocument(book) {
+function buildHtmlDocument(book, colors) {
+  const c = colors;
+  const isDark = isDarkTheme(c.bg);
   const meta = book.metadata;
   const overview = book.overview;
   const maxCategoryAmount = Math.max(...book.categorySummary.map((item) => item.expenseAmount), 1);
@@ -756,269 +760,264 @@ function buildHtmlDocument(book) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${escapeHtml(meta.appName)} · ${escapeHtml(meta.rangeLabel)}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet" />
   <style>
     :root {
-      color-scheme: light;
-      --ink: #25211f;
-      --muted: #817771;
-      --line: #e8e1dd;
-      --paper: #fffaf6;
-      --surface: rgba(255, 255, 255, 0.86);
-      --accent: #b9819c;
-      --accent-soft: #f5e7ee;
-      --gold: #c3a044;
-      --green: #5f9471;
-      --shadow: 0 24px 70px rgba(51, 42, 36, 0.12);
+      color-scheme: ${isDark ? 'dark' : 'light'};
+      --ink: ${c.text};
+      --soft: ${c.textSoft};
+      --muted: ${c.textMuted};
+      --ghost: ${c.textGhost};
+      --line: ${c.textGhost};
+      --paper: ${c.bg};
+      --card: ${c.bgCard};
+      --up: ${c.bgUp};
+      --accent: ${c.accent};
+      --accent-deep: ${c.accentDeep};
+      --accent-pale: ${c.accentPale};
+      --accent-wash: ${c.accentWash};
+      --gold: ${c.accentDeep};
+      --green: ${c.green};
+      --green-soft: ${c.greenSoft};
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       color: var(--ink);
-      background:
-        repeating-linear-gradient(90deg, rgba(37, 33, 31, 0.018) 0 1px, transparent 1px 36px),
-        repeating-linear-gradient(180deg, rgba(37, 33, 31, 0.014) 0 1px, transparent 1px 36px),
-        linear-gradient(135deg, rgba(185, 129, 156, 0.12), transparent 32%),
-        linear-gradient(180deg, #fffdf9 0%, var(--paper) 100%);
-      font-family: "Avenir Next", "Segoe UI", "Microsoft YaHei", sans-serif;
-      line-height: 1.5;
+      background: var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
     }
     .page {
-      width: min(1120px, calc(100% - 32px));
+      width: min(880px, calc(100% - 32px));
       margin: 0 auto;
-      padding: 44px 0 60px;
+      padding: 48px 0 64px;
     }
+    /* ── Hero ── */
     .hero {
       position: relative;
-      display: grid;
-      grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
-      gap: 24px;
-      align-items: end;
-      padding: 34px;
-      border: 1px solid rgba(37, 33, 31, 0.08);
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.72);
-      box-shadow: var(--shadow);
-      overflow: hidden;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--line);
     }
     .hero::before {
       content: "";
       position: absolute;
-      inset: 0 auto 0 0;
-      width: 8px;
-      background: linear-gradient(180deg, var(--ink), var(--accent), var(--gold));
+      top: -40px;
+      right: -60px;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, var(--accent-wash), transparent 70%);
+      pointer-events: none;
     }
-    .hero > * {
-      position: relative;
-    }
+    .hero > * { position: relative; }
     .kicker {
-      display: inline-flex;
-      width: fit-content;
-      padding: 6px 10px;
-      border: 1px solid rgba(185, 129, 156, 0.22);
+      display: inline-block;
+      padding: 4px 14px;
+      border: 1px solid var(--ghost);
       border-radius: 999px;
       color: var(--accent);
-      background: rgba(245, 231, 238, 0.62);
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 0;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
     }
     h1 {
-      margin: 16px 0 10px;
-      font-size: clamp(34px, 6vw, 62px);
-      line-height: 0.98;
-      letter-spacing: 0;
-      font-family: "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
-      font-weight: 850;
+      margin: 16px 0 8px;
+      font-family: "Noto Serif SC", serif;
+      font-size: clamp(30px, 5vw, 44px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1.12;
     }
     .range-line {
-      display: inline-flex;
-      margin-bottom: 12px;
+      display: block;
+      margin-bottom: 10px;
       color: var(--ink);
-      font-size: 15px;
-      font-weight: 800;
+      font-size: 14px;
+      font-weight: 700;
     }
     .hero p,
     .section-head p,
     .footer-note {
       margin: 0;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 13px;
+      line-height: 1.6;
     }
     .hero-meta {
-      display: grid;
-      gap: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 20px;
       color: var(--muted);
-      font-size: 13px;
-      text-align: right;
+      font-size: 12px;
     }
     .hero-meta strong {
-      color: var(--ink);
-      font-size: 17px;
+      color: var(--soft);
+      font-weight: 600;
     }
+    /* ── Metrics ── */
     .metrics {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-      margin: 20px 0 26px;
-    }
-    .metric,
-    .section {
-      border: 1px solid rgba(37, 33, 31, 0.07);
-      border-radius: 14px;
-      background: var(--surface);
-      box-shadow: 0 14px 36px rgba(51, 42, 36, 0.07);
+      display: flex;
+      border-bottom: 1px solid var(--line);
     }
     .metric {
+      flex: 1;
       min-width: 0;
-      padding: 16px;
+      padding: 20px 20px 20px 0;
+      border-right: 1px solid var(--line);
     }
+    .metric:first-child { padding-left: 0; }
+    .metric:last-child { border-right: none; }
     .metric span {
       display: block;
       color: var(--muted);
-      font-size: 12px;
-      font-weight: 760;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
     }
     .metric strong {
       display: block;
-      margin-top: 8px;
-      font-size: 22px;
-      font-weight: 850;
+      margin-top: 6px;
+      font-family: "Noto Serif SC", serif;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
       font-variant-numeric: tabular-nums;
       overflow-wrap: anywhere;
     }
-    .toc {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-    .toc a {
-      min-width: 0;
-      padding: 12px 14px;
-      border: 1px solid rgba(37, 33, 31, 0.07);
-      border-radius: 12px;
-      color: var(--ink);
-      background: rgba(255, 255, 255, 0.58);
-      font-size: 12px;
-      font-weight: 820;
-      text-decoration: none;
-      transition: transform 160ms ease, background 160ms ease;
-    }
-    .toc a:hover {
-      transform: translateY(-1px);
-      background: #fff;
-    }
     .metric.expense strong { color: var(--ink); }
     .metric.income strong { color: var(--green); }
-    .section {
-      margin-top: 18px;
-      overflow: hidden;
+    /* ── TOC ── */
+    .toc {
+      display: flex;
+      gap: 0;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
     }
+    .toc a {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 6px 16px;
+      border-right: 1px solid var(--line);
+      transition: color 0.16s;
+    }
+    .toc a:first-child { padding-left: 0; }
+    .toc a:last-child { border-right: none; }
+    .toc a:hover { color: var(--accent); }
+    /* ── Sections ── */
+    .section { margin-top: 40px; }
     .section-head {
       display: flex;
-      align-items: end;
+      align-items: flex-end;
       justify-content: space-between;
       gap: 16px;
-      padding: 20px 22px;
+      padding-bottom: 14px;
       border-bottom: 1px solid var(--line);
     }
     .section-title {
       display: flex;
       align-items: baseline;
-      gap: 10px;
+      gap: 8px;
     }
     .section-index {
       color: var(--accent);
-      font-size: 12px;
-      font-weight: 900;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
       font-variant-numeric: tabular-nums;
     }
     h2 {
       margin: 0 0 4px;
-      font-size: 22px;
+      font-family: "Noto Serif SC", serif;
+      font-size: 18px;
+      font-weight: 900;
       letter-spacing: 0;
     }
-    .table-wrap {
-      width: 100%;
-      overflow-x: auto;
-    }
+    /* ── Tables ── */
+    .table-wrap { width: 100%; overflow-x: auto; }
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 720px;
+      min-width: 680px;
     }
-    th,
-    td {
-      padding: 13px 16px;
-      border-bottom: 1px solid rgba(232, 225, 221, 0.78);
+    th, td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--line);
       text-align: left;
       vertical-align: middle;
       font-size: 13px;
-    }
-    tbody tr {
-      transition: background 160ms ease;
-    }
-    tbody tr:hover {
-      background: rgba(245, 231, 238, 0.28);
     }
     th {
       position: sticky;
       top: 0;
       z-index: 1;
       color: var(--muted);
-      background: rgba(255, 250, 246, 0.96);
-      font-size: 11px;
-      font-weight: 850;
+      background: var(--paper);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
     }
+    td { color: var(--soft); }
+    td strong { color: var(--ink); font-weight: 600; }
     td small {
       display: block;
-      margin-top: 3px;
+      margin-top: 2px;
       color: var(--muted);
       font-size: 11px;
     }
+    tbody tr { transition: background 0.15s; }
+    tbody tr:hover { background: var(--accent-wash); }
     .num {
       text-align: right;
+      font-family: "Noto Serif SC", serif;
+      font-weight: 700;
       font-variant-numeric: tabular-nums;
       white-space: nowrap;
     }
     .expense { color: var(--ink); }
     .income { color: var(--green); }
+    /* ── Share bars ── */
     .share-cell {
       display: grid;
-      grid-template-columns: minmax(96px, 1fr) 46px;
-      gap: 10px;
+      grid-template-columns: minmax(80px, 1fr) 40px;
+      gap: 8px;
       align-items: center;
     }
-    .share-track,
-    .line-bar {
+    .share-track, .line-bar {
       display: block;
-      height: 8px;
+      height: 4px;
       overflow: hidden;
-      border-radius: 999px;
-      background: rgba(37, 33, 31, 0.07);
+      border-radius: 2px;
+      background: var(--up);
     }
-    .share-track i,
-    .line-bar i {
+    .share-track i, .line-bar i {
       display: block;
       height: 100%;
-      border-radius: inherit;
+      border-radius: 2px;
       background: linear-gradient(90deg, var(--accent), var(--gold));
     }
     .share-cell b {
       color: var(--muted);
-      font-size: 12px;
+      font-size: 11px;
       font-variant-numeric: tabular-nums;
       text-align: right;
     }
+    /* ── Misc ── */
     .pill {
-      display: inline-flex;
-      padding: 4px 8px;
+      display: inline-block;
+      padding: 3px 8px;
       border-radius: 999px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      font-size: 12px;
-      font-weight: 780;
+      border: 1px solid var(--ghost);
+      color: var(--soft);
+      font-size: 11px;
+      font-weight: 700;
     }
     .record-tools {
       display: flex;
@@ -1026,73 +1025,56 @@ function buildHtmlDocument(book) {
       gap: 8px;
     }
     .record-tools input {
-      width: 210px;
-      max-width: 44vw;
-      min-height: 34px;
-      padding: 0 11px;
+      width: 200px;
+      max-width: 40vw;
+      min-height: 32px;
+      padding: 0 12px;
       border: 1px solid var(--line);
       border-radius: 999px;
       color: var(--ink);
-      background: rgba(255, 255, 255, 0.72);
+      background: var(--up);
+      font-size: 12px;
       outline: none;
     }
+    .record-tools input::placeholder { color: var(--muted); }
     .record-tools button {
-      min-height: 34px;
-      padding: 0 12px;
+      min-height: 32px;
+      padding: 0 14px;
       border: 0;
       border-radius: 999px;
-      color: #fff;
-      background: var(--ink);
-      font-weight: 760;
+      color: var(--paper);
+      background: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
       cursor: pointer;
     }
     .empty-row td {
       color: var(--muted);
       text-align: center;
-      padding: 26px 16px;
+      padding: 28px 16px;
     }
     .footer-note {
-      padding: 22px 4px 0;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
       text-align: center;
     }
-    @media (max-width: 760px) {
-      .page {
-        width: min(100% - 24px, 520px);
-        padding: 18px 0 32px;
-      }
-      .hero {
-        grid-template-columns: 1fr;
-        padding: 22px;
-      }
-      .hero-meta {
-        text-align: left;
-      }
-      .metrics {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-      .toc {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-      .section-head {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-      .record-tools {
-        width: 100%;
-      }
-      .record-tools input {
-        flex: 1;
-        max-width: none;
-      }
+    @media (max-width: 680px) {
+      .page { width: calc(100% - 24px); padding: 24px 0 40px; }
+      h1 { font-size: 28px; }
+      .metrics { flex-wrap: wrap; }
+      .metric { flex: 0 0 50%; border-bottom: 1px solid var(--line); }
+      .metric:nth-child(2) { border-right: none; }
+      .toc { flex-wrap: wrap; }
+      .toc a { padding: 6px 12px; }
+      .section-head { flex-direction: column; align-items: flex-start; }
+      .record-tools { width: 100%; }
+      .record-tools input { flex: 1; max-width: none; }
     }
     @media print {
-      body { background: #fff; }
-      .page { width: 100%; padding: 0; }
-      .hero,
-      .metric,
-      .section { box-shadow: none; }
-      .toc { display: none; }
-      .record-tools { display: none; }
+      body { background: #fff; color: #222; }
+      .hero::before { display: none; }
+      .toc, .record-tools { display: none; }
       th { position: static; }
     }
   </style>
@@ -1100,16 +1082,12 @@ function buildHtmlDocument(book) {
 <body>
   <main class="page">
     <section class="hero">
-      <div>
-        <span class="kicker">数据留在自己手里</span>
-        <h1>生活数据册</h1>
-        <span class="range-line">${escapeHtml(meta.rangeLabel)}</span>
-        <p>这是一份结构化的消费去向记录，只呈现数据，不评价消费行为。</p>
-      </div>
+      <span class="kicker">拾序 · 数据册</span>
+      <h1>${escapeHtml(meta.rangeLabel)}</h1>
+      <p>一份结构化的消费去向记录。只呈现数据，不评价消费行为。</p>
       <div class="hero-meta">
-        <span>导出时间 <strong>${escapeHtml(meta.exportedAt)}</strong></span>
-        <span>日期范围 <strong>${escapeHtml(meta.rangeStart)} - ${escapeHtml(meta.rangeEnd)}</strong></span>
-        <span>数据版本 <strong>${escapeHtml(meta.schemaVersion)}</strong></span>
+        <span>导出 <strong>${escapeHtml(meta.exportedAt)}</strong></span>
+        <span>范围 <strong>${escapeHtml(meta.rangeStart)} — ${escapeHtml(meta.rangeEnd)}</strong></span>
       </div>
     </section>
 
@@ -1218,11 +1196,42 @@ function downloadBlob(blob, filename) {
   URL.revokeObjectURL(url);
 }
 
+function getThemeColors() {
+  const style = getComputedStyle(document.documentElement);
+  const get = (name) => style.getPropertyValue(name).trim();
+  return {
+    bg: get('--bg'), bgUp: get('--bg-up'), bgCard: get('--bg-card'),
+    bgLine: get('--bg-line'),
+    accent: get('--accent'), accentDeep: get('--accent-deep'),
+    accentPale: get('--accent-pale'), accentWash: get('--accent-wash'),
+    text: get('--text'), textSoft: get('--text-soft'),
+    textMuted: get('--text-muted'), textGhost: get('--text-ghost'),
+    green: get('--green'), greenSoft: get('--green-soft'),
+    warn: get('--warn'), danger: get('--danger'),
+  };
+}
+
+function isDarkTheme(bgColor) {
+  const hex = (bgColor || '').replace('#', '');
+  if (hex.length < 6) return false;
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  return (0.299 * r + 0.587 * g + 0.114 * b) < 128;
+}
+
+function hexToArgb(hex) {
+  const clean = (hex || '').replace('#', '');
+  if (clean.length >= 6) return 'FF' + clean.substring(0, 6).toUpperCase();
+  return 'FF292524';
+}
+
 export function exportDataBook(records, { rangeType = 'month', format = 'xlsx' } = {}) {
   const safeRecords = Array.isArray(records) ? records : [];
   const book = buildDataBook(safeRecords, rangeType);
+  const colors = getThemeColors();
   const fileDate = formatDate(new Date()).replaceAll('-', '');
-  const filenameBase = `accounting-data-book-${book.metadata.rangeType}-${fileDate}`;
+  const filenameBase = `shiyu-data-book-${book.metadata.rangeType}-${fileDate}`;
 
   if (format === 'json') {
     const blob = new Blob([JSON.stringify(book, null, 2)], { type: 'application/json;charset=utf-8' });
@@ -1231,13 +1240,13 @@ export function exportDataBook(records, { rangeType = 'month', format = 'xlsx' }
   }
 
   if (format === 'html') {
-    const html = buildHtmlDocument(book);
+    const html = buildHtmlDocument(book, colors);
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     downloadBlob(blob, `${filenameBase}.html`);
     return;
   }
 
-  const xlsxBytes = buildXlsx(book);
+  const xlsxBytes = buildXlsx(book, colors);
   const blob = new Blob([xlsxBytes], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
