@@ -2,194 +2,117 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
 <title>记账 · 主题切换原型</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;400;700;900&display=swap');
 
   /* ═══════════════════════════════
-     主题系统：用 CSS 变量，JS 切换
+     主题系统 · 8 套（4暗 + 4亮）
   ═══════════════════════════════ */
 
-  /* 默认：夜樱 */
   :root, [data-theme="nightsakura"] {
-    --bg:          #16121a;
-    --bg-up:       #1e1824;
-    --bg-card:     #221c29;
-    --bg-line:     rgba(200, 160, 190, 0.06);
-
-    --accent:      #f2b5c8;
-    --accent-deep: #d4889e;
-    --accent-pale: #f8dce6;
-    --accent-glow: rgba(242, 181, 200, 0.08);
-    --accent-wash: rgba(242, 181, 200, 0.04);
-
-    --secondary:   #c4b5d4;
-    --secondary-soft: rgba(196, 181, 212, 0.10);
-
-    --text:        #f5efe8;
-    --text-soft:   rgba(245, 239, 232, 0.55);
-    --text-muted:  rgba(245, 239, 232, 0.30);
-    --text-ghost:  rgba(245, 239, 232, 0.14);
-
-    --green:       #8cc5a0;
-    --green-soft:  rgba(140, 197, 160, 0.10);
-    --warn:        #e0c08a;
-    --warn-soft:   rgba(224, 192, 138, 0.08);
-
-    --cat-1: #f2b5c8;
-    --cat-2: #c4b5d4;
-    --cat-3: #8ab4e0;
-    --cat-4: #8cc5a0;
-    --cat-5: #e0a0a4;
-
-    --phone-border: rgba(200, 160, 190, 0.08);
-    --phone-shadow: rgba(16, 10, 20, 0.7);
-    --phone-glow:   rgba(242, 181, 200, 0.04);
+    --bg: #16121a; --bg-up: #1e1824; --bg-card: #221c29;
+    --bg-line: rgba(200,160,190,0.06);
+    --accent: #f2b5c8; --accent-deep: #d4889e; --accent-pale: #f8dce6;
+    --accent-glow: rgba(242,181,200,0.08); --accent-wash: rgba(242,181,200,0.04);
+    --secondary: #c4b5d4; --secondary-soft: rgba(196,181,212,0.10);
+    --text: #f5efe8; --text-soft: rgba(245,239,232,0.55);
+    --text-muted: rgba(245,239,232,0.30); --text-ghost: rgba(245,239,232,0.14);
+    --green: #8cc5a0; --green-soft: rgba(140,197,160,0.10);
+    --warn: #e0c08a; --warn-soft: rgba(224,192,138,0.08);
+    --cat-1: #f2b5c8; --cat-2: #c4b5d4; --cat-3: #8ab4e0; --cat-4: #8cc5a0; --cat-5: #e0a0a4;
   }
 
   [data-theme="inkgold"] {
-    --bg:          #111109;
-    --bg-up:       #1a1810;
-    --bg-card:     #22201a;
-    --bg-line:     rgba(200, 180, 120, 0.06);
-
-    --accent:      #d4b078;
-    --accent-deep: #b8924e;
-    --accent-pale: #f0dfc0;
-    --accent-glow: rgba(212, 176, 120, 0.08);
-    --accent-wash: rgba(212, 176, 120, 0.04);
-
-    --secondary:   #c4b8a0;
-    --secondary-soft: rgba(196, 184, 160, 0.10);
-
-    --text:        #f0ece4;
-    --text-soft:   rgba(240, 236, 228, 0.55);
-    --text-muted:  rgba(240, 236, 228, 0.30);
-    --text-ghost:  rgba(240, 236, 228, 0.14);
-
-    --green:       #8cb88a;
-    --green-soft:  rgba(140, 184, 138, 0.10);
-    --warn:        #d4a060;
-    --warn-soft:   rgba(212, 160, 96, 0.08);
-
-    --cat-1: #d4b078;
-    --cat-2: #c4a880;
-    --cat-3: #8ab0a0;
-    --cat-4: #8cb88a;
-    --cat-5: #d4a080;
-
-    --phone-border: rgba(200, 180, 120, 0.08);
-    --phone-shadow: rgba(10, 10, 4, 0.7);
-    --phone-glow:   rgba(212, 176, 120, 0.04);
+    --bg: #111109; --bg-up: #1a1810; --bg-card: #22201a;
+    --bg-line: rgba(200,180,120,0.06);
+    --accent: #d4b078; --accent-deep: #b8924e; --accent-pale: #f0dfc0;
+    --accent-glow: rgba(212,176,120,0.08); --accent-wash: rgba(212,176,120,0.04);
+    --secondary: #c4b8a0; --secondary-soft: rgba(196,184,160,0.10);
+    --text: #f0ece4; --text-soft: rgba(240,236,228,0.55);
+    --text-muted: rgba(240,236,228,0.30); --text-ghost: rgba(240,236,228,0.14);
+    --green: #8cb88a; --green-soft: rgba(140,184,138,0.10);
+    --warn: #d4a060; --warn-soft: rgba(212,160,96,0.08);
+    --cat-1: #d4b078; --cat-2: #c4a880; --cat-3: #8ab0a0; --cat-4: #8cb88a; --cat-5: #d4a080;
   }
 
   [data-theme="deepsea"] {
-    --bg:          #0c1420;
-    --bg-up:       #132030;
-    --bg-card:     #18283c;
-    --bg-line:     rgba(100, 180, 220, 0.06);
-
-    --accent:      #6cc4e8;
-    --accent-deep: #4a9ec8;
-    --accent-pale: #b8e4f4;
-    --accent-glow: rgba(108, 196, 232, 0.08);
-    --accent-wash: rgba(108, 196, 232, 0.04);
-
-    --secondary:   #9ab0c8;
-    --secondary-soft: rgba(154, 176, 200, 0.10);
-
-    --text:        #e8f0f4;
-    --text-soft:   rgba(232, 240, 244, 0.55);
-    --text-muted:  rgba(232, 240, 244, 0.30);
-    --text-ghost:  rgba(232, 240, 244, 0.14);
-
-    --green:       #78c4a0;
-    --green-soft:  rgba(120, 196, 160, 0.10);
-    --warn:        #e0c08a;
-    --warn-soft:   rgba(224, 192, 138, 0.08);
-
-    --cat-1: #6cc4e8;
-    --cat-2: #9ab0c8;
-    --cat-3: #78c4a0;
-    --cat-4: #a8c878;
-    --cat-5: #d4a088;
-
-    --phone-border: rgba(100, 180, 220, 0.08);
-    --phone-shadow: rgba(6, 12, 20, 0.7);
-    --phone-glow:   rgba(108, 196, 232, 0.04);
-  }
-
-  [data-theme="dawn"] {
-    --bg:          #faf7f4;
-    --bg-up:       #f2ede8;
-    --bg-card:     #ffffff;
-    --bg-line:     rgba(80, 60, 50, 0.06);
-
-    --accent:      #c88a7a;
-    --accent-deep: #a86e5e;
-    --accent-pale: #f0d4cc;
-    --accent-glow: rgba(200, 138, 122, 0.08);
-    --accent-wash: rgba(200, 138, 122, 0.04);
-
-    --secondary:   #a89888;
-    --secondary-soft: rgba(168, 152, 136, 0.10);
-
-    --text:        #2c2422;
-    --text-soft:   rgba(44, 36, 34, 0.60);
-    --text-muted:  rgba(44, 36, 34, 0.32);
-    --text-ghost:  rgba(44, 36, 34, 0.12);
-
-    --green:       #6a9a7a;
-    --green-soft:  rgba(106, 154, 122, 0.10);
-    --warn:        #c8a050;
-    --warn-soft:   rgba(200, 160, 80, 0.08);
-
-    --cat-1: #c88a7a;
-    --cat-2: #b8a090;
-    --cat-3: #7a9ab0;
-    --cat-4: #6a9a7a;
-    --cat-5: #c4887a;
-
-    --phone-border: rgba(80, 60, 50, 0.10);
-    --phone-shadow: rgba(80, 60, 50, 0.08);
-    --phone-glow:   rgba(200, 138, 122, 0.04);
+    --bg: #0c1420; --bg-up: #132030; --bg-card: #18283c;
+    --bg-line: rgba(100,180,220,0.06);
+    --accent: #6cc4e8; --accent-deep: #4a9ec8; --accent-pale: #b8e4f4;
+    --accent-glow: rgba(108,196,232,0.08); --accent-wash: rgba(108,196,232,0.04);
+    --secondary: #9ab0c8; --secondary-soft: rgba(154,176,200,0.10);
+    --text: #e8f0f4; --text-soft: rgba(232,240,244,0.55);
+    --text-muted: rgba(232,240,244,0.30); --text-ghost: rgba(232,240,244,0.14);
+    --green: #78c4a0; --green-soft: rgba(120,196,160,0.10);
+    --warn: #e0c08a; --warn-soft: rgba(224,192,138,0.08);
+    --cat-1: #6cc4e8; --cat-2: #9ab0c8; --cat-3: #78c4a0; --cat-4: #a8c878; --cat-5: #d4a088;
   }
 
   [data-theme="moss"] {
-    --bg:          #12160e;
-    --bg-up:       #1c2218;
-    --bg-card:     #222a1e;
-    --bg-line:     rgba(140, 180, 120, 0.06);
+    --bg: #12160e; --bg-up: #1c2218; --bg-card: #222a1e;
+    --bg-line: rgba(140,180,120,0.06);
+    --accent: #a8cc88; --accent-deep: #80a868; --accent-pale: #d0e8c0;
+    --accent-glow: rgba(168,204,136,0.08); --accent-wash: rgba(168,204,136,0.04);
+    --secondary: #b0b89a; --secondary-soft: rgba(176,184,154,0.10);
+    --text: #eef0e8; --text-soft: rgba(238,240,232,0.55);
+    --text-muted: rgba(238,240,232,0.30); --text-ghost: rgba(238,240,232,0.14);
+    --green: #8cc5a0; --green-soft: rgba(140,197,160,0.10);
+    --warn: #d4c078; --warn-soft: rgba(212,192,120,0.08);
+    --cat-1: #a8cc88; --cat-2: #88b4a0; --cat-3: #90a8c0; --cat-4: #c8c888; --cat-5: #c8a888;
+  }
 
-    --accent:      #a8cc88;
-    --accent-deep: #80a868;
-    --accent-pale: #d0e8c0;
-    --accent-glow: rgba(168, 204, 136, 0.08);
-    --accent-wash: rgba(168, 204, 136, 0.04);
+  [data-theme="dawn"] {
+    --bg: #faf7f4; --bg-up: #f2ede8; --bg-card: #ffffff;
+    --bg-line: rgba(80,60,50,0.06);
+    --accent: #c88a7a; --accent-deep: #a86e5e; --accent-pale: #f0d4cc;
+    --accent-glow: rgba(200,138,122,0.08); --accent-wash: rgba(200,138,122,0.04);
+    --secondary: #a89888; --secondary-soft: rgba(168,152,136,0.10);
+    --text: #2c2422; --text-soft: rgba(44,36,34,0.60);
+    --text-muted: rgba(44,36,34,0.32); --text-ghost: rgba(44,36,34,0.12);
+    --green: #6a9a7a; --green-soft: rgba(106,154,122,0.10);
+    --warn: #c8a050; --warn-soft: rgba(200,160,80,0.08);
+    --cat-1: #c88a7a; --cat-2: #b8a090; --cat-3: #7a9ab0; --cat-4: #6a9a7a; --cat-5: #c4887a;
+  }
 
-    --secondary:   #b0b89a;
-    --secondary-soft: rgba(176, 184, 154, 0.10);
+  [data-theme="frostmoon"] {
+    --bg: #f2f5f8; --bg-up: #e8edf2; --bg-card: #ffffff;
+    --bg-line: rgba(60,80,110,0.06);
+    --accent: #7a9eb8; --accent-deep: #5c8099; --accent-pale: #c4dae8;
+    --accent-glow: rgba(122,158,184,0.08); --accent-wash: rgba(122,158,184,0.04);
+    --secondary: #94a4b4; --secondary-soft: rgba(148,164,180,0.10);
+    --text: #2a3040; --text-soft: rgba(42,48,64,0.60);
+    --text-muted: rgba(42,48,64,0.32); --text-ghost: rgba(42,48,64,0.10);
+    --green: #689a80; --green-soft: rgba(104,154,128,0.10);
+    --warn: #b8a060; --warn-soft: rgba(184,160,96,0.08);
+    --cat-1: #7a9eb8; --cat-2: #94a4b4; --cat-3: #689a80; --cat-4: #a4b478; --cat-5: #b89888;
+  }
 
-    --text:        #eef0e8;
-    --text-soft:   rgba(238, 240, 232, 0.55);
-    --text-muted:  rgba(238, 240, 232, 0.30);
-    --text-ghost:  rgba(238, 240, 232, 0.14);
+  [data-theme="cloudpaper"] {
+    --bg: #f7f4fa; --bg-up: #efebf4; --bg-card: #ffffff;
+    --bg-line: rgba(100,70,130,0.05);
+    --accent: #a088b8; --accent-deep: #8068a0; --accent-pale: #d4c8e0;
+    --accent-glow: rgba(160,136,184,0.08); --accent-wash: rgba(160,136,184,0.04);
+    --secondary: #b0a0b8; --secondary-soft: rgba(176,160,184,0.10);
+    --text: #302838; --text-soft: rgba(48,40,56,0.60);
+    --text-muted: rgba(48,40,56,0.32); --text-ghost: rgba(48,40,56,0.10);
+    --green: #6a9a7a; --green-soft: rgba(106,154,122,0.10);
+    --warn: #c0a060; --warn-soft: rgba(192,160,96,0.08);
+    --cat-1: #a088b8; --cat-2: #b0a0b8; --cat-3: #7a9ab0; --cat-4: #6a9a7a; --cat-5: #c08898;
+  }
 
-    --green:       #8cc5a0;
-    --green-soft:  rgba(140, 197, 160, 0.10);
-    --warn:        #d4c078;
-    --warn-soft:   rgba(212, 192, 120, 0.08);
-
-    --cat-1: #a8cc88;
-    --cat-2: #88b4a0;
-    --cat-3: #90a8c0;
-    --cat-4: #c8c888;
-    --cat-5: #c8a888;
-
-    --phone-border: rgba(140, 180, 120, 0.08);
-    --phone-shadow: rgba(10, 14, 8, 0.7);
-    --phone-glow:   rgba(168, 204, 136, 0.04);
+  [data-theme="whitepeach"] {
+    --bg: #fcf5f3; --bg-up: #f6eceb; --bg-card: #ffffff;
+    --bg-line: rgba(120,60,70,0.05);
+    --accent: #d4889e; --accent-deep: #b86a80; --accent-pale: #f4d0dc;
+    --accent-glow: rgba(212,136,158,0.08); --accent-wash: rgba(212,136,158,0.04);
+    --secondary: #c4a0a8; --secondary-soft: rgba(196,160,168,0.10);
+    --text: #382428; --text-soft: rgba(56,36,40,0.60);
+    --text-muted: rgba(56,36,40,0.32); --text-ghost: rgba(56,36,40,0.10);
+    --green: #6a9a7a; --green-soft: rgba(106,154,122,0.10);
+    --warn: #c8a060; --warn-soft: rgba(200,160,96,0.08);
+    --cat-1: #d4889e; --cat-2: #c4a0a8; --cat-3: #88a4b8; --cat-4: #6a9a7a; --cat-5: #d4a088;
   }
 
   /* ═══════════════════════════════
@@ -208,7 +131,7 @@
   }
 
   /* ═══════════════════════════════
-     调色盘按钮 + 弧形展开（移动端优化）
+     调色盘 · 可旋转圆环
   ═══════════════════════════════ */
   .palette-trigger {
     position: fixed;
@@ -225,121 +148,86 @@
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
-    box-shadow:
-      0 2px 12px rgba(0,0,0,0.25),
-      0 0 20px var(--accent-glow);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25), 0 0 20px var(--accent-glow);
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
-
-  .palette-trigger:active {
-    transform: scale(0.92);
-  }
-
+  .palette-trigger:active { transform: scale(0.92); }
   .palette-trigger .inner-dot {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: var(--accent);
-    transition: background 0.4s ease;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--accent); transition: background 0.4s ease;
   }
 
-  /* 弧形容器——以触发按钮为圆心，向左上方展开 */
-  .palette-ring {
-    position: fixed;
-    bottom: 24px;
-    right: 20px;
-    z-index: 99;
-    width: 48px;
-    height: 48px;
-    pointer-events: none;
+  .palette-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.55);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.35s ease;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+  .palette-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .palette-ring-area {
+    position: relative;
+    width: 260px; height: 260px;
+    touch-action: none;
   }
 
-  .palette-ring .theme-dot {
+  .ring-center-label {
     position: absolute;
-    width: 44px;
-    height: 44px;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .ring-center-name {
+    font-family: "Noto Serif SC", serif;
+    font-size: 20px; font-weight: 900;
+    color: #fff;
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+  }
+  .ring-center-hint {
+    font-size: 11px; color: rgba(255,255,255,0.4);
+    margin-top: 4px; font-weight: 500;
+  }
+
+  .ring-dot {
+    position: absolute;
+    width: 44px; height: 44px;
     border-radius: 50%;
-    border: 2.5px solid rgba(255,255,255,0.12);
+    border: 2.5px solid rgba(255,255,255,0.15);
     cursor: pointer;
-    pointer-events: none;
-    opacity: 0;
-    transform: translate(0, 0) scale(0.4);
-    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.3);
     -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
+    touch-action: none;
+    will-change: transform;
+    top: 50%; left: 50%;
+    margin: -22px 0 0 -22px;
   }
-
-  /* 主题名常驻显示（不依赖 hover） */
-  .palette-ring .theme-dot::after {
-    content: attr(data-name);
+  .ring-dot.current {
+    border-color: #fff;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.2), 0 3px 12px rgba(0,0,0,0.3);
+  }
+  .ring-dot-label {
     position: absolute;
-    right: calc(100% + 8px);
+    font-size: 10px; font-weight: 700;
+    color: rgba(255,255,255,0.7);
     white-space: nowrap;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text-soft);
-    opacity: 0;
-    transition: opacity 0.25s ease;
     pointer-events: none;
+    letter-spacing: 0.04em;
   }
-
-  .palette-ring .theme-dot:active {
-    transform: translate(var(--tx), var(--ty)) scale(0.9) !important;
-  }
-
-  .palette-ring .theme-dot.current {
-    border-color: rgba(255,255,255,0.5);
-    box-shadow: 0 0 0 3px rgba(255,255,255,0.12), 0 2px 10px rgba(0,0,0,0.25);
-  }
-
-  /* 展开态：向左上弧形，不超出屏幕 */
-  .palette-ring.open .theme-dot {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .palette-ring.open .theme-dot::after {
-    opacity: 1;
-  }
-
-  /* 5 个点沿左上方 ~110° 弧形分布，半径 74px，不超出屏幕底部 */
-  .palette-ring.open .theme-dot:nth-child(1) { --tx: -12px; --ty: -74px; transform: translate(-12px, -74px) scale(1); transition-delay: 0.00s; }
-  .palette-ring.open .theme-dot:nth-child(2) { --tx: -44px; --ty: -60px; transform: translate(-44px, -60px) scale(1); transition-delay: 0.04s; }
-  .palette-ring.open .theme-dot:nth-child(3) { --tx: -68px; --ty: -34px; transform: translate(-68px, -34px) scale(1); transition-delay: 0.08s; }
-  .palette-ring.open .theme-dot:nth-child(4) { --tx: -76px; --ty: -2px;  transform: translate(-76px, -2px)  scale(1); transition-delay: 0.12s; }
-  .palette-ring.open .theme-dot:nth-child(5) { --tx: -68px; --ty: 28px;  transform: translate(-68px, 28px)  scale(1); transition-delay: 0.16s; }
-
-  /* 遮罩 */
-  .palette-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 98;
-    background: rgba(0,0,0,0);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-  }
-
-  .palette-backdrop.open {
-    opacity: 1;
-    pointer-events: auto;
-    background: rgba(0,0,0,0.3);
-  }
-
 
   /* ═══════════════════════════════
-     屏幕容器（手机全宽）
+     页面容器
   ═══════════════════════════════ */
   .phone {
-    max-width: 100%;
-    margin: 0 auto 2px;
-    background: var(--bg);
-    overflow: hidden;
+    max-width: 100%; margin: 0 auto 2px;
+    background: var(--bg); overflow: hidden;
     border-bottom: 1px solid var(--bg-line);
     transition: background 0.5s, border-color 0.4s;
   }
@@ -348,48 +236,26 @@
      顶部栏
   ═══════════════════════════════ */
   .top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px 0;
+    display: flex; justify-content: space-between;
+    align-items: center; padding: 20px 24px 0;
   }
-
   .logo {
     font-family: "Noto Serif SC", serif;
-    font-size: 15px;
-    font-weight: 900;
-    color: var(--text);
-    letter-spacing: -0.02em;
+    font-size: 15px; font-weight: 900;
+    color: var(--text); letter-spacing: -0.02em;
     transition: color 0.4s;
   }
-
   .nav { display: flex; }
-
   .nav button {
-    padding: 8px 14px;
-    border: none;
-    background: none;
-    color: var(--text-muted);
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    position: relative;
-    transition: color 0.3s;
+    padding: 8px 14px; border: none; background: none;
+    color: var(--text-muted); font-size: 13px; font-weight: 600;
+    cursor: pointer; position: relative; transition: color 0.3s;
   }
-
   .nav button.active { color: var(--text); }
-
   .nav button.active::after {
-    content: '';
-    position: absolute;
-    bottom: 3px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 8px var(--accent);
+    content: ''; position: absolute; bottom: 3px; left: 50%;
+    transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 8px var(--accent);
     transition: background 0.4s, box-shadow 0.4s;
   }
 
@@ -397,394 +263,182 @@
      记录页
   ═══════════════════════════════ */
   .form-page {
-    min-height: 680px;
-    display: flex;
-    flex-direction: column;
-    padding-bottom: 28px;
+    min-height: 680px; display: flex; flex-direction: column; padding-bottom: 28px;
   }
-
   .amount-zone {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 24px 32px;
-    position: relative;
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 48px 24px 32px; position: relative;
   }
-
   .amount-zone::before {
-    content: '';
-    position: absolute;
-    width: 320px;
-    height: 320px;
-    border-radius: 50%;
+    content: ''; position: absolute; width: 320px; height: 320px; border-radius: 50%;
     background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-    pointer-events: none;
-    transition: background 0.5s;
+    pointer-events: none; transition: background 0.5s;
   }
-
   .type-badge {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    color: var(--accent);
-    padding: 5px 16px;
-    border: 1px solid var(--text-ghost);
-    border-radius: 999px;
-    margin-bottom: 24px;
-    position: relative;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.18em;
+    color: var(--accent); padding: 5px 16px;
+    border: 1px solid var(--text-ghost); border-radius: 999px;
+    margin-bottom: 24px; position: relative;
     transition: color 0.4s, border-color 0.4s;
   }
-
   .amount-row {
-    display: flex;
-    align-items: baseline;
-    gap: 2px;
-    position: relative;
+    display: flex; align-items: baseline; gap: 2px; position: relative;
   }
-
   .amount-row .yen {
-    font-family: "Noto Serif SC", serif;
-    font-size: 32px;
-    font-weight: 200;
-    color: var(--text-muted);
-    line-height: 1;
-    transition: color 0.4s;
+    font-family: "Noto Serif SC", serif; font-size: 32px; font-weight: 200;
+    color: var(--text-muted); line-height: 1; transition: color 0.4s;
   }
-
   .amount-row .num {
-    font-family: "Noto Serif SC", serif;
-    font-size: 76px;
-    font-weight: 900;
-    letter-spacing: -0.04em;
-    line-height: 1;
-    color: var(--text);
-    transition: color 0.4s;
+    font-family: "Noto Serif SC", serif; font-size: 76px; font-weight: 900;
+    letter-spacing: -0.04em; line-height: 1; color: var(--text); transition: color 0.4s;
   }
-
   .cursor {
-    width: 2px;
-    height: 56px;
+    width: 2px; height: 56px;
     background: linear-gradient(180deg, var(--accent), var(--accent-deep));
-    margin-left: 4px;
-    align-self: center;
-    border-radius: 1px;
+    margin-left: 4px; align-self: center; border-radius: 1px;
     animation: blink 1.2s ease infinite;
     box-shadow: 0 0 12px var(--accent-glow);
     transition: background 0.4s, box-shadow 0.4s;
   }
-
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.15; }
-  }
-
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
   .amount-hint {
-    margin-top: 20px;
-    font-size: 13px;
-    color: var(--text-muted);
-    font-weight: 500;
-    transition: color 0.4s;
+    margin-top: 20px; font-size: 13px; color: var(--text-muted);
+    font-weight: 500; transition: color 0.4s;
   }
-
   .form-bottom { padding: 0 20px; }
-
   .section-label {
-    font-size: 10px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 12px;
-    padding-left: 4px;
-    font-weight: 600;
-    transition: color 0.4s;
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 12px; padding-left: 4px;
+    font-weight: 600; transition: color 0.4s;
   }
-
   .cat-scroll {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 6px;
-    margin-bottom: 18px;
-    scrollbar-width: none;
+    display: flex; gap: 8px; overflow-x: auto;
+    padding-bottom: 6px; margin-bottom: 18px; scrollbar-width: none;
   }
   .cat-scroll::-webkit-scrollbar { display: none; }
-
   .cat-chip {
-    flex-shrink: 0;
-    padding: 14px 22px;
-    border: 1px solid var(--bg-line);
-    border-radius: 14px;
-    background: var(--bg-card);
-    color: var(--text-muted);
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.22s ease;
-    white-space: nowrap;
+    flex-shrink: 0; padding: 14px 22px;
+    border: 1px solid var(--bg-line); border-radius: 14px;
+    background: var(--bg-card); color: var(--text-muted);
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: all 0.22s ease; white-space: nowrap;
   }
-
   .cat-chip.active {
     background: linear-gradient(135deg, var(--accent), var(--accent-deep));
-    border-color: transparent;
-    color: var(--bg);
+    border-color: transparent; color: var(--bg);
     box-shadow: 0 4px 16px var(--accent-glow), 0 0 40px var(--accent-wash);
   }
-
-  .cat-chip:not(.active):hover {
-    border-color: var(--text-ghost);
-    color: var(--text-soft);
-    background: var(--accent-wash);
-  }
-
   .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
-
   .tag-pill {
-    padding: 8px 16px;
-    border-radius: 999px;
-    border: 1px solid var(--text-ghost);
-    background: transparent;
-    color: var(--text-muted);
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
+    padding: 8px 16px; border-radius: 999px;
+    border: 1px solid var(--text-ghost); background: transparent;
+    color: var(--text-muted); font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
   }
-
   .tag-pill.active {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-wash);
-    box-shadow: 0 0 16px var(--accent-wash);
+    border-color: var(--accent); color: var(--accent);
+    background: var(--accent-wash); box-shadow: 0 0 16px var(--accent-wash);
   }
-
   .more-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px;
-    color: var(--text-muted);
-    font-size: 12px;
-    font-weight: 500;
-    border: none;
-    background: none;
-    cursor: pointer;
-    width: 100%;
-    margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 12px; color: var(--text-muted);
+    font-size: 12px; font-weight: 500; border: none; background: none;
+    cursor: pointer; width: 100%; margin-bottom: 8px;
   }
-
   .more-btn .dot {
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background: var(--accent-deep);
-    transition: background 0.4s;
+    width: 3px; height: 3px; border-radius: 50%;
+    background: var(--accent-deep); transition: background 0.4s;
   }
-
   .submit-btn {
-    width: 100%;
-    padding: 18px;
-    border: none;
-    border-radius: 16px;
+    width: 100%; padding: 18px; border: none; border-radius: 16px;
     background: linear-gradient(135deg, var(--accent), var(--accent-deep));
-    color: var(--bg);
-    font-size: 15px;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
+    color: var(--bg); font-size: 15px; font-weight: 800;
+    letter-spacing: 0.06em; cursor: pointer;
+    transition: all 0.3s ease; position: relative; overflow: hidden;
   }
-
   .submit-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
+    content: ''; position: absolute; inset: 0;
     background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%);
-    background-size: 200% 100%;
-    animation: shimmer 3s ease infinite;
+    background-size: 200% 100%; animation: shimmer 3s ease infinite;
   }
-
-  @keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-  }
-
-  .submit-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 28px var(--accent-glow), 0 0 60px var(--accent-wash);
-  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
   /* ═══════════════════════════════
      明细页
   ═══════════════════════════════ */
   .list-page { min-height: 680px; padding-bottom: 28px; }
-
   .review-section { padding: 20px 24px 0; }
-
   .review-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 24px;
   }
-
   .review-modes {
-    display: flex;
-    background: var(--bg-card);
-    border-radius: 10px;
-    padding: 3px;
-    border: 1px solid var(--bg-line);
-    transition: all 0.4s;
+    display: flex; background: var(--bg-card); border-radius: 10px;
+    padding: 3px; border: 1px solid var(--bg-line); transition: all 0.4s;
   }
-
   .review-modes button {
-    padding: 6px 14px;
-    border: none;
-    background: none;
-    color: var(--text-muted);
-    font-size: 12px;
-    font-weight: 700;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
+    padding: 6px 14px; border: none; background: none;
+    color: var(--text-muted); font-size: 12px; font-weight: 700;
+    border-radius: 8px; cursor: pointer; transition: all 0.2s;
   }
-
-  .review-modes button.active {
-    background: var(--accent-glow);
-    color: var(--accent);
-  }
-
+  .review-modes button.active { background: var(--accent-glow); color: var(--accent); }
   .review-date-block { text-align: center; margin-bottom: 24px; }
-
   .review-date-text {
-    font-family: "Noto Serif SC", serif;
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--text);
-    transition: color 0.4s;
+    font-family: "Noto Serif SC", serif; font-size: 22px; font-weight: 700;
+    color: var(--text); transition: color 0.4s;
   }
-
-  .review-date-sub {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 4px;
-    transition: color 0.4s;
-  }
-
+  .review-date-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; transition: color 0.4s; }
   .stats-strip {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    text-align: center;
-    padding: 20px 0;
-    border-top: 1px solid var(--bg-line);
-    border-bottom: 1px solid var(--bg-line);
-    margin: 0 24px 4px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center;
+    padding: 20px 0; border-top: 1px solid var(--bg-line);
+    border-bottom: 1px solid var(--bg-line); margin: 0 24px 4px;
     transition: border-color 0.4s;
   }
-
   .stat-cell small {
-    display: block;
-    font-size: 10px;
-    color: var(--text-muted);
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    margin-bottom: 6px;
-    transition: color 0.4s;
+    display: block; font-size: 10px; color: var(--text-muted);
+    font-weight: 600; letter-spacing: 0.08em; margin-bottom: 6px; transition: color 0.4s;
   }
-
   .stat-cell strong {
-    font-family: "Noto Serif SC", serif;
-    font-size: 18px;
-    font-weight: 700;
-    transition: color 0.4s;
+    font-family: "Noto Serif SC", serif; font-size: 18px; font-weight: 700; transition: color 0.4s;
   }
-
   .stat-cell strong.expense { color: var(--text); }
   .stat-cell strong.income { color: var(--green); }
-
   .add-day-btn {
-    display: block;
-    width: calc(100% - 48px);
-    margin: 0 auto;
-    padding: 14px;
-    border: none;
-    background: none;
-    color: var(--accent);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    cursor: pointer;
-    border-bottom: 1px solid var(--bg-line);
-    transition: all 0.3s;
+    display: block; width: calc(100% - 48px); margin: 0 auto; padding: 14px;
+    border: none; background: none; color: var(--accent);
+    font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
+    cursor: pointer; border-bottom: 1px solid var(--bg-line); transition: all 0.3s;
   }
-
-  .add-day-btn:hover { background: var(--accent-wash); }
-
   .group-label {
-    padding: 24px 24px 8px;
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    font-weight: 700;
-    transition: color 0.4s;
+    padding: 24px 24px 8px; font-size: 10px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--text-muted); font-weight: 700; transition: color 0.4s;
   }
-
   .record {
-    display: flex;
-    align-items: center;
-    padding: 15px 24px;
-    gap: 14px;
-    cursor: pointer;
-    transition: background 0.15s;
-    position: relative;
+    display: flex; align-items: center; padding: 15px 24px; gap: 14px;
+    cursor: pointer; transition: background 0.15s; position: relative;
   }
-
   .record::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 24px;
-    right: 24px;
-    height: 1px;
-    background: var(--bg-line);
-    transition: background 0.4s;
+    content: ''; position: absolute; bottom: 0; left: 24px; right: 24px;
+    height: 1px; background: var(--bg-line); transition: background 0.4s;
   }
-
-  .record:hover { background: var(--accent-wash); }
-
   .record-bar {
-    width: 3px;
-    height: 32px;
-    border-radius: 2px;
-    flex-shrink: 0;
+    width: 3px; height: 32px; border-radius: 2px; flex-shrink: 0;
     transition: background 0.4s, box-shadow 0.4s;
   }
-
   .record-bar.c1 { background: var(--cat-1); box-shadow: 0 0 8px var(--accent-wash); }
   .record-bar.c2 { background: var(--cat-2); box-shadow: 0 0 8px var(--secondary-soft); }
   .record-bar.c3 { background: var(--cat-3); box-shadow: 0 0 8px var(--accent-wash); }
   .record-bar.c4 { background: var(--cat-4); box-shadow: 0 0 8px var(--green-soft); }
   .record-bar.c5 { background: var(--cat-5); box-shadow: 0 0 8px var(--accent-wash); }
   .record-bar.cg { background: var(--green); box-shadow: 0 0 8px var(--green-soft); }
-
   .record-body { flex: 1; min-width: 0; }
   .record-cat { font-size: 14px; font-weight: 600; color: var(--text); transition: color 0.4s; }
   .record-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; transition: color 0.4s; }
-
   .record-amount {
-    font-family: "Noto Serif SC", serif;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    flex-shrink: 0;
-    transition: color 0.4s;
+    font-family: "Noto Serif SC", serif; font-size: 16px; font-weight: 700;
+    letter-spacing: -0.02em; flex-shrink: 0; transition: color 0.4s;
   }
-
   .record-amount.expense { color: var(--text); }
   .record-amount.income { color: var(--green); }
 
@@ -792,194 +446,90 @@
      统计页
   ═══════════════════════════════ */
   .stats-page { min-height: 680px; padding-bottom: 32px; }
-
   .stats-hero { padding: 32px 24px 28px; position: relative; }
-
   .stats-hero::before {
-    content: '';
-    position: absolute;
-    top: -20px;
-    right: -40px;
-    width: 200px;
-    height: 200px;
+    content: ''; position: absolute; top: -20px; right: -40px;
+    width: 200px; height: 200px;
     background: radial-gradient(circle, var(--accent-glow), transparent 70%);
-    pointer-events: none;
-    transition: background 0.5s;
+    pointer-events: none; transition: background 0.5s;
   }
-
   .stats-kicker {
-    font-size: 10px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--accent);
-    font-weight: 700;
-    margin-bottom: 12px;
-    position: relative;
-    transition: color 0.4s;
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700; margin-bottom: 12px;
+    position: relative; transition: color 0.4s;
   }
-
   .stats-headline {
-    font-family: "Noto Serif SC", serif;
-    font-size: 28px;
-    font-weight: 900;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-    color: var(--text);
-    margin-bottom: 8px;
-    position: relative;
-    transition: color 0.4s;
+    font-family: "Noto Serif SC", serif; font-size: 28px; font-weight: 900;
+    line-height: 1.2; letter-spacing: -0.02em; color: var(--text);
+    margin-bottom: 8px; position: relative; transition: color 0.4s;
   }
-
   .stats-sub {
-    font-size: 13px;
-    color: var(--text-muted);
-    line-height: 1.6;
-    position: relative;
-    transition: color 0.4s;
+    font-size: 13px; color: var(--text-muted); line-height: 1.6;
+    position: relative; transition: color 0.4s;
   }
-
   .total-strip {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    padding: 20px 24px;
-    border-top: 1px solid var(--bg-line);
-    border-bottom: 1px solid var(--bg-line);
+    display: flex; align-items: baseline; gap: 12px; padding: 20px 24px;
+    border-top: 1px solid var(--bg-line); border-bottom: 1px solid var(--bg-line);
     transition: border-color 0.4s;
   }
-
-  .total-label {
-    font-size: 10px;
-    color: var(--text-muted);
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    transition: color 0.4s;
-  }
-
+  .total-label { font-size: 10px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.1em; transition: color 0.4s; }
   .total-num {
-    font-family: "Noto Serif SC", serif;
-    font-size: 32px;
-    font-weight: 900;
-    letter-spacing: -0.03em;
-    color: var(--text);
-    transition: color 0.4s;
+    font-family: "Noto Serif SC", serif; font-size: 32px; font-weight: 900;
+    letter-spacing: -0.03em; color: var(--text); transition: color 0.4s;
   }
-
-  .total-badge {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 999px;
-    transition: all 0.4s;
-  }
-
+  .total-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; transition: all 0.4s; }
   .total-badge.up { background: var(--warn-soft); color: var(--warn); }
-
   .comp-section { padding: 24px 24px 0; }
-
-  .comp-bar {
-    display: flex;
-    height: 4px;
-    border-radius: 2px;
-    overflow: hidden;
-    gap: 2px;
-    margin-bottom: 20px;
-  }
-
+  .comp-bar { display: flex; height: 4px; border-radius: 2px; overflow: hidden; gap: 2px; margin-bottom: 20px; }
   .comp-bar span { border-radius: 2px; transition: all 0.5s ease; }
-
   .cat-row {
-    display: flex;
-    align-items: center;
-    padding: 14px 24px;
-    gap: 12px;
-    cursor: pointer;
-    transition: background 0.15s;
-    position: relative;
+    display: flex; align-items: center; padding: 14px 24px; gap: 12px;
+    cursor: pointer; transition: background 0.15s; position: relative;
   }
-
   .cat-row::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 24px;
-    right: 24px;
-    height: 1px;
-    background: var(--bg-line);
-    transition: background 0.4s;
+    content: ''; position: absolute; bottom: 0; left: 24px; right: 24px;
+    height: 1px; background: var(--bg-line); transition: background 0.4s;
   }
-
-  .cat-row:hover { background: var(--accent-wash); }
-
-  .cat-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    transition: all 0.4s;
-  }
-
+  .cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; transition: all 0.4s; }
   .cat-name { flex: 1; font-size: 14px; font-weight: 600; color: var(--text-soft); transition: color 0.4s; }
-
   .cat-amount {
-    font-family: "Noto Serif SC", serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: -0.02em;
-    transition: color 0.4s;
+    font-family: "Noto Serif SC", serif; font-size: 14px; font-weight: 700;
+    color: var(--text); letter-spacing: -0.02em; transition: color 0.4s;
   }
-
   .cat-pct { font-size: 11px; color: var(--text-muted); font-weight: 600; width: 36px; text-align: right; transition: color 0.4s; }
-
   .attention {
-    margin: 20px 24px 0;
-    padding: 20px;
-    border-radius: 16px;
-    border: 1px solid rgba(224, 192, 138, 0.12);
-    background: var(--warn-soft);
-    transition: all 0.4s;
+    margin: 20px 24px 0; padding: 20px; border-radius: 16px;
+    border: 1px solid rgba(224,192,138,0.12); background: var(--warn-soft); transition: all 0.4s;
   }
-
   .attention-kicker {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--warn);
-    margin-bottom: 6px;
-    transition: color 0.4s;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--warn); margin-bottom: 6px; transition: color 0.4s;
   }
-
   .attention-title {
-    font-family: "Noto Serif SC", serif;
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 4px;
-    transition: color 0.4s;
+    font-family: "Noto Serif SC", serif; font-size: 17px; font-weight: 700;
+    color: var(--text); margin-bottom: 4px; transition: color 0.4s;
   }
-
   .attention-body { font-size: 13px; color: var(--text-muted); transition: color 0.4s; }
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════
-     调色盘
-═══════════════════════════════ -->
-<div class="palette-backdrop" id="paletteBackdrop"></div>
-<div class="palette-ring" id="paletteRing">
-  <div class="theme-dot" data-theme="nightsakura" data-name="夜樱" style="background: #f2b5c8;"></div>
-  <div class="theme-dot" data-theme="inkgold" data-name="墨金" style="background: #d4b078;"></div>
-  <div class="theme-dot" data-theme="deepsea" data-name="深海" style="background: #6cc4e8;"></div>
-  <div class="theme-dot" data-theme="dawn" data-name="拂晓" style="background: #c88a7a;"></div>
-  <div class="theme-dot" data-theme="moss" data-name="苔" style="background: #a8cc88;"></div>
-</div>
+<!-- 调色盘触发按钮 -->
 <button class="palette-trigger" id="paletteTrigger">
   <span class="inner-dot"></span>
 </button>
 
+<!-- 全屏圆环遮罩 -->
+<div class="palette-overlay" id="paletteOverlay">
+  <div class="palette-ring-area" id="ringArea">
+    <div class="ring-center-label">
+      <div class="ring-center-name" id="ringName">夜樱</div>
+      <div class="ring-center-hint">滑动旋转 · 点击选择</div>
+    </div>
+  </div>
+</div>
+
+<!-- 01 记录页 -->
 <div class="phone">
   <div class="form-page">
     <div class="top-bar">
@@ -990,7 +540,6 @@
         <button>统计</button>
       </nav>
     </div>
-
     <div class="amount-zone">
       <div class="type-badge">支 出</div>
       <div class="amount-row">
@@ -1000,7 +549,6 @@
       </div>
       <div class="amount-hint">今天花了多少？</div>
     </div>
-
     <div class="form-bottom">
       <div class="section-label">去 向</div>
       <div class="cat-scroll">
@@ -1013,7 +561,6 @@
         <button class="cat-chip">订阅</button>
         <button class="cat-chip">其他</button>
       </div>
-
       <div class="section-label">细 分</div>
       <div class="tag-row">
         <button class="tag-pill active">午餐</button>
@@ -1022,21 +569,16 @@
         <button class="tag-pill">零食</button>
         <button class="tag-pill">饮料</button>
       </div>
-
       <button class="more-btn">
         <span class="dot"></span><span class="dot"></span><span class="dot"></span>
         <span>备注 · 时间 · 周期</span>
       </button>
-
       <button class="submit-btn">落 笔</button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════
-     02 明细页
-═══════════════════════════════ -->
-
+<!-- 02 明细页 -->
 <div class="phone">
   <div class="list-page">
     <div class="top-bar">
@@ -1047,7 +589,6 @@
         <button>统计</button>
       </nav>
     </div>
-
     <div class="review-section">
       <div class="review-top">
         <span class="section-label" style="margin:0">时间回顾</span>
@@ -1058,39 +599,31 @@
         </div>
       </div>
     </div>
-
     <div class="review-date-block" style="padding: 0 24px 4px;">
       <div class="review-date-text">6月6日 周五</div>
       <div class="review-date-sub">2026</div>
     </div>
-
     <div class="stats-strip">
       <div class="stat-cell"><small>支出</small><strong class="expense">¥142.50</strong></div>
       <div class="stat-cell"><small>收入</small><strong class="income">¥0.00</strong></div>
       <div class="stat-cell"><small>记录</small><strong>5 笔</strong></div>
     </div>
-
     <div style="padding: 0 24px;">
       <button class="add-day-btn">+ 补记这天</button>
     </div>
-
     <div class="group-label">今天</div>
     <div class="record"><div class="record-bar c1"></div><div class="record-body"><div class="record-cat">餐饮</div><div class="record-meta">午餐</div></div><span class="record-amount expense">-24.50</span></div>
     <div class="record"><div class="record-bar c3"></div><div class="record-body"><div class="record-cat">交通</div><div class="record-meta">地铁</div></div><span class="record-amount expense">-6.00</span></div>
     <div class="record"><div class="record-bar c1"></div><div class="record-body"><div class="record-cat">餐饮</div><div class="record-meta">早餐 · 包子豆浆</div></div><span class="record-amount expense">-8.00</span></div>
     <div class="record"><div class="record-bar c2"></div><div class="record-body"><div class="record-cat">AI</div><div class="record-meta">周期支出 · 月</div></div><span class="record-amount expense">-99.00</span></div>
     <div class="record"><div class="record-bar c4"></div><div class="record-body"><div class="record-cat">洗浴</div></div><span class="record-amount expense">-5.00</span></div>
-
     <div class="group-label">昨天</div>
     <div class="record"><div class="record-bar c1"></div><div class="record-body"><div class="record-cat">餐饮</div><div class="record-meta">晚餐 · 食堂</div></div><span class="record-amount expense">-15.00</span></div>
     <div class="record"><div class="record-bar cg"></div><div class="record-body"><div class="record-cat">兼职</div><div class="record-meta">周末兼职工资</div></div><span class="record-amount income">+320.00</span></div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════
-     03 统计页
-═══════════════════════════════ -->
-
+<!-- 03 统计页 -->
 <div class="phone">
   <div class="stats-page">
     <div class="top-bar">
@@ -1101,36 +634,31 @@
         <button class="active">统计</button>
       </nav>
     </div>
-
     <div class="stats-hero">
       <div class="stats-kicker">近 7 天</div>
       <h2 class="stats-headline">钱主要花在餐饮</h2>
       <p class="stats-sub">餐饮占近7天支出的 58%，比前7天多 ¥32.00。</p>
     </div>
-
     <div class="total-strip">
       <span class="total-label">本期</span>
       <span class="total-num">¥486.50</span>
       <span class="total-badge up">+¥62</span>
     </div>
-
     <div class="comp-section">
       <div class="section-label">钱去了哪里</div>
       <div class="comp-bar">
-        <span class="cb1" style="flex-grow:0.58; background:var(--cat-1);"></span>
-        <span class="cb2" style="flex-grow:0.20; background:var(--cat-2);"></span>
-        <span class="cb3" style="flex-grow:0.12; background:var(--cat-3);"></span>
-        <span class="cb4" style="flex-grow:0.06; background:var(--cat-4);"></span>
-        <span class="cb5" style="flex-grow:0.04; background:var(--cat-5);"></span>
+        <span style="flex-grow:0.58; background:var(--cat-1);"></span>
+        <span style="flex-grow:0.20; background:var(--cat-2);"></span>
+        <span style="flex-grow:0.12; background:var(--cat-3);"></span>
+        <span style="flex-grow:0.06; background:var(--cat-4);"></span>
+        <span style="flex-grow:0.04; background:var(--cat-5);"></span>
       </div>
     </div>
-
     <div class="cat-row"><span class="cat-dot" style="background:var(--cat-1); box-shadow:0 0 6px var(--cat-1)"></span><span class="cat-name">餐饮</span><span class="cat-amount">¥282.50</span><span class="cat-pct">58%</span></div>
     <div class="cat-row"><span class="cat-dot" style="background:var(--cat-2); box-shadow:0 0 6px var(--cat-2)"></span><span class="cat-name">AI</span><span class="cat-amount">¥99.00</span><span class="cat-pct">20%</span></div>
     <div class="cat-row"><span class="cat-dot" style="background:var(--cat-3); box-shadow:0 0 6px var(--cat-3)"></span><span class="cat-name">交通</span><span class="cat-amount">¥58.00</span><span class="cat-pct">12%</span></div>
     <div class="cat-row"><span class="cat-dot" style="background:var(--cat-4); box-shadow:0 0 6px var(--cat-4)"></span><span class="cat-name">洗浴</span><span class="cat-amount">¥30.00</span><span class="cat-pct">6%</span></div>
     <div class="cat-row"><span class="cat-dot" style="background:var(--cat-5); box-shadow:0 0 6px var(--cat-5)"></span><span class="cat-name">社交</span><span class="cat-amount">¥17.00</span><span class="cat-pct">4%</span></div>
-
     <div class="attention">
       <div class="attention-kicker">变化</div>
       <div class="attention-title">餐饮是主要增量</div>
@@ -1140,41 +668,289 @@
 </div>
 
 <script>
+(function () {
+  const THEMES = [
+    { id: 'nightsakura', name: '夜樱',   color: '#f2b5c8' },
+    { id: 'inkgold',     name: '墨金',   color: '#d4b078' },
+    { id: 'deepsea',     name: '深海',   color: '#6cc4e8' },
+    { id: 'moss',        name: '苔',     color: '#a8cc88' },
+    { id: 'dawn',        name: '拂晓',   color: '#c88a7a' },
+    { id: 'frostmoon',   name: '霜月',   color: '#7a9eb8' },
+    { id: 'cloudpaper',  name: '云笺',   color: '#a088b8' },
+    { id: 'whitepeach',  name: '白桃',   color: '#d4889e' },
+  ];
+
+  const RADIUS = 105;
+  const DOT_COUNT = THEMES.length;
+
   const trigger = document.getElementById('paletteTrigger');
-  const ring = document.getElementById('paletteRing');
-  const backdrop = document.getElementById('paletteBackdrop');
-  const dots = ring.querySelectorAll('.theme-dot');
+  const overlay = document.getElementById('paletteOverlay');
+  const ringArea = document.getElementById('ringArea');
+  const ringName = document.getElementById('ringName');
 
+  let currentTheme = 'nightsakura';
   let isOpen = false;
+  let rotation = 0;
+  let isDragging = false;
+  let dragStartAngle = 0;
+  let dragStartRotation = 0;
+  let lastAngle = 0;
+  let velocity = 0;
+  let lastTime = 0;
+  let momentumRaf = 0;
+  let hasMoved = false;
 
-  function toggle() {
-    isOpen = !isOpen;
-    ring.classList.toggle('open', isOpen);
-    backdrop.classList.toggle('open', isOpen);
+  const dots = [];
+
+  THEMES.forEach((theme, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'ring-dot';
+    dot.style.background = theme.color;
+    dot.dataset.theme = theme.id;
+
+    const label = document.createElement('span');
+    label.className = 'ring-dot-label';
+    label.textContent = theme.name;
+    dot.appendChild(label);
+
+    ringArea.appendChild(dot);
+    dots.push(dot);
+  });
+
+  function getCenterOfRing() {
+    const rect = ringArea.getBoundingClientRect();
+    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+  }
+
+  function angleFromCenter(clientX, clientY) {
+    const c = getCenterOfRing();
+    return Math.atan2(clientY - c.y, clientX - c.x);
+  }
+
+  function positionDots() {
+    dots.forEach((dot, i) => {
+      const angle = (i / DOT_COUNT) * Math.PI * 2 + rotation - Math.PI / 2;
+      const x = Math.cos(angle) * RADIUS;
+      const y = Math.sin(angle) * RADIUS;
+      dot.style.transform = `translate(${x}px, ${y}px)`;
+
+      const labelEl = dot.querySelector('.ring-dot-label');
+      const deg = ((angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+      if (deg > Math.PI * 0.25 && deg < Math.PI * 0.75) {
+        labelEl.style.cssText = 'top: calc(100% + 6px); left: 50%; transform: translateX(-50%);';
+      } else if (deg > Math.PI * 1.25 && deg < Math.PI * 1.75) {
+        labelEl.style.cssText = 'bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);';
+      } else if (deg >= Math.PI * 0.75 && deg <= Math.PI * 1.25) {
+        labelEl.style.cssText = 'right: calc(100% + 8px); top: 50%; transform: translateY(-50%);';
+      } else {
+        labelEl.style.cssText = 'left: calc(100% + 8px); top: 50%; transform: translateY(-50%);';
+      }
+
+      dot.classList.toggle('current', dot.dataset.theme === currentTheme);
+    });
+
+    const topIndex = findTopDot();
+    ringName.textContent = THEMES[topIndex].name;
+  }
+
+  function findTopDot() {
+    let minY = Infinity, topIdx = 0;
+    dots.forEach((dot, i) => {
+      const angle = (i / DOT_COUNT) * Math.PI * 2 + rotation - Math.PI / 2;
+      const y = Math.sin(angle);
+      if (y < minY) { minY = y; topIdx = i; }
+    });
+    return topIdx;
+  }
+
+  function applyTheme(id) {
+    currentTheme = id;
+    document.documentElement.setAttribute('data-theme', id);
+    dots.forEach(d => d.classList.toggle('current', d.dataset.theme === id));
+    const t = THEMES.find(t => t.id === id);
+    if (t) ringName.textContent = t.name;
+  }
+
+  function open() {
+    isOpen = true;
+    overlay.classList.add('open');
+    positionDots();
+    dots.forEach((dot, i) => {
+      dot.style.opacity = '0';
+      dot.style.transition = 'opacity 0.3s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      dot.style.transitionDelay = `${i * 0.03}s`;
+      requestAnimationFrame(() => { dot.style.opacity = '1'; });
+    });
   }
 
   function close() {
     isOpen = false;
-    ring.classList.remove('open');
-    backdrop.classList.remove('open');
+    overlay.classList.remove('open');
+    cancelAnimationFrame(momentumRaf);
   }
 
-  function applyTheme(name) {
-    document.documentElement.setAttribute('data-theme', name);
-    dots.forEach(d => d.classList.toggle('current', d.dataset.theme === name));
-    close();
+  function onTouchStart(e) {
+    if (!isOpen) return;
+    cancelAnimationFrame(momentumRaf);
+    const touch = e.touches[0];
+    dragStartAngle = angleFromCenter(touch.clientX, touch.clientY);
+    dragStartRotation = rotation;
+    isDragging = true;
+    hasMoved = false;
+    lastAngle = dragStartAngle;
+    velocity = 0;
+    lastTime = Date.now();
+    dots.forEach(d => { d.style.transition = 'none'; });
+    e.preventDefault();
   }
 
-  trigger.addEventListener('click', toggle);
-  backdrop.addEventListener('click', close);
+  function onTouchMove(e) {
+    if (!isDragging) return;
+    const touch = e.touches[0];
+    const angle = angleFromCenter(touch.clientX, touch.clientY);
+    let delta = angle - dragStartAngle;
 
-  dots.forEach(dot => {
-    dot.addEventListener('click', () => applyTheme(dot.dataset.theme));
+    if (delta > Math.PI) delta -= Math.PI * 2;
+    if (delta < -Math.PI) delta += Math.PI * 2;
+
+    rotation = dragStartRotation + delta;
+
+    const now = Date.now();
+    const dt = now - lastTime;
+    if (dt > 0) {
+      let angleDiff = angle - lastAngle;
+      if (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+      if (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+      velocity = angleDiff / dt * 16;
+    }
+    lastAngle = angle;
+    lastTime = now;
+    hasMoved = true;
+
+    positionDots();
+    e.preventDefault();
+  }
+
+  function onTouchEnd(e) {
+    if (!isDragging) return;
+    isDragging = false;
+
+    if (Math.abs(velocity) > 0.003) {
+      applyMomentum();
+    } else {
+      snapToNearest();
+    }
+  }
+
+  function applyMomentum() {
+    if (Math.abs(velocity) < 0.0008) {
+      snapToNearest();
+      return;
+    }
+    rotation += velocity;
+    velocity *= 0.94;
+    positionDots();
+    momentumRaf = requestAnimationFrame(applyMomentum);
+  }
+
+  function snapToNearest() {
+    const step = (Math.PI * 2) / DOT_COUNT;
+    const offset = -Math.PI / 2;
+    let best = 0, bestDist = Infinity;
+    for (let i = 0; i < DOT_COUNT; i++) {
+      const targetAngle = offset - i * step;
+      let diff = rotation - targetAngle;
+      diff = ((diff + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
+      if (Math.abs(diff) < bestDist) { bestDist = Math.abs(diff); best = i; }
+    }
+    const target = offset - best * step;
+    let diff = target - rotation;
+    if (diff > Math.PI) diff -= Math.PI * 2;
+    if (diff < -Math.PI) diff += Math.PI * 2;
+
+    const startRot = rotation;
+    const startTime = Date.now();
+    const duration = 250;
+
+    function animate() {
+      const t = Math.min(1, (Date.now() - startTime) / duration);
+      const ease = 1 - Math.pow(1 - t, 3);
+      rotation = startRot + diff * ease;
+      positionDots();
+      if (t < 1) requestAnimationFrame(animate);
+    }
+    animate();
+  }
+
+  function onMouseDown(e) {
+    if (!isOpen) return;
+    cancelAnimationFrame(momentumRaf);
+    dragStartAngle = angleFromCenter(e.clientX, e.clientY);
+    dragStartRotation = rotation;
+    isDragging = true;
+    hasMoved = false;
+    lastAngle = dragStartAngle;
+    velocity = 0;
+    lastTime = Date.now();
+    dots.forEach(d => { d.style.transition = 'none'; });
+    e.preventDefault();
+  }
+
+  function onMouseMove(e) {
+    if (!isDragging) return;
+    const angle = angleFromCenter(e.clientX, e.clientY);
+    let delta = angle - dragStartAngle;
+    if (delta > Math.PI) delta -= Math.PI * 2;
+    if (delta < -Math.PI) delta += Math.PI * 2;
+    rotation = dragStartRotation + delta;
+
+    const now = Date.now();
+    const dt = now - lastTime;
+    if (dt > 0) {
+      let angleDiff = angle - lastAngle;
+      if (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+      if (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+      velocity = angleDiff / dt * 16;
+    }
+    lastAngle = angle;
+    lastTime = now;
+    hasMoved = true;
+    positionDots();
+    e.preventDefault();
+  }
+
+  function onMouseUp(e) {
+    if (!isDragging) return;
+    isDragging = false;
+    if (Math.abs(velocity) > 0.003) applyMomentum();
+    else snapToNearest();
+  }
+
+  trigger.addEventListener('click', open);
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) close();
   });
 
-  // 默认
-  applyTheme('nightsakura');
-</script>
+  ringArea.addEventListener('touchstart', onTouchStart, { passive: false });
+  ringArea.addEventListener('touchmove', onTouchMove, { passive: false });
+  ringArea.addEventListener('touchend', onTouchEnd);
 
+  ringArea.addEventListener('mousedown', onMouseDown);
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
+
+  dots.forEach((dot, i) => {
+    dot.addEventListener('click', (e) => {
+      if (hasMoved) { e.stopPropagation(); return; }
+      applyTheme(THEMES[i].id);
+      setTimeout(close, 200);
+    });
+  });
+
+  applyTheme('nightsakura');
+  positionDots();
+})();
+</script>
 </body>
 </html>
