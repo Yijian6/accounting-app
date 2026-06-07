@@ -33,8 +33,39 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>,
 )
 
+let refreshingForServiceWorker = false;
+
+function notifyServiceWorkerUpdate(worker) {
+  window.dispatchEvent(new CustomEvent('shiyu:pwa-update-ready', {
+    detail: { worker },
+  }));
+}
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js');
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshingForServiceWorker) return;
+      refreshingForServiceWorker = true;
+      window.location.reload();
+    });
+
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        if (registration.waiting && navigator.serviceWorker.controller) {
+          notifyServiceWorkerUpdate(registration.waiting);
+        }
+
+        registration.addEventListener('updatefound', () => {
+          const installingWorker = registration.installing;
+          if (!installingWorker) return;
+
+          installingWorker.addEventListener('statechange', () => {
+            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              notifyServiceWorkerUpdate(installingWorker);
+            }
+          });
+        });
+      })
+      .catch(() => {});
   });
 }

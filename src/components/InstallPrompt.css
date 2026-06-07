@@ -1,0 +1,150 @@
+.install-prompt {
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(22px, env(safe-area-inset-bottom));
+  z-index: 180;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  width: min(420px, calc(100vw - 112px));
+  padding: 14px 16px 14px 14px;
+  border: 1px solid var(--bg-line);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+  animation: installPromptIn 360ms ease both;
+}
+
+.install-prompt::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.55;
+}
+
+.install-prompt-close {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: var(--text-muted);
+  font-size: 18px;
+  line-height: 1;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.install-prompt-close:active {
+  transform: scale(0.92);
+}
+
+.install-prompt-close:hover {
+  color: var(--text-soft);
+}
+
+.install-prompt-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--bg-line);
+  border-radius: var(--radius);
+  color: var(--accent);
+  background: var(--bg-card);
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.install-prompt-copy {
+  min-width: 0;
+  padding-right: 8px;
+}
+
+.install-prompt-copy span {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.install-prompt-copy strong {
+  display: block;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 760;
+  line-height: 1.35;
+}
+
+.install-prompt-copy p {
+  margin: 3px 0 0;
+  color: var(--text-soft);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.install-prompt-primary {
+  align-self: end;
+  min-width: 72px;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--bg-card);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.install-prompt-primary:hover {
+  background: var(--accent-deep);
+}
+
+.install-prompt-primary:active {
+  transform: translateY(1px);
+}
+
+@keyframes installPromptIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 420px) {
+  .install-prompt {
+    right: 14px;
+    left: 72px;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    grid-template-columns: 30px minmax(0, 1fr);
+    width: auto;
+    padding: 13px 13px 13px 12px;
+  }
+
+  .install-prompt-mark {
+    width: 30px;
+    height: 30px;
+    font-size: 15px;
+  }
+
+  .install-prompt-primary {
+    grid-column: 2;
+    justify-self: start;
+    min-height: 30px;
+    margin-top: 2px;
+    font-size: 12px;
+  }
+}

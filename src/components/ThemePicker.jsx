@@ -18,6 +18,7 @@ export default function ThemePicker({ theme, onChangeTheme }) {
   const velocityRef = useRef(0);
   const lastTime = useRef(0);
   const rafRef = useRef(0);
+  const applyMomentumRef = useRef(null);
   const ringAreaRef = useRef(null);
   const dotsRef = useRef([]);
   const labelRef = useRef(null);
@@ -135,8 +136,12 @@ export default function ThemePicker({ theme, onChangeTheme }) {
     rotationRef.current += velocityRef.current;
     velocityRef.current *= 0.96;
     positionDots();
-    rafRef.current = requestAnimationFrame(applyMomentum);
+    rafRef.current = requestAnimationFrame(applyMomentumRef.current);
   }, [positionDots, snapToNearest]);
+
+  useEffect(() => {
+    applyMomentumRef.current = applyMomentum;
+  }, [applyMomentum]);
 
   const onPointerDown = useCallback((clientX, clientY) => {
     cancelAnimationFrame(rafRef.current);

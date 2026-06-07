@@ -5,6 +5,7 @@ import RecordList from './components/RecordList';
 import Statistics from './components/Statistics';
 import ManageItems from './components/ManageItems';
 import ThemePicker from './components/ThemePicker';
+import InstallPrompt from './components/InstallPrompt';
 import { useRecords } from './hooks/useRecords';
 import { useCategories } from './hooks/useCategories';
 import { useTags } from './hooks/useTags';
@@ -154,6 +155,7 @@ export default function App() {
         />
       )}
 
+      <InstallPrompt />
       <ThemePicker theme={theme} onChangeTheme={setTheme} />
     </>
   );

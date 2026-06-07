@@ -4,10 +4,11 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Planned Current Commit
 
-- 2026-06-07T16:41:49+08:00 | pending | fix: attribute periodic flows from payment date
+- 2026-06-07T17:25:29+08:00 | pending | feat: make app installable pwa
 
 ## Existing Commits
 
+- 2026-06-07T16:45:35+08:00 | ba3bcfc | fix: attribute periodic flows from payment date
 - 2026-06-07T16:35:36+08:00 | 7fb829b | chore: remove cloud sync from record details
 - 2026-06-07T15:43:28+08:00 | 740b172 | chore: rename app to 拾序 / 拾序记账
 - 2026-06-07T15:31:38+08:00 | 8363c26 | fix: prevent submit button from sinking to bottom on refresh
