@@ -2,7 +2,7 @@ import { getRecordAmountInRange } from './statistics';
 import { formatAmount } from './format';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const APP_NAME = '生活记账';
+const APP_NAME = '拾序记账';
 const SCHEMA_VERSION = '1.0';
 
 function startOfDay(date) {

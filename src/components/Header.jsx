@@ -9,7 +9,7 @@ const TABS = [
 export default function Header({ activeTab, onTabChange }) {
   return (
     <header className="header">
-      <span className="header-logo">生活记账</span>
+      <span className="header-logo">拾序</span>
       <nav className="header-nav">
         {TABS.map(tab => (
           <button

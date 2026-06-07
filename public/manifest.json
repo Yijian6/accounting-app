@@ -1,7 +1,7 @@
 {
-  "name": "记账",
-  "short_name": "记账",
-  "description": "极简个人记账",
+  "name": "拾序记账",
+  "short_name": "拾序",
+  "description": "从每一笔消费中拾起生活的秩序",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FEFBFC",
