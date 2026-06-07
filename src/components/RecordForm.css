@@ -1,6 +1,6 @@
 .record-form.quick-entry {
   min-height: calc(100vh - 56px);
-  padding: 0 20px 28px;
+  padding: 0 20px 80px;
   display: flex;
   flex-direction: column;
 }
