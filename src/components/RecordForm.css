@@ -350,6 +350,7 @@
   width: 100%;
   min-height: 52px;
   margin-top: auto;
+  margin-bottom: 24px;
   border-radius: 16px;
   background: linear-gradient(135deg, var(--accent), var(--accent-deep));
   color: var(--bg);
