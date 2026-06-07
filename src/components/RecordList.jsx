@@ -874,7 +874,7 @@ export default function RecordList({
               className="time-review-add-btn"
               onClick={openCreateForReviewDay}
             >
-              补记这天
+              + 补记这天
             </button>
           </div>
         )}
@@ -1103,7 +1103,7 @@ export default function RecordList({
             )}
 
             <button className="submit-btn" onClick={saveCreate}>
-              记录
+              落 笔
             </button>
           </div>
         )}

@@ -114,7 +114,7 @@ export default function RecordForm({
   return (
     <form className="record-form quick-entry" onSubmit={handleSubmit}>
       <section className="quick-entry-hero">
-        <span className="quick-entry-kicker">{type === 'expense' ? '今天花了多少？' : '今天收到了多少？'}</span>
+        <span className="quick-entry-kicker">{type === 'expense' ? '支 出' : '收 入'}</span>
         <label className="quick-amount-input">
           <span>¥</span>
           <input
@@ -128,13 +128,13 @@ export default function RecordForm({
             autoFocus
           />
         </label>
+        <div className="amount-hint">{type === 'expense' ? '今天花了多少？' : '今天收到了多少？'}</div>
       </section>
 
       <section className="quick-section">
         <div className="quick-section-head">
           <div>
-            <h3>{type === 'expense' ? '常用去向' : '收入来源'}</h3>
-            <p>{type === 'expense' ? '把这笔钱放回它的位置。' : '记下它从哪里来。'}</p>
+            <h3>{type === 'expense' ? '去 向' : '来 源'}</h3>
           </div>
           <button
             type="button"
@@ -167,8 +167,7 @@ export default function RecordForm({
         <section className="quick-section quick-tags-section">
           <div className="quick-section-head">
             <div>
-              <h3>细分标签</h3>
-              <p>可选，帮助以后看得更清楚。</p>
+              <h3>细 分</h3>
             </div>
             <button
               type="button"
@@ -197,11 +196,8 @@ export default function RecordForm({
           className={`quick-more-toggle ${showMore ? 'expanded' : ''}`}
           onClick={() => setShowMore(!showMore)}
         >
-          <span>{showMore ? '收起更多' : '更多'}</span>
-          <small>备注 / 时间 / 周期</small>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
+          <span className="more-dot" /><span className="more-dot" /><span className="more-dot" />
+          <small>备注 · 时间 · 周期</small>
         </button>
 
         {showMore && (
@@ -287,7 +283,7 @@ export default function RecordForm({
       </section>
 
       <button type="submit" className="quick-submit-btn" disabled={!canSubmit}>
-        记录
+        落 笔
       </button>
     </form>
   );

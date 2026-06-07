@@ -222,10 +222,12 @@
   background: none;
 }
 
-.quick-more-toggle span {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-muted);
+.quick-more-toggle .more-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--accent-deep);
+  transition: background 0.4s;
 }
 
 .quick-more-toggle small {
