@@ -2,50 +2,39 @@
    统计页 · 社论式布局
 ═══════════════════════════════ */
 .statistics {
-  padding: 0 0 32px;
+  padding: 0 0 40px;
   display: flex;
   flex-direction: column;
   gap: 0;
 }
 
-/* ── 顶部 ── */
-.stats-topbar {
+/* ── 1. Hero 区 ── */
+.stats-hero {
+  position: relative;
+  padding: 20px 24px 32px;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 20px 24px 0;
+  flex-direction: column;
 }
 
-.stats-top-actions {
-  flex: 0 0 auto;
+.stats-hero::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  right: -40px;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, var(--accent-glow), transparent 70%);
+  pointer-events: none;
+  transition: background 0.5s;
+}
+
+.stats-hero-top {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  justify-content: flex-end;
+  margin-bottom: 24px;
 }
 
-.stats-export-btn {
-  width: 38px;
-  height: 38px;
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  color: var(--text-muted);
-  background: transparent;
-  border: 1px solid var(--bg-line);
-  transition: color 0.18s, background 0.18s;
-}
-
-.stats-export-btn:active {
-  color: var(--text);
-  background: var(--bg-up);
-}
-
-.stats-page-kicker,
-.stats-detail-kicker,
-.stats-attention-kicker {
+.stats-kicker {
   display: block;
   font-size: 10px;
   letter-spacing: 0.18em;
@@ -56,85 +45,8 @@
   transition: color 0.4s;
 }
 
-.stats-topbar h2 {
-  margin-top: 4px;
-  color: var(--text);
-  font-family: var(--font-serif);
-  font-size: 22px;
-  font-weight: 760;
-  line-height: 1.18;
-  transition: color 0.4s;
-}
-
-.stats-period-switch {
-  flex: 0 0 auto;
-  display: inline-flex;
-  min-height: 38px;
-  padding: 3px;
-  border: 1px solid var(--bg-line);
-  border-radius: 10px;
-  background: var(--bg-card);
-  gap: 0;
-  transition: background 0.4s, border-color 0.4s;
-}
-
-.stats-period-option {
-  min-height: 32px;
-  padding: 0 14px;
-  border-radius: 7px;
-  color: var(--text-muted);
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  transition: background 0.18s, color 0.18s;
-}
-
-.stats-period-option.active {
-  background: var(--accent-glow);
-  color: var(--accent);
-}
-
-/* ── Hero 洞察区 ── */
-.stats-insight-card {
-  min-height: 184px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 28px;
-  padding: 32px 24px 28px;
-  margin: 16px 0 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--text);
-  box-shadow: none;
-  position: relative;
-}
-
-.stats-insight-card::before {
-  content: '';
-  position: absolute;
-  top: -20px;
-  right: -40px;
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, var(--accent-glow), transparent 70%);
-  pointer-events: none;
-  transition: background 0.5s;
-}
-
-.stats-insight-copy span {
-  display: block;
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--accent);
-  font-weight: 700;
-  line-height: 1.3;
-  transition: color 0.4s;
-}
-
-.stats-insight-copy h3 {
-  margin-top: 12px;
+.stats-headline {
+  margin-top: 10px;
   color: var(--text);
   font-family: var(--font-serif);
   font-size: 28px;
@@ -145,7 +57,7 @@
   transition: color 0.4s;
 }
 
-.stats-insight-copy p {
+.stats-sub {
   max-width: 34em;
   margin-top: 8px;
   color: var(--text-muted);
@@ -155,28 +67,57 @@
   transition: color 0.4s;
 }
 
-/* ── 总额条 ── */
-.stats-insight-total {
+/* ── 周期切换 ── */
+.stats-period-switch {
+  flex: 0 0 auto;
+  display: inline-flex;
+  min-height: 34px;
+  padding: 3px;
+  border: 1px solid var(--bg-line);
+  border-radius: 10px;
+  background: var(--bg-card);
+  gap: 0;
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.stats-period-option {
+  min-height: 28px;
+  padding: 0 14px;
+  border-radius: 7px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.18s, color 0.18s;
+}
+
+.stats-period-option.active {
+  background: var(--accent-glow);
+  color: var(--accent);
+}
+
+/* ── 2. 总额条 ── */
+.stats-total-strip {
   display: flex;
   align-items: baseline;
   gap: 12px;
-  padding: 20px 24px;
+  padding: 18px 24px;
   border-top: 1px solid var(--bg-line);
   border-bottom: 1px solid var(--bg-line);
   transition: border-color 0.4s;
 }
 
-.stats-insight-total span {
+.total-label {
   font-size: 10px;
   color: var(--text-muted);
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.16em;
   transition: color 0.4s;
 }
 
-.stats-insight-total strong {
+.total-num {
   font-family: var(--font-serif);
-  font-size: 32px;
+  font-size: 30px;
   font-weight: 900;
   letter-spacing: -0.03em;
   color: var(--text);
@@ -186,29 +127,29 @@
   transition: color 0.4s;
 }
 
-.stats-insight-total small {
+.total-badge {
   font-size: 11px;
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 3px 10px;
   border-radius: 999px;
   font-variant-numeric: tabular-nums;
   transition: all 0.4s;
 }
 
-.stats-insight-total small.down,
-.stats-insight-total small.flat,
-.stats-insight-total small.none {
+.total-badge.down,
+.total-badge.flat,
+.total-badge.none {
   background: var(--green-soft);
   color: var(--green);
 }
 
-.stats-insight-total small.up,
-.stats-insight-total small.new {
+.total-badge.up,
+.total-badge.new {
   background: var(--warn-soft);
   color: var(--warn);
 }
 
-/* ── 分类去向 ── */
+/* ── 3. 分类去向 ── */
 .stats-section,
 .stats-detail-card {
   display: flex;
@@ -281,7 +222,6 @@
   gap: 12px;
   padding: 14px 24px;
   border: none;
-  border-left: none;
   border-radius: 0;
   background: transparent;
   text-align: left;
@@ -387,21 +327,28 @@
   text-align: right;
 }
 
-/* ── 注意力卡片 ── */
-.stats-attention-card,
-.stats-fixed-card {
-  margin: 20px 24px 0;
+/* ── 4. 注意力卡片 ── */
+.stats-attention-card {
+  margin: 24px 24px 0;
   padding: 20px;
   border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   border: 1px solid var(--warn-soft);
   background: var(--warn-soft);
   transition: all 0.4s;
 }
 
-.stats-attention-card {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.stats-attention-kicker {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  line-height: 1.2;
+  transition: color 0.4s;
 }
 
 .stats-attention-card.good {
@@ -422,32 +369,26 @@
   color: var(--danger);
 }
 
-.stats-attention-card p,
-.stats-fixed-card p {
+.stats-attention-card p {
   color: var(--text-muted);
   font-size: 13px;
   line-height: 1.55;
 }
 
-.stats-fixed-card {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 8px 12px;
-  align-items: start;
-  background: var(--bg-up);
-  border-color: var(--bg-line);
-}
-
-.stats-fixed-card span {
-  grid-row: 1 / span 2;
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-/* ── 分类细节 ── */
+/* ── 5. 分类细节 ── */
 .stats-detail-card {
   padding: 24px 24px 0;
+}
+
+.stats-detail-kicker {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  line-height: 1.2;
+  transition: color 0.4s;
 }
 
 .stats-detail-head {
@@ -585,6 +526,61 @@
   margin: 0 24px;
 }
 
+/* ── 6. 底部区：周期归属 + 导出 ── */
+.stats-footer {
+  margin-top: 32px;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.stats-fixed-card {
+  padding: 16px 18px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg-up);
+  border: 1px solid var(--bg-line);
+  transition: all 0.4s;
+}
+
+.stats-fixed-card > span {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  font-weight: 700;
+  transition: color 0.4s;
+}
+
+.stats-fixed-card p {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.stats-export-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  transition: color 0.2s, background 0.2s;
+}
+
+.stats-export-link:active {
+  color: var(--text);
+  background: var(--bg-up);
+}
+
 /* ── 数据册导出 ── */
 .data-book-export {
   display: flex;
@@ -662,33 +658,16 @@
 }
 
 @media (max-width: 390px) {
-  .stats-topbar {
-    align-items: stretch;
-    flex-direction: column;
+  .stats-headline {
+    font-size: 24px;
   }
 
-  .stats-top-actions {
-    align-items: stretch;
-    display: grid;
-    grid-template-columns: 38px minmax(0, 1fr);
-    width: 100%;
+  .total-num {
+    font-size: 26px;
   }
 
   .export-choice-grid.format {
     grid-template-columns: 1fr;
-  }
-
-  .stats-period-switch {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .stats-period-option {
-    min-height: 38px;
-  }
-
-  .stats-insight-copy h3 {
-    font-size: 24px;
   }
 
   .stats-detail-head {
@@ -701,8 +680,12 @@
 }
 
 @media (max-width: 360px) {
-  .stats-insight-copy h3 {
+  .stats-headline {
     font-size: 22px;
+  }
+
+  .total-num {
+    font-size: 24px;
   }
 
   .stats-category-row {

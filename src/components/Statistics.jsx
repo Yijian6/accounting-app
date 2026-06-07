@@ -253,57 +253,56 @@ export default function Statistics({ records }) {
 
   return (
     <div className="statistics">
-      <div className="stats-topbar">
-        <div>
-          <span className="stats-page-kicker">统计</span>
-          <h2>钱去了哪里</h2>
-        </div>
-        <div className="stats-top-actions">
-          <button
-            type="button"
-            className="stats-export-btn"
-            onClick={() => setShowDataExport(true)}
-            title="导出数据册"
-            aria-label="导出数据册"
-          >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-          </button>
+      {/* ── 1. Hero 区：周期 + 洞察标题 ── */}
+      <div className="stats-hero">
+        <div className="stats-hero-top">
           <PeriodSwitch value={periodDays} onChange={setPeriodDays} />
         </div>
+        <span className="stats-kicker">{vm.periodLabel}</span>
+        <h2 className="stats-headline">{vm.insightTitle}</h2>
+        <p className="stats-sub">{vm.insightBody}</p>
       </div>
 
-      <section className="stats-insight-card">
-        <div className="stats-insight-copy">
-          <span>{vm.periodLabel}</span>
-          <h3>{vm.insightTitle}</h3>
-          <p>{vm.insightBody}</p>
-        </div>
-        <div className="stats-insight-total">
-          <span>本期已看见</span>
-          <strong>{money(vm.currentTotal)}</strong>
-          <small className={vm.changeState}>{getChangeLabel(vm)}</small>
-        </div>
-      </section>
+      {/* ── 2. 总额条 ── */}
+      <div className="stats-total-strip">
+        <span className="total-label">本 期</span>
+        <span className="total-num">{money(vm.currentTotal)}</span>
+        <span className={`total-badge ${vm.changeState}`}>{getChangeLabel(vm)}</span>
+      </div>
 
+      {/* ── 3. 分类去向 ── */}
       <CategoryDestination
         vm={vm}
         activeName={activeCategoryName}
         onSelect={setSelectedCategory}
       />
 
+      {/* ── 4. 变化卡片 ── */}
       {vm.hasRecords && <AttentionCard attention={vm.attention} />}
 
-      <section className="stats-fixed-card">
-        <span>周期归属</span>
-        <p>{vm.fixedExpenseSummary.description}</p>
-        <p>{vm.fixedIncomeSummary.description}</p>
-      </section>
-
+      {/* ── 5. 分类细节（点选分类后展开） ── */}
       <SelectedCategoryDetail detail={vm.selectedCategoryDetail} />
+
+      {/* ── 6. 底部：周期归属 + 导出 ── */}
+      <div className="stats-footer">
+        <section className="stats-fixed-card">
+          <span>周期归属</span>
+          <p>{vm.fixedExpenseSummary.description}</p>
+          <p>{vm.fixedIncomeSummary.description}</p>
+        </section>
+        <button
+          type="button"
+          className="stats-export-link"
+          onClick={() => setShowDataExport(true)}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          导出数据册
+        </button>
+      </div>
 
       <Modal
         open={showDataExport}
