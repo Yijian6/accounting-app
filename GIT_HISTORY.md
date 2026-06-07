@@ -4,11 +4,16 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Planned Current Commit
 
-- None
+- 2026-06-07T21:25:38+08:00 | pending | chore: package statistics today android apk
 
 ## Existing Commits
 
+- 2026-06-07T21:25:16+08:00 | d046096 | Merge branch 'master' into codex/mobile-app
+- 2026-06-07T21:22:19+08:00 | 60dfeb5 | docs: record android debug apk build
 - 2026-06-07T21:20:40+08:00 | dd18465 | chore: configure android debug apk build
+- 2026-06-07T20:54:04+08:00 | 1a5b733 | fix: use theme accent color for change state indicators
+- 2026-06-07T20:52:57+08:00 | 3b3259c | fix: unify change state colors to --warn across statistics
+- 2026-06-07T20:46:54+08:00 | dcde3f6 | feat: add today view to statistics period switch
 - 2026-06-07T20:32:18+08:00 | d180c11 | chore: bootstrap capacitor mobile app
 - 2026-06-07T20:22:22+08:00 | be7bfbc | style: update app icon
 - 2026-06-07T20:11:46+08:00 | 24d81bd | feat: theme-aware data book export (HTML + Excel)
