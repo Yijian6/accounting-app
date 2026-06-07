@@ -8,6 +8,7 @@ import './Statistics.css';
 const PERIOD_OPTIONS = [
   { value: 7, label: '近7天' },
   { value: 30, label: '近30天' },
+  { value: 1, label: '今日' },
 ];
 
 const SEGMENT_COLORS = ['#E8A0BF', '#D9B85F', '#8BB8A8', '#8EA4D2', '#D29A8E', '#B8A6D9'];
