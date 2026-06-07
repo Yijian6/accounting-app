@@ -61,10 +61,12 @@ function formatMoney(amount) {
 }
 
 function getPeriodLabel(days) {
+  if (days === 1) return '今日';
   return days === 7 ? '近7天' : '近30天';
 }
 
 function getPreviousPeriodLabel(days) {
+  if (days === 1) return '昨日';
   return days === 7 ? '前7天' : '前30天';
 }
 
@@ -453,7 +455,7 @@ export function getStatisticsInsightViewModel(
   selectedCategory = '',
   now = new Date()
 ) {
-  const safePeriodDays = periodDays === 30 ? 30 : 7;
+  const safePeriodDays = periodDays === 1 ? 1 : periodDays === 30 ? 30 : 7;
   const periodLabel = getPeriodLabel(safePeriodDays);
   const previousPeriodLabel = getPreviousPeriodLabel(safePeriodDays);
   const currentRange = getPeriodRange(safePeriodDays, now);

@@ -145,8 +145,8 @@
 
 .total-badge.up,
 .total-badge.new {
-  background: var(--warn-soft);
-  color: var(--warn);
+  background: var(--accent-wash);
+  color: var(--accent);
 }
 
 /* ── 3. 分类去向 ── */
@@ -295,7 +295,7 @@
 
 .stats-category-change.up,
 .stats-category-change.new {
-  color: var(--danger);
+  color: var(--accent);
 }
 
 .stats-category-change.down {
@@ -446,9 +446,9 @@
 
 .stats-detail-summary span.up,
 .stats-detail-summary span.new {
-  color: var(--danger);
-  border-color: var(--danger-soft);
-  background: var(--danger-soft);
+  color: var(--accent);
+  border-color: var(--accent-wash);
+  background: var(--accent-wash);
 }
 
 .stats-detail-summary span.down {
