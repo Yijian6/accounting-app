@@ -4,10 +4,11 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Planned Current Commit
 
-- 2026-06-09T21:48:15+08:00 | pending | feat: add theme-aware app icons
+- None
 
 ## Existing Commits
 
+- 2026-06-09T21:49:17+08:00 | 467ed2d | feat: add theme-aware app icons
 - 2026-06-09T21:30:13+08:00 | 35709a7 | docs: record favicon png export
 - 2026-06-09T21:29:35+08:00 | e6ab4e4 | chore: export favicon png
 - 2026-06-07T20:54:04+08:00 | 1a5b733 | fix: use theme accent color for change state indicators
