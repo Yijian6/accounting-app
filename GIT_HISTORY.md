@@ -4,10 +4,11 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Planned Current Commit
 
-- 2026-06-09T21:28:37+08:00 | pending | chore: export favicon png
+- None
 
 ## Existing Commits
 
+- 2026-06-09T21:29:35+08:00 | e6ab4e4 | chore: export favicon png
 - 2026-06-07T20:54:04+08:00 | 1a5b733 | fix: use theme accent color for change state indicators
 - 2026-06-07T20:52:57+08:00 | 3b3259c | fix: unify change state colors to --warn across statistics
 - 2026-06-07T20:46:54+08:00 | dcde3f6 | feat: add today view to statistics period switch
