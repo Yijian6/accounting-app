@@ -4,10 +4,15 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Planned Current Commit
 
-- None
+- 2026-06-09T21:54:59+08:00 | pending | feat: add android theme launcher icons
 
 ## Existing Commits
 
+- 2026-06-09T21:49:53+08:00 | 5c59184 | docs: record theme-aware app icons
+- 2026-06-09T21:49:17+08:00 | 467ed2d | feat: add theme-aware app icons
+- 2026-06-09T21:30:13+08:00 | 35709a7 | docs: record favicon png export
+- 2026-06-09T21:29:35+08:00 | e6ab4e4 | chore: export favicon png
+- 2026-06-07T21:29:52+08:00 | 50cd824 | docs: record statistics today apk build
 - 2026-06-07T21:28:55+08:00 | bd5546d | chore: package statistics today android apk
 - 2026-06-07T21:25:16+08:00 | d046096 | Merge branch 'master' into codex/mobile-app
 - 2026-06-07T21:22:19+08:00 | 60dfeb5 | docs: record android debug apk build

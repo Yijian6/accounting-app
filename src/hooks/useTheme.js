@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getStorage, setStorage } from '../utils/storage';
+import { syncDocumentThemeIcons, syncNativeLauncherIcon } from '../utils/themeIcons';
 
 const THEME_KEY = 'accounting_theme';
 const DEFAULT_THEME = 'nightsakura';
@@ -24,6 +25,8 @@ export function useTheme() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     setStorage(THEME_KEY, theme);
+    syncDocumentThemeIcons(theme);
+    syncNativeLauncherIcon(theme);
   }, [theme]);
 
   const setTheme = (id) => {

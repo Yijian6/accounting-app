@@ -3,9 +3,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_launcher_nightsakura"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/ic_launcher_nightsakura_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
@@ -15,14 +15,119 @@
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
-            android:exported="true">
+            android:exported="true" />
 
+        <activity-alias
+            android:name=".LauncherNightsakura"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_nightsakura"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_nightsakura_round"
+            android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity-alias>
 
-        </activity>
+        <activity-alias
+            android:name=".LauncherInkgold"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_inkgold"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_inkgold_round"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".LauncherDeepsea"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_deepsea"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_deepsea_round"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".LauncherMoss"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_moss"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_moss_round"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".LauncherDawn"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_dawn"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_dawn_round"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".LauncherFrostmoon"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_frostmoon"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_frostmoon_round"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".LauncherCloudpaper"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_cloudpaper"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_cloudpaper_round"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name=".LauncherWhitepeach"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_whitepeach"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_whitepeach_round"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
 
         <provider
             android:name="androidx.core.content.FileProvider"

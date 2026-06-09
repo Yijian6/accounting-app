@@ -1,0 +1,36 @@
+{
+  "name": "拾序记账",
+  "short_name": "拾序",
+  "description": "从每一笔消费中拾起生活的秩序",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#16121a",
+  "theme_color": "#16121a",
+  "orientation": "portrait",
+  "categories": [
+    "finance",
+    "lifestyle"
+  ],
+  "icons": [
+    {
+      "src": "/theme-icons/moss.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "/theme-icons/moss-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/theme-icons/moss-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}
