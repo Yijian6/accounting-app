@@ -4,10 +4,14 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Planned Current Commit
 
-- 2026-06-07T20:19:29+08:00 | pending | style: update app icon
+- 2026-06-09T21:28:37+08:00 | pending | chore: export favicon png
 
 ## Existing Commits
 
+- 2026-06-07T20:54:04+08:00 | 1a5b733 | fix: use theme accent color for change state indicators
+- 2026-06-07T20:52:57+08:00 | 3b3259c | fix: unify change state colors to --warn across statistics
+- 2026-06-07T20:46:54+08:00 | dcde3f6 | feat: add today view to statistics period switch
+- 2026-06-07T20:22:22+08:00 | be7bfbc | style: update app icon
 - 2026-06-07T20:11:46+08:00 | 24d81bd | feat: theme-aware data book export (HTML + Excel)
 - 2026-06-07T17:31:17+08:00 | d1dda25 | feat: make app installable pwa
 - 2026-06-07T16:45:35+08:00 | ba3bcfc | fix: attribute periodic flows from payment date
