@@ -1,7 +1,25 @@
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v5';
 const APP_CACHE = `shiyu-app-${CACHE_VERSION}`;
 const STATIC_CACHE = `shiyu-static-${CACHE_VERSION}`;
 const FONT_CACHE = `shiyu-fonts-${CACHE_VERSION}`;
+const THEME_IDS = [
+  'nightsakura',
+  'inkgold',
+  'deepsea',
+  'moss',
+  'dawn',
+  'frostmoon',
+  'cloudpaper',
+  'whitepeach',
+];
+
+const THEME_ICON_ASSETS = THEME_IDS.flatMap((id) => [
+  `/theme-icons/${id}.svg`,
+  `/theme-icons/${id}-192.png`,
+  `/theme-icons/${id}-512.png`,
+  `/theme-icons/${id}-apple-touch.png`,
+  `/theme-manifests/${id}.json`,
+]);
 
 const APP_SHELL = [
   '/',
@@ -11,6 +29,9 @@ const APP_SHELL = [
   '/icon-192.png',
   '/icon-512.png',
   '/apple-touch-icon.png',
+  '/favicon.svg',
+  '/favicon.png',
+  ...THEME_ICON_ASSETS,
 ];
 
 const CACHE_NAMES = [APP_CACHE, STATIC_CACHE, FONT_CACHE];
