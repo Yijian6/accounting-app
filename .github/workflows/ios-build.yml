@@ -6,6 +6,15 @@ name: iOS Build (unsigned)
 
 on:
   workflow_dispatch:
+  push:
+    branches: [codex/mobile-app]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'ios/**'
+      - 'capacitor.config.json'
+      - 'package.json'
+      - '.github/workflows/ios-build.yml'
 
 jobs:
   build:
