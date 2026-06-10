@@ -305,6 +305,7 @@ export default function RecordList({
   const [pendingBackup, setPendingBackup] = useState(null);
   const [importError, setImportError] = useState('');
   const [importSuccess, setImportSuccess] = useState('');
+  const [exportSuccess, setExportSuccess] = useState('');
   const [showMoreEdit, setShowMoreEdit] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [reviewMode, setReviewMode] = useState('day');
@@ -320,8 +321,15 @@ export default function RecordList({
   });
   const [showMoreExport, setShowMoreExport] = useState(false);
   const fileInputRef = useRef(null);
+  const exportSuccessTimerRef = useRef(null);
   const reviewDateInputRef = useRef(null);
   const reviewMonthInputRef = useRef(null);
+
+  useEffect(() => () => {
+    if (exportSuccessTimerRef.current) {
+      clearTimeout(exportSuccessTimerRef.current);
+    }
+  }, []);
   const touchStartXRef = useRef(null);
   const longPressTimerRef = useRef(null);
   const longPressTriggeredRef = useRef(false);
@@ -603,9 +611,30 @@ export default function RecordList({
     setShowDataManager(false);
     setPendingBackup(null);
     setImportError('');
+    setExportSuccess('');
+    if (exportSuccessTimerRef.current) {
+      clearTimeout(exportSuccessTimerRef.current);
+      exportSuccessTimerRef.current = null;
+    }
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const showExportSuccess = (message) => {
+    setExportSuccess(message);
+    if (exportSuccessTimerRef.current) {
+      clearTimeout(exportSuccessTimerRef.current);
+    }
+    exportSuccessTimerRef.current = setTimeout(() => {
+      setExportSuccess('');
+      exportSuccessTimerRef.current = null;
+    }, 3000);
+  };
+
+  const handleExportBackup = () => {
+    exportBackupJSON({ records, categories, tags });
+    showExportSuccess('备份已导出，请在浏览器下载中查收。');
   };
 
   const triggerImport = () => {
@@ -1135,7 +1164,7 @@ export default function RecordList({
           <div className="data-manager-section">
             <button
               className="export-option-btn"
-              onClick={() => exportBackupJSON({ records, categories, tags })}
+              onClick={handleExportBackup}
             >
               导出备份
             </button>
@@ -1150,6 +1179,10 @@ export default function RecordList({
           <div className="data-manager-note">
             数据保存在本地。需要迁移或留存时，先导出备份，再在新设备导入。
           </div>
+
+          {exportSuccess && (
+            <div className="import-status success">{exportSuccess}</div>
+          )}
 
           {importError && (
             <div className="import-status error">{importError}</div>
@@ -1228,13 +1261,19 @@ export default function RecordList({
           <div className="data-manager-section">
             <button
               className="export-option-btn secondary"
-              onClick={() => exportCSV(records)}
+              onClick={() => {
+                exportCSV(records);
+                showExportSuccess('CSV 已导出，请在浏览器下载中查收。');
+              }}
             >
               导出 CSV
             </button>
             <button
               className="export-option-btn secondary"
-              onClick={() => exportJSON(records)}
+              onClick={() => {
+                exportJSON(records);
+                showExportSuccess('展示 JSON 已导出，请在浏览器下载中查收。');
+              }}
             >
               导出展示 JSON
             </button>
