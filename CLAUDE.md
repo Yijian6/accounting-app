@@ -42,6 +42,28 @@ npm run preview  # 本地预览生产构建
 
 Cloudflare Pages 自动部署：push 到 `origin/master` → `accounting-app-9f0.pages.dev`。每次改动完成后必须 build → commit → push。
 
+## 移动端（Capacitor 8）
+
+本分支（`codex/mobile-app`）在 PWA 基础上加了 Capacitor 壳，appId `com.shiyu.accounting`，webDir `dist`。
+
+**Android**：`npm run build && npx cap sync android` → Android Studio / gradlew 打 APK。
+
+**iOS**：Windows 本机只能生成与同步工程（`npx cap sync ios`），编译必须在 macOS 上。已配置 GitHub Actions 云构建：
+
+- 工作流 `.github/workflows/ios-build.yml`，在 GitHub 仓库 Actions 页手动触发（workflow_dispatch）
+- macos-latest 跑 npm ci → build → cap sync ios → xcodebuild（`CODE_SIGNING_ALLOWED=NO`）→ 产出**未签名 IPA** artifact
+- 未签名 IPA 不能装到 iPhone，作用是验证构建链路；iPhone 用户当前走 PWA（Safari → 添加到主屏幕）
+- iOS 图标由 `scripts/generate-ios-icon.mjs` 生成（1024px 全出血方形、无 alpha，App Store 硬性要求），改主题色后需重跑
+
+### iOS 上架待办清单（注册 Apple Developer 后执行）
+
+1. 注册 Apple Developer Program（用户本人操作，¥688/年）
+2. App Store Connect 创建 App，Bundle ID 用 `com.shiyu.accounting`
+3. 生成 Distribution 证书 + App Store Provisioning Profile，以 base64 存入 GitHub Secrets（`IOS_CERT_P12` / `IOS_CERT_PASSWORD` / `IOS_PROVISION_PROFILE`）
+4. workflow 增加：导入证书到临时 keychain → 去掉 `CODE_SIGNING_ALLOWED=NO` 改为正式签名 → `xcodebuild -exportArchive` 导出签名 IPA → `xcrun altool --upload-app` 上传 TestFlight
+5. 上架材料：隐私政策页（建议挂 shi-xu.pages.dev/privacy；App 不收集任何数据，照实声明）、6.7"/6.1" 屏幕截图（`screenshots/` 有素材基础）、应用描述沿用产品调性文案
+6. 审核注意：纯本地记账工具，无账号无后端，审核风险低；分类选 Finance
+
 ## 架构
 
 纯前端 PWA 记账应用。React 19 + Vite 8，**不使用 TypeScript**，纯 `.jsx` + `.css`。

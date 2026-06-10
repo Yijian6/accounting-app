@@ -1,0 +1,54 @@
+name: iOS Build (unsigned)
+
+# 产出未签名 IPA，验证 iOS 云构建链路。
+# 未签名 IPA 无法安装到 iPhone——注册 Apple Developer 后按 CLAUDE.md
+# 「iOS 上架待办清单」补签名步骤即可分发。
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: '1'
+
+      - name: Build web assets
+        run: npm run build
+
+      - name: Sync Capacitor iOS
+        run: npx cap sync ios
+
+      - name: Archive (unsigned)
+        run: |
+          xcodebuild archive \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -archivePath build/App.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Package unsigned IPA
+        run: |
+          mkdir -p build/Payload
+          cp -R build/App.xcarchive/Products/Applications/App.app build/Payload/
+          cd build
+          zip -qry shixu-unsigned.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shixu-ios-unsigned-ipa
+          path: build/shixu-unsigned.ipa
+          retention-days: 30
