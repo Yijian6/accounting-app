@@ -4,10 +4,12 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Planned Current Commit
 
-- None
+- 2026-06-15T14:12:04+08:00 | pending | style: replace app icons with polished image master
 
 ## Existing Commits
 
+- 2026-06-10T21:09:28+08:00 | 351ec16 | fix: show success feedback after exporting backup/CSV/JSON
+- 2026-06-09T21:50:26+08:00 | 5c59184 | docs: record theme-aware app icons
 - 2026-06-09T21:49:17+08:00 | 467ed2d | feat: add theme-aware app icons
 - 2026-06-09T21:30:13+08:00 | 35709a7 | docs: record favicon png export
 - 2026-06-09T21:29:35+08:00 | e6ab4e4 | chore: export favicon png

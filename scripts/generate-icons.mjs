@@ -9,6 +9,7 @@ const rootDir = join(__dirname, '..');
 const publicDir = join(rootDir, 'public');
 const themeIconDir = join(publicDir, 'theme-icons');
 const themeManifestDir = join(publicDir, 'theme-manifests');
+const sourceIconPath = join(__dirname, 'assets', 'theme-icon-source.png');
 const androidResDir = join(rootDir, 'android', 'app', 'src', 'main', 'res');
 
 export const THEMES = [
@@ -41,47 +42,62 @@ function hexToRgb(hex) {
   };
 }
 
-function rgbToHex({ r, g, b }) {
-  const channel = (value) => Math.round(value).toString(16).padStart(2, '0');
-  return `#${channel(r)}${channel(g)}${channel(b)}`;
+function rgbToHsl(r, g, b) {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      default:
+        h = (r - g) / d + 4;
+    }
+    h /= 6;
+  }
+
+  return { h, s, l };
 }
 
-function mix(hexA, hexB, amount) {
-  const a = hexToRgb(hexA);
-  const b = hexToRgb(hexB);
-  return rgbToHex({
-    r: a.r + (b.r - a.r) * amount,
-    g: a.g + (b.g - a.g) * amount,
-    b: a.b + (b.b - a.b) * amount,
-  });
+function hueToRgb(p, q, t) {
+  if (t < 0) t += 1;
+  if (t > 1) t -= 1;
+  if (t < 1 / 6) return p + (q - p) * 6 * t;
+  if (t < 1 / 2) return q;
+  if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+  return p;
 }
 
-function iconColors(accent) {
+function hslToRgb(h, s, l) {
+  if (s === 0) {
+    const value = Math.round(l * 255);
+    return { r: value, g: value, b: value };
+  }
+
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
   return {
-    background: mix(accent, '#ffffff', 0.08),
-    petal: mix(accent, '#fffafc', 0.88),
-    petalCore: mix(accent, '#ffffff', 0.80),
-    center: mix(accent, '#3a2230', 0.24),
+    r: Math.round(hueToRgb(p, q, h + 1 / 3) * 255),
+    g: Math.round(hueToRgb(p, q, h) * 255),
+    b: Math.round(hueToRgb(p, q, h - 1 / 3) * 255),
   };
 }
 
-function buildFlowerSvg(theme) {
-  const colors = iconColors(theme.accent);
-  const petals = [0, 72, 144, 216, 288]
-    .map((angle) => (
-      `<ellipse cx="0" cy="-68" rx="42" ry="104" fill="${colors.petal}" opacity="0.94" transform="rotate(${angle})"/>`
-    ))
-    .join('\n    ');
-
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="${colors.background}"/>
-  <g transform="translate(256,256)">
-    ${petals}
-    <circle cx="0" cy="0" r="50" fill="${colors.petalCore}" opacity="0.32"/>
-    <circle cx="0" cy="0" r="28" fill="${colors.center}"/>
-  </g>
-</svg>
-`;
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
 }
 
 function buildThemeManifest(theme) {
@@ -99,12 +115,6 @@ function buildThemeManifest(theme) {
     categories: ['finance', 'lifestyle'],
     icons: [
       {
-        src: `/theme-icons/${theme.id}.svg`,
-        type: 'image/svg+xml',
-        sizes: 'any',
-        purpose: 'any',
-      },
-      {
         src: `/theme-icons/${theme.id}-192.png`,
         type: 'image/png',
         sizes: '192x192',
@@ -120,18 +130,60 @@ function buildThemeManifest(theme) {
   };
 }
 
-async function writePwaAssets(theme, svg) {
-  const svgPath = join(themeIconDir, `${theme.id}.svg`);
-  await writeFile(svgPath, svg, 'utf8');
+async function buildThemeBuffer(theme) {
+  const source = sharp(sourceIconPath)
+    .resize(1024, 1024, { fit: 'cover' })
+    .ensureAlpha();
+  const { data, info } = await source.raw().toBuffer({ resolveWithObject: true });
+  const targetHue = rgbToHsl(...Object.values(hexToRgb(theme.accent))).h;
 
+  for (let i = 0; i < data.length; i += info.channels) {
+    const alpha = data[i + 3];
+    if (alpha === 0) continue;
+
+    const original = {
+      r: data[i],
+      g: data[i + 1],
+      b: data[i + 2],
+    };
+    const hsl = rgbToHsl(original.r, original.g, original.b);
+
+    // Preserve near-white glass highlights while recoloring all tinted enamel.
+    if (hsl.s < 0.05 && hsl.l > 0.86) continue;
+
+    const tintStrength = clamp((hsl.s - 0.02) / 0.45, 0, 1);
+    const highlightProtection = clamp((hsl.l - 0.78) / 0.22, 0, 1);
+    const newSaturation = clamp(hsl.s * 0.92 + 0.08 * tintStrength, 0, 0.86);
+    const newLightness = clamp(hsl.l + (0.02 * highlightProtection), 0, 1);
+    const rgb = hslToRgb(
+      hsl.h + (targetHue - hsl.h) * clamp(tintStrength + 0.16, 0, 1),
+      newSaturation,
+      newLightness,
+    );
+
+    data[i] = rgb.r;
+    data[i + 1] = rgb.g;
+    data[i + 2] = rgb.b;
+  }
+
+  return sharp(data, {
+    raw: {
+      width: info.width,
+      height: info.height,
+      channels: info.channels,
+    },
+  }).png().toBuffer();
+}
+
+async function writePwaAssets(theme, sourceBuffer) {
   for (const size of PWA_SIZES) {
-    await sharp(Buffer.from(svg))
+    await sharp(sourceBuffer)
       .resize(size, size)
       .png()
       .toFile(join(themeIconDir, `${theme.id}-${size}.png`));
   }
 
-  await sharp(Buffer.from(svg))
+  await sharp(sourceBuffer)
     .resize(180, 180)
     .png()
     .toFile(join(themeIconDir, `${theme.id}-apple-touch.png`));
@@ -143,36 +195,33 @@ async function writePwaAssets(theme, svg) {
   );
 }
 
-async function writeDefaultPwaAssets(svg) {
-  await writeFile(join(publicDir, 'icon.svg'), svg, 'utf8');
-  await writeFile(join(publicDir, 'favicon.svg'), svg, 'utf8');
-
+async function writeDefaultPwaAssets(sourceBuffer) {
   for (const size of PWA_SIZES) {
-    await sharp(Buffer.from(svg))
+    await sharp(sourceBuffer)
       .resize(size, size)
       .png()
       .toFile(join(publicDir, `icon-${size}.png`));
   }
 
-  await sharp(Buffer.from(svg))
+  await sharp(sourceBuffer)
     .resize(180, 180)
     .png()
     .toFile(join(publicDir, 'apple-touch-icon.png'));
 
-  await sharp(Buffer.from(svg))
+  await sharp(sourceBuffer)
     .resize(512, 512)
     .png()
     .toFile(join(publicDir, 'favicon.png'));
 }
 
-async function writeAndroidAssets(theme, svg, isDefault) {
+async function writeAndroidAssets(theme, sourceBuffer, isDefault) {
   if (!existsSync(androidResDir)) return;
 
   for (const { dir, size } of ANDROID_MIPMAPS) {
     const mipmapDir = join(androidResDir, dir);
     await mkdir(mipmapDir, { recursive: true });
 
-    const iconBuffer = await sharp(Buffer.from(svg)).resize(size, size).png().toBuffer();
+    const iconBuffer = await sharp(sourceBuffer).resize(size, size).png().toBuffer();
     await writeFile(join(mipmapDir, `ic_launcher_${theme.id}.png`), iconBuffer);
     await writeFile(join(mipmapDir, `ic_launcher_${theme.id}_round.png`), iconBuffer);
 
@@ -188,12 +237,12 @@ await mkdir(themeIconDir, { recursive: true });
 await mkdir(themeManifestDir, { recursive: true });
 
 for (const theme of THEMES) {
-  const svg = buildFlowerSvg(theme);
-  await writePwaAssets(theme, svg);
-  await writeAndroidAssets(theme, svg, theme.id === DEFAULT_THEME.id);
+  const iconBuffer = await buildThemeBuffer(theme);
+  await writePwaAssets(theme, iconBuffer);
+  await writeAndroidAssets(theme, iconBuffer, theme.id === DEFAULT_THEME.id);
   console.log(`Generated themed icon assets for ${theme.id}`);
 
   if (theme.id === DEFAULT_THEME.id) {
-    await writeDefaultPwaAssets(svg);
+    await writeDefaultPwaAssets(iconBuffer);
   }
 }

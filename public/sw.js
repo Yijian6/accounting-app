@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v5';
+const CACHE_VERSION = 'v6';
 const APP_CACHE = `shiyu-app-${CACHE_VERSION}`;
 const STATIC_CACHE = `shiyu-static-${CACHE_VERSION}`;
 const FONT_CACHE = `shiyu-fonts-${CACHE_VERSION}`;
@@ -14,7 +14,6 @@ const THEME_IDS = [
 ];
 
 const THEME_ICON_ASSETS = THEME_IDS.flatMap((id) => [
-  `/theme-icons/${id}.svg`,
   `/theme-icons/${id}-192.png`,
   `/theme-icons/${id}-512.png`,
   `/theme-icons/${id}-apple-touch.png`,
@@ -25,11 +24,9 @@ const APP_SHELL = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/icon.svg',
   '/icon-192.png',
   '/icon-512.png',
   '/apple-touch-icon.png',
-  '/favicon.svg',
   '/favicon.png',
   ...THEME_ICON_ASSETS,
 ];

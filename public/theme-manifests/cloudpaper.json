@@ -15,12 +15,6 @@
   ],
   "icons": [
     {
-      "src": "/theme-icons/cloudpaper.svg",
-      "type": "image/svg+xml",
-      "sizes": "any",
-      "purpose": "any"
-    },
-    {
       "src": "/theme-icons/cloudpaper-192.png",
       "type": "image/png",
       "sizes": "192x192",

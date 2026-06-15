@@ -15,12 +15,6 @@
   ],
   "icons": [
     {
-      "src": "/theme-icons/nightsakura.svg",
-      "type": "image/svg+xml",
-      "sizes": "any",
-      "purpose": "any"
-    },
-    {
       "src": "/theme-icons/nightsakura-192.png",
       "type": "image/png",
       "sizes": "192x192",

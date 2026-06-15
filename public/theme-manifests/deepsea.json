@@ -15,12 +15,6 @@
   ],
   "icons": [
     {
-      "src": "/theme-icons/deepsea.svg",
-      "type": "image/svg+xml",
-      "sizes": "any",
-      "purpose": "any"
-    },
-    {
       "src": "/theme-icons/deepsea-192.png",
       "type": "image/png",
       "sizes": "192x192",

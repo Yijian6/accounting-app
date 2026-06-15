@@ -35,7 +35,6 @@ export function getThemeIconPaths(theme) {
   return {
     id,
     accent: THEME_ICON_ACCENTS[id],
-    svg: `/theme-icons/${id}.svg`,
     icon192: `/theme-icons/${id}-192.png`,
     icon512: `/theme-icons/${id}-512.png`,
     appleTouch: `/theme-icons/${id}-apple-touch.png`,
@@ -48,8 +47,8 @@ export function syncDocumentThemeIcons(theme) {
 
   const paths = getThemeIconPaths(theme);
   const favicon = ensureLink('link[rel="icon"]', 'icon');
-  favicon.setAttribute('href', paths.svg);
-  favicon.setAttribute('type', 'image/svg+xml');
+  favicon.setAttribute('href', paths.icon512);
+  favicon.setAttribute('type', 'image/png');
 
   const appleTouch = ensureLink('link[rel="apple-touch-icon"]', 'apple-touch-icon');
   appleTouch.setAttribute('href', paths.appleTouch);
