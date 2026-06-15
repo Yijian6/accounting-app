@@ -300,6 +300,7 @@ export default function RecordList({
     tags: [],
     note: '',
     datetime: '',
+    recurrence: null,
   });
   const [showDataManager, setShowDataManager] = useState(false);
   const [pendingBackup, setPendingBackup] = useState(null);
@@ -542,6 +543,7 @@ export default function RecordList({
       tags: [],
       note: '',
       datetime: buildReviewDateTime(reviewDate),
+      recurrence: null,
     });
   };
 
@@ -569,7 +571,7 @@ export default function RecordList({
       tags: nextTags,
       note: createForm.note || '',
       datetime: date.toISOString(),
-      recurrence: null,
+      recurrence: createForm.recurrence || null,
     });
 
     setReviewMode('day');
@@ -1006,6 +1008,37 @@ export default function RecordList({
                   value={createForm.datetime}
                   onChange={(event) => setCreateForm((form) => ({ ...form, datetime: event.target.value }))}
                 />
+                <div className={`edit-fixed-section ${createForm.type}`}>
+                  <label className="edit-fixed-toggle">
+                    <input
+                      type="checkbox"
+                      checked={!!createForm.recurrence}
+                      onChange={(event) => setCreateForm((form) => ({
+                        ...form,
+                        recurrence: event.target.checked ? { type: form.recurrence?.type || 'monthly' } : null,
+                      }))}
+                    />
+                    <span>{createForm.type === 'income' ? '这是周期收入' : '这是周期支出'}</span>
+                  </label>
+                  {createForm.recurrence && (
+                    <div className="edit-recurrence-switch">
+                      <button
+                        type="button"
+                        className={createForm.recurrence.type === 'monthly' ? 'active' : ''}
+                        onClick={() => setCreateForm((form) => ({ ...form, recurrence: { type: 'monthly' } }))}
+                      >
+                        月
+                      </button>
+                      <button
+                        type="button"
+                        className={createForm.recurrence.type === 'yearly' ? 'active' : ''}
+                        onClick={() => setCreateForm((form) => ({ ...form, recurrence: { type: 'yearly' } }))}
+                      >
+                        年
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
