@@ -8,6 +8,8 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Existing Commits
 
+- 2026-06-15T14:36:32+08:00 | 226e3cf | fix: allow periodic spending in day backfill
+- 2026-06-15T14:13:58+08:00 | 51cfea9 | docs: record polished image master icons
 - 2026-06-15T14:13:16+08:00 | 858e93c | style: replace app icons with polished image master
 - 2026-06-10T21:09:28+08:00 | 351ec16 | fix: show success feedback after exporting backup/CSV/JSON
 - 2026-06-09T21:50:26+08:00 | 5c59184 | docs: record theme-aware app icons
