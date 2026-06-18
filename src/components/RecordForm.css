@@ -169,6 +169,18 @@
   box-shadow: 0 4px 16px var(--accent-glow), 0 0 40px var(--accent-wash);
 }
 
+.quick-destination-more {
+  border-style: dashed;
+  background: transparent;
+  color: var(--text-soft);
+}
+
+.quick-destination-more:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-wash);
+}
+
 .quick-destination:active {
   transform: scale(0.97);
 }

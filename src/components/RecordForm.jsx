@@ -6,30 +6,34 @@ import './RecordForm.css';
 const DEFAULT_EXPENSE_DESTINATIONS = ['餐饮', '交通', '咖啡', '购物', '订阅', '日用', '娱乐', '其他'];
 const DEFAULT_INCOME_DESTINATIONS = ['工资', '兼职', '理财', '其他'];
 
-function sortCommonDestinations(categories, type) {
+function sortDestinationNames(categories, type) {
   const preferred = type === 'expense' ? DEFAULT_EXPENSE_DESTINATIONS : DEFAULT_INCOME_DESTINATIONS;
   const preferredOrder = new Map(preferred.map((name, index) => [name, index]));
   const existingNames = categories
     .filter((item) => item.type === type)
     .map((item) => item.name)
     .filter((name, index, names) => name && names.indexOf(name) === index);
-  const hasOther = existingNames.includes('其他');
-  const sortedNames = existingNames
-    .filter((name) => name !== '其他')
-    .sort((left, right) => {
-      const leftOrder = preferredOrder.has(left) ? preferredOrder.get(left) : Number.MAX_SAFE_INTEGER;
-      const rightOrder = preferredOrder.has(right) ? preferredOrder.get(right) : Number.MAX_SAFE_INTEGER;
 
-      if (leftOrder !== rightOrder) {
-        return leftOrder - rightOrder;
-      }
+  return existingNames.sort((left, right) => {
+    const leftOrder = preferredOrder.has(left) ? preferredOrder.get(left) : Number.MAX_SAFE_INTEGER;
+    const rightOrder = preferredOrder.has(right) ? preferredOrder.get(right) : Number.MAX_SAFE_INTEGER;
 
-      return existingNames.indexOf(left) - existingNames.indexOf(right);
-    });
+    if (leftOrder !== rightOrder) {
+      return leftOrder - rightOrder;
+    }
 
+    return existingNames.indexOf(left) - existingNames.indexOf(right);
+  });
+}
+
+function getCompactDestinations(destinationNames, type) {
+  const preferred = type === 'expense' ? DEFAULT_EXPENSE_DESTINATIONS : DEFAULT_INCOME_DESTINATIONS;
+  const otherName = preferred[preferred.length - 1];
+  const hasOther = destinationNames.includes(otherName);
+  const namesWithoutOther = destinationNames.filter((name) => name !== otherName);
   return [
-    ...sortedNames.slice(0, hasOther ? 7 : 8),
-    ...(hasOther ? ['其他'] : []),
+    ...namesWithoutOther.slice(0, hasOther ? 7 : 8),
+    ...(hasOther ? [otherName] : []),
   ];
 }
 
@@ -47,6 +51,7 @@ export default function RecordForm({
   const [note, setNote] = useState('');
   const [datetime, setDatetime] = useState(toDatetimeLocal());
   const [showMore, setShowMore] = useState(false);
+  const [showAllDestinations, setShowAllDestinations] = useState(false);
   const [isFixedRecurring, setIsFixedRecurring] = useState(false);
   const [recurrenceType, setRecurrenceType] = useState('monthly');
 
@@ -54,10 +59,16 @@ export default function RecordForm({
     () => categories.filter((item) => item.type === type),
     [categories, type]
   );
-  const commonDestinations = useMemo(
-    () => sortCommonDestinations(categories, type),
+  const destinationNames = useMemo(
+    () => sortDestinationNames(categories, type),
     [categories, type]
   );
+  const compactDestinations = useMemo(
+    () => getCompactDestinations(destinationNames, type),
+    [destinationNames, type]
+  );
+  const hasHiddenDestinations = destinationNames.length > compactDestinations.length;
+  const visibleDestinations = showAllDestinations ? destinationNames : compactDestinations;
   const selectedCategory = filteredCategories.find((item) => item.name === category) || null;
   const availableTags = (() => {
     if (type !== 'expense' || !selectedCategory) {
@@ -77,6 +88,7 @@ export default function RecordForm({
     setNote('');
     setDatetime(toDatetimeLocal());
     setShowMore(false);
+    setShowAllDestinations(false);
     setIsFixedRecurring(false);
     setRecurrenceType('monthly');
   };
@@ -104,6 +116,7 @@ export default function RecordForm({
     setType(nextType);
     setCategory('');
     setSelectedTags([]);
+    setShowAllDestinations(false);
   };
 
   const handleCategoryChange = (nextCategory) => {
@@ -150,7 +163,7 @@ export default function RecordForm({
         </div>
 
         <div className="quick-destination-grid">
-          {commonDestinations.map((name) => (
+          {visibleDestinations.map((name) => (
             <button
               key={name}
               type="button"
@@ -160,6 +173,15 @@ export default function RecordForm({
               {name}
             </button>
           ))}
+          {hasHiddenDestinations && (
+            <button
+              type="button"
+              className="quick-destination quick-destination-more"
+              onClick={() => setShowAllDestinations((value) => !value)}
+            >
+              {showAllDestinations ? '收起' : '更多'}
+            </button>
+          )}
         </div>
       </section>
 
