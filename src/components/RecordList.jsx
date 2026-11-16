@@ -1088,6 +1088,7 @@ export default function RecordList({
               <input
                 type="number"
                 step="0.01"
+                inputMode="decimal"
                 value={editForm.amount}
                 onChange={(event) => setEditForm((form) => ({ ...form, amount: event.target.value }))}
               />

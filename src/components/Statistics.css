@@ -2,7 +2,8 @@
    统计页 · 社论式布局
 ═══════════════════════════════ */
 .statistics {
-  padding: 0 0 40px;
+  /* 底部留出左下角主题按钮（bottom 24 + 高 40）的位置 */
+  padding: 0 0 88px;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -11,6 +12,8 @@
 /* ── 1. Hero 区 ── */
 .stats-hero {
   position: relative;
+  /* 裁掉 ::before 光晕伸出右侧的 40px，否则窄屏会横向滚动 */
+  overflow: hidden;
   padding: 20px 24px 32px;
   display: flex;
   flex-direction: column;

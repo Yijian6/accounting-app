@@ -2,7 +2,8 @@
    明细页 · 社论式布局
 ═══════════════════════════════ */
 .record-list {
-  padding: 0 0 28px;
+  /* 底部留出左下角主题按钮（bottom 24 + 高 40）的位置 */
+  padding: 0 0 88px;
   display: flex;
   flex-direction: column;
   gap: 0;
