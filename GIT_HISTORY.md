@@ -8,6 +8,7 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Existing Commits
 
+- 2026-11-17T20:50:21+08:00 | 34785c0 | feat: tapping a donut segment focuses it instead of opening details
 - 2026-11-17T20:45:24+08:00 | 33086ab | feat: organize destinations and sub-tags with merge, transfer and undo; themed header icon
 - 2026-11-17T20:30:21+08:00 | 67349e0 | feat: wheel destination picker with brace sub-tags across record, backfill and edit
 - 2026-11-17T20:13:45+08:00 | 2b6a668 | feat: spending calendar on the review date and day-mode search across all records
