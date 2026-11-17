@@ -63,9 +63,13 @@ Cloudflare Pages 自动部署：push 到 `origin/master` → `accounting-app-9f0
 `App.jsx` 通过 `activeTab` 状态切换三个页面，无路由库：
 - **记录** (`RecordForm`) — 快速记账表单，大号金额输入 + 分类横向滚动 + 标签选择
 - **明细** (`RecordList`) — 按日分组的记录列表，含编辑/删除/补记/数据备份恢复
-- **统计** (`Statistics`) — 周期洞察、分类去向占比、变化分析、数据册导出
+- **统计** (`Statistics`) — 周期洞察、环形图（`DonutChart`）看分类去向、点选后弹出分类详情浮层（`CategorySheet`：半屏前 5 笔，全屏全部记录 + 搜索）、变化分析、数据册导出
 
-`ManageItems` 是分类/标签管理的 Modal 叠加层，从任意页面触发。
+`Modal.jsx` 导出 `Sheet`（可跟手拖动的底部浮层，支持 content / half / full 档位，portal 到 body）和默认的 `Modal`（基于 Sheet 的普通弹层）。所有弹层都走它，保证手感一致。`ManageItems` 是分类/标签管理的 Modal 叠加层，从任意页面触发。
+
+### 动效
+
+`src/index.css` 的 `:root` 定义 `--ease-out` 与 `--ease-spring`（CSS `linear()` 阻尼弹簧，旧系统回退 cubic-bezier）。动画只动 transform / opacity；不要写 `transition: all`；`prefers-reduced-motion` 下全局降为 1ms。Service Worker 只在生产构建注册，开发时自动注销。
 
 ### 主题系统
 

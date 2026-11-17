@@ -160,7 +160,7 @@
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
-  transition: all 0.22s ease;
+  transition: background-color 0.22s ease, border-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease, transform 0.25s var(--ease-spring);
 }
 
 .quick-destination.active {
@@ -203,7 +203,7 @@
   border: 1px solid var(--text-ghost);
   background: transparent;
   color: var(--text-muted);
-  transition: all 0.2s;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.25s var(--ease-spring);
 }
 
 .quick-tags-section .tag-chip.active {

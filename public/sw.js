@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v6';
+const CACHE_VERSION = 'v7';
 const APP_CACHE = `shiyu-app-${CACHE_VERSION}`;
 const STATIC_CACHE = `shiyu-static-${CACHE_VERSION}`;
 const FONT_CACHE = `shiyu-fonts-${CACHE_VERSION}`;

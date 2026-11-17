@@ -278,9 +278,9 @@ function buildPeriodSnapshot(records, range, periodDays) {
   ));
 
   categories.forEach((category) => {
-    category.recentRecords = category.recentRecords
-      .sort((left, right) => new Date(right.datetime) - new Date(left.datetime))
-      .slice(0, 6);
+    category.records = category.recentRecords
+      .sort((left, right) => new Date(right.datetime) - new Date(left.datetime));
+    category.recentRecords = category.records.slice(0, 6);
   });
 
   return {
@@ -330,6 +330,7 @@ function buildCategoryItems(currentSnapshot, previousSnapshot, totalAmount) {
       changeState: getChangeState(currentAmount, previousAmount),
       series: current?.series || currentSnapshot.series.map((item) => ({ ...item, amount: 0 })),
       recentRecords: current?.recentRecords || [],
+      records: current?.records || [],
     };
   }).sort((left, right) => {
     if (right.currentAmount !== left.currentAmount) {
@@ -357,6 +358,15 @@ function buildCompositionSegments(categoryItems, totalAmount) {
       name: '其他',
       amount: restAmount,
       share: restAmount / totalAmount,
+      isRest: true,
+      categories: categoryItems
+        .filter((item) => item.currentAmount > 0)
+        .slice(5)
+        .map((item) => ({
+          name: item.name,
+          amount: item.currentAmount,
+          share: item.currentAmount / totalAmount,
+        })),
     });
   }
 

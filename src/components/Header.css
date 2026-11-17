@@ -20,32 +20,46 @@
 }
 
 .header-nav {
-  display: flex;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .header-tab {
+  position: relative;
+  z-index: 1;
+  min-height: 40px;
   padding: 8px 14px;
   color: var(--text-muted);
   font-size: 13px;
   font-weight: 600;
-  position: relative;
-  transition: color 0.3s;
+  transition: color 0.25s ease;
 }
 
 .header-tab.active {
   color: var(--text);
 }
 
-.header-tab.active::after {
+/* 选中指示点：一个元素在三个 Tab 之间滑动 */
+.header-indicator {
+  position: absolute;
+  left: 0;
+  bottom: 3px;
+  width: calc(100% / 3);
+  height: 4px;
+  pointer-events: none;
+  transition: transform 460ms var(--ease-spring);
+}
+
+.header-indicator::after {
   content: '';
   position: absolute;
-  bottom: 3px;
   left: 50%;
-  transform: translateX(-50%);
+  top: 0;
   width: 4px;
   height: 4px;
+  margin-left: -2px;
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 8px var(--accent);
-  transition: background 0.4s, box-shadow 0.4s;
 }

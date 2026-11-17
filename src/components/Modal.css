@@ -1,35 +1,72 @@
-.modal-overlay {
+/* ═══════════════════════════════
+   底部浮层 · 跟手拖动，两档或随内容高度
+═══════════════════════════════ */
+.sheet-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: var(--scrim);
+  opacity: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.modal {
-  background: var(--bg-card);
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1001;
   width: 100%;
   max-width: 480px;
-  max-height: 80vh;
-  max-height: 80dvh;
-  border-radius: 16px 16px 0 0;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  border: 1px solid var(--bg-line);
-  animation: modal-slide-up 0.22s ease both;
-  transition: background 0.4s;
+  background: var(--bg-card);
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -10px 36px rgba(0, 0, 0, 0.22);
+  transform: translate3d(0, 110%, 0);
+  will-change: transform;
+  outline: none;
+  overscroll-behavior: contain;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
+.sheet--content {
+  max-height: 86vh;
+  max-height: 86dvh;
+}
+
+.sheet--expandable {
+  height: calc(100vh - 40px);
+  height: calc(100dvh - 40px);
+}
+
+/* 半屏时整张浮层都用来拖动，浏览器不要抢走手势 */
+.sheet--expandable.is-half {
+  touch-action: none;
+}
+
+.sheet-grab {
+  flex: 0 0 auto;
+  touch-action: none;
+  cursor: grab;
+}
+
+.sheet-handle {
+  display: block;
+  width: 36px;
+  height: 5px;
+  margin: 7px auto 0;
+  border-radius: 3px;
+  background: var(--text-ghost);
+}
+
+/* ── 普通弹层（Modal）头部与内容 ── */
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 10px 12px 12px 20px;
   border-bottom: 1px solid var(--bg-line);
 }
 
@@ -40,26 +77,26 @@
 }
 
 .modal-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   color: var(--text-muted);
-  padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.modal-close:active {
+  background: var(--bg-up);
+  transform: scale(0.92);
 }
 
 .modal-body {
+  flex: 1;
+  min-height: 0;
   padding: 20px;
   overflow-y: auto;
-  flex: 1;
-}
-
-@keyframes modal-slide-up {
-  from {
-    transform: translateY(24px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }

@@ -112,8 +112,15 @@ export default function App() {
 
   return (
     <>
-      <Header activeTab={activeTab} onTabChange={setActiveTab} />
+      <Header
+        activeTab={activeTab}
+        onTabChange={(tab) => {
+          if (tab !== activeTab) window.scrollTo(0, 0);
+          setActiveTab(tab);
+        }}
+      />
 
+      <main key={activeTab} className="page-view">
       {activeTab === 'add' && (
         <RecordForm
           categories={categories}
@@ -139,6 +146,7 @@ export default function App() {
       {activeTab === 'stats' && (
         <Statistics records={records} categories={categories} tags={tags} />
       )}
+      </main>
 
       {manageProps && (
         <ManageItems

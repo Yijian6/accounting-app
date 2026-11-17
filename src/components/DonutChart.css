@@ -1,0 +1,58 @@
+.donut {
+  position: relative;
+  width: min(232px, 64vw);
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+.donut-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.donut-track {
+  stroke: var(--bg-up);
+}
+
+/* 进入时顺时针画出：遮罩从 0 扫到整圈 */
+.donut-reveal {
+  stroke-dashoffset: 100;
+  animation: donut-reveal 900ms var(--ease-out) 80ms forwards;
+}
+
+@keyframes donut-reveal {
+  to { stroke-dashoffset: 0; }
+}
+
+.donut-arc {
+  transform-box: view-box;
+  transition:
+    stroke-dasharray 620ms var(--ease-out),
+    stroke-dashoffset 620ms var(--ease-out),
+    transform 480ms var(--ease-spring),
+    stroke-width 480ms var(--ease-spring),
+    opacity 260ms ease;
+}
+
+.donut-arc.is-selected {
+  stroke-width: 24px;
+}
+
+.donut-arc.is-dimmed {
+  opacity: 0.32;
+}
+
+.donut-center {
+  position: absolute;
+  inset: 22%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+}

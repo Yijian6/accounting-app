@@ -54,7 +54,7 @@
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 700;
-  transition: all 0.2s;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .review-mode-switch button.active {

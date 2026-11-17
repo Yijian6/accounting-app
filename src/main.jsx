@@ -41,7 +41,14 @@ function notifyServiceWorkerUpdate(worker) {
   }));
 }
 
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && import.meta.env.DEV) {
+  // 开发时不要 Service Worker：它会缓存源码，改动看不到
+  navigator.serviceWorker.getRegistrations()
+    .then((registrations) => registrations.forEach((registration) => registration.unregister()))
+    .catch(() => {});
+}
+
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (refreshingForServiceWorker) return;
