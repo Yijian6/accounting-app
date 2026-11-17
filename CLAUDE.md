@@ -62,8 +62,10 @@ Cloudflare Pages 自动部署：push 到 `origin/master` → `accounting-app-9f0
 
 `App.jsx` 通过 `activeTab` 状态切换三个页面，无路由库：
 - **记录** (`RecordForm`) — 快速记账表单，大号金额输入 + 分类横向滚动 + 标签选择
-- **明细** (`RecordList`) — 按日分组的记录列表，含编辑/删除/补记/数据备份恢复
-- **统计** (`Statistics`) — 周期洞察、环形图（`DonutChart`）看分类去向、点选后弹出分类详情浮层（`CategorySheet`：半屏前 5 笔，全屏全部记录 + 搜索）、变化分析、数据册导出
+- **明细** (`RecordList`) — 按日分组的记录列表，含编辑/删除/补记；「数据管理」浮层集中所有数据操作：备份导出/导入、数据册（`DataBookExport`）、CSV/展示 JSON
+- **统计** (`Statistics`) — 只回答「钱去了哪里」，从上到下只有四样：周期切换（今日 · 7 天 · 30 天）→ 环形图（`DonutChart`，中心是总额或选中分类）→ 一句解读（`summarySentence`）→ 去向列表。点圆环或列表行弹出分类详情浮层（`CategorySheet`：半屏前 5 笔，全屏全部记录 + 搜索）。有周期支出时列表下方一行小字注明分摊金额。不要再往这一页加标题、卡片或第二段解读
+
+`DonutChart` 的精致细节：外圈 72 根表盘刻度（进场顺时针依次亮起），焦点分类（选中的，没选中时是最大的）所在刻度点亮为分类色，焦点弧下垫一层模糊光晕缓慢呼吸（只动 opacity），切换周期时中心金额滚动到新值。
 
 `Modal.jsx` 导出 `Sheet`（可跟手拖动的底部浮层，支持 content / half / full 档位，portal 到 body）和默认的 `Modal`（基于 Sheet 的普通弹层）。所有弹层都走它，保证手感一致。`ManageItems` 是分类/标签管理的 Modal 叠加层，从任意页面触发。
 
@@ -89,11 +91,11 @@ Cloudflare Pages 自动部署：push 到 `origin/master` → `accounting-app-9f0
 
 ### 统计引擎
 
-`utils/statistics.js` 导出 `getStatisticsInsightViewModel(records, periodDays, selectedCategory)`，返回完整的视图模型：洞察标题/正文、分类排名、变化状态、周期归属分摊计算。`Statistics.jsx` 是纯展示层。
+`utils/statistics.js` 导出 `getStatisticsInsightViewModel(records, periodDays, selectedCategory)`，返回完整的视图模型：一句话解读 `summarySentence`（前半句最大去向的约数占比，后半句只说变化最大的一项，变化不足本期 5% 时说「差不多」）、分类排名、变化状态、周期归属分摊计算。`Statistics.jsx` 是纯展示层。
 
 ### 数据导出
 
-`utils/dataBookExport.js` — 生成 HTML/Excel/JSON 三种格式的数据册。`utils/export.js` — JSON 备份导出。`utils/backup.js` — 备份导入（合并/覆盖两种模式）。
+`utils/dataBookExport.js` — 生成 HTML/Excel/JSON 三种格式的数据册，入口在「明细 → 数据管理」（`DataBookExport` 组件）。`utils/export.js` — JSON 备份导出。`utils/backup.js` — 备份导入（合并/覆盖两种模式）。
 
 ## 约定
 

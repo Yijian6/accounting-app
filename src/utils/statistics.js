@@ -390,6 +390,55 @@ function buildInsight(currentTotal, previousTotal, topCategory, periodLabel, pre
   };
 }
 
+const TENTHS = ['', '一', '两', '三', '四', '五', '六', '七', '八', '九'];
+
+function formatRoughMoney(amount) {
+  const value = Math.abs(Number(amount) || 0);
+  return value >= 100 ? `¥${Math.round(value).toLocaleString('zh-CN')}` : `¥${value.toFixed(value >= 10 ? 0 : 2)}`;
+}
+
+function describeShare(share) {
+  if (share >= 0.995) return '全部';
+  if (share >= 0.95) return '几乎都';
+  if (share >= 0.45 && share < 0.55) return '一半左右';
+  if (share >= 0.23 && share < 0.27) return '四分之一';
+  if (share < 0.1) return '';
+  const tenths = Math.min(9, Math.max(1, Math.round(share * 10)));
+  return `${TENTHS[tenths]}成`;
+}
+
+/**
+ * 一句话解读：前半句说最大去向，后半句只说变化最大的一项。
+ * 只陈述事实，不评价多或少。
+ */
+function buildSummarySentence(currentTotal, previousTotal, categoryItems, topCategory, periodLabel, previousLabel) {
+  if (currentTotal <= 0 || !topCategory) {
+    return `${periodLabel}还没有支出记录。`;
+  }
+
+  const sharePhrase = describeShare(topCategory.share);
+  const head = sharePhrase
+    ? `${sharePhrase}去了${topCategory.name}`
+    : `花得比较分散，${topCategory.name}最多`;
+
+  if (previousTotal <= 0) {
+    return `${head}；${previousLabel}没有可以对照的支出。`;
+  }
+
+  // 变化够明显才说：至少 ¥1，且不小于本期总额的 5%
+  const threshold = Math.max(1, currentTotal * 0.05);
+  const mover = categoryItems
+    .filter((item) => Math.abs(item.changeAmount) >= threshold)
+    .sort((left, right) => Math.abs(right.changeAmount) - Math.abs(left.changeAmount))[0];
+
+  if (!mover) {
+    return `${head}；和${previousLabel}差不多。`;
+  }
+
+  const direction = mover.changeAmount > 0 ? '多了' : '少了';
+  return `${head}；${mover.name}比${previousLabel}${direction} ${formatRoughMoney(mover.changeAmount)}。`;
+}
+
 function buildAttention(categoryItems, periodLabel, previousLabel) {
   const increased = categoryItems
     .filter((item) => item.currentAmount > 0 && item.changeAmount > CHANGE_FLAT_THRESHOLD)
@@ -507,6 +556,14 @@ export function getStatisticsInsightViewModel(
     changeState: getChangeState(currentSnapshot.total, previousSnapshot.total),
     insightTitle,
     insightBody,
+    summarySentence: buildSummarySentence(
+      currentSnapshot.total,
+      previousSnapshot.total,
+      categoryItems,
+      topCategory,
+      periodLabel,
+      previousPeriodLabel
+    ),
     topCategories,
     compositionSegments: buildCompositionSegments(categoryItems, currentSnapshot.total),
     attention: buildAttention(categoryItems, periodLabel, previousPeriodLabel),

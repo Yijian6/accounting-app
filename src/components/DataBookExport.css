@@ -1,0 +1,66 @@
+.data-book {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.data-book-head {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.data-book-head strong {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.data-book-head span {
+  color: var(--text-soft);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.data-book-field {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.data-book-field > span {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.data-book-choices {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+.data-book-choices button {
+  min-height: 38px;
+  padding: 0 6px;
+  border-radius: 9px;
+  border: 1px solid var(--bg-line);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.2s var(--ease-spring);
+}
+
+.data-book-choices button:active {
+  transform: scale(0.96);
+}
+
+.data-book-choices button.active {
+  border-color: var(--accent);
+  background: var(--accent-wash);
+  color: var(--accent);
+}

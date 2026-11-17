@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Modal from './Modal';
+import DataBookExport from './DataBookExport';
 import TagInput from './TagInput';
 import { formatAmount, toDatetimeLocal, getDateGroup, getDateKey } from '../utils/format';
 import { exportBackupJSON, exportCSV, exportJSON } from '../utils/export';
@@ -1228,6 +1229,10 @@ export default function RecordList({
           <div className="data-manager-note">
             数据保存在本地。需要迁移或留存时，先导出备份，再在新设备导入。
           </div>
+
+          <div className="data-manager-divider" />
+
+          <DataBookExport records={records} onExport={runExport} />
 
           {exportSuccess && (
             <div className="import-status success">{exportSuccess}</div>

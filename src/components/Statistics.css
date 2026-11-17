@@ -1,5 +1,5 @@
 /* ═══════════════════════════════
-   统计页 · 社论式布局
+   统计页：一个数、一个环、一句话、一张去向表
 ═══════════════════════════════ */
 .statistics {
   /* 底部留出左下角主题按钮（bottom 24 + 高 40）的位置 */
@@ -8,68 +8,18 @@
   flex-direction: column;
 }
 
-/* ── 1. 周期 + 洞察 ── */
-.stats-hero {
-  position: relative;
-  /* 裁掉 ::before 光晕伸出右侧的部分，否则窄屏会横向滚动 */
-  overflow: hidden;
-  padding: 20px 24px 28px;
-  display: flex;
-  flex-direction: column;
-}
-
-.stats-hero::before {
-  content: '';
-  position: absolute;
-  top: -20px;
-  right: -40px;
-  width: 220px;
-  height: 220px;
-  background: radial-gradient(circle, var(--accent-glow), transparent 70%);
-  pointer-events: none;
-}
-
-.stats-hero-top {
-  position: relative;
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 22px;
-}
-
-.stats-insight {
-  position: relative;
-  animation: stats-insight-in 420ms var(--ease-out) both;
-}
-
-@keyframes stats-insight-in {
-  from { opacity: 0; transform: translate3d(0, 6px, 0); }
-  to { opacity: 1; transform: none; }
-}
-
-.stats-headline {
-  color: var(--text);
-  font-family: var(--font-serif);
-  font-size: 28px;
-  font-weight: 900;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-  text-wrap: balance;
-}
-
-.stats-sub {
-  max-width: 34em;
-  margin-top: 8px;
-  color: var(--text-soft);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
 /* ── 周期切换：滑动选中块 ── */
+.stats-top {
+  display: flex;
+  justify-content: center;
+  padding: 18px 24px 0;
+}
+
 .stats-period-switch {
   position: relative;
-  flex: 0 0 auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: min(240px, 100%);
   min-height: 34px;
   padding: 3px;
   border: 1px solid var(--bg-line);
@@ -92,9 +42,9 @@
   position: relative;
   z-index: 1;
   min-height: 28px;
-  padding: 0 14px;
+  padding: 0 10px;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
   white-space: nowrap;
   transition: color 0.2s ease;
@@ -104,49 +54,19 @@
   color: var(--accent);
 }
 
-/* ── 2. 钱去了哪里 ── */
-.stats-section {
+/* ── 圆环 + 一句解读 ── */
+.stats-overview {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  align-items: center;
+  padding: 14px 24px 22px;
 }
 
-.stats-destination {
-  padding-top: 26px;
-  border-top: 1px solid var(--bg-line);
-}
-
-.stats-section-head {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 0 24px;
-}
-
-.stats-section h3,
-.stats-attention-card h3 {
-  color: var(--text);
-  font-size: 17px;
-  font-weight: 760;
-  line-height: 1.25;
-}
-
-.stats-section-head p {
-  color: var(--text-soft);
-  font-size: 13px;
-  line-height: 1.55;
-}
-
-.stats-destination .donut {
-  margin-top: 10px;
-}
-
-/* 圆心：总额或选中分类 */
 .stats-donut-center {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   max-width: 100%;
   animation: stats-center-in 320ms var(--ease-out) both;
 }
@@ -156,296 +76,159 @@
   to { opacity: 1; transform: none; }
 }
 
+.stats-donut-label,
+.stats-donut-sub {
+  max-width: 100%;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stats-donut-label {
+  color: var(--text-muted);
+}
+
+.stats-donut-sub {
+  color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+}
+
 .stats-donut-center strong {
   color: var(--text);
   font-family: var(--font-serif);
-  font-size: 25px;
+  font-size: 26px;
   font-weight: 900;
-  line-height: 1.1;
+  line-height: 1.15;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .stats-donut-center strong.is-long {
-  font-size: 20px;
+  font-size: 21px;
 }
 
-.stats-donut-center span {
-  max-width: 100%;
-  color: var(--text-soft);
-  font-size: 12px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.stats-donut-center strong.is-longer {
+  font-size: 17px;
 }
 
-.stats-donut-change.up,
-.stats-donut-change.new {
-  color: var(--accent);
+.stats-summary {
+  max-width: 22em;
+  margin-top: 10px;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.65;
+  text-align: center;
+  text-wrap: balance;
+  animation: stats-summary-in 420ms var(--ease-out) both;
 }
 
-.stats-donut-change.down,
-.stats-donut-change.flat,
-.stats-donut-change.none {
-  color: var(--green);
+@keyframes stats-summary-in {
+  from { opacity: 0; transform: translate3d(0, 6px, 0); }
+  to { opacity: 1; transform: none; }
 }
 
-/* 图例：点一下和点圆环效果相同 */
-.stats-legend {
+/* ── 去向表：主要入口，点一行打开分类详情 ── */
+.stats-list {
   list-style: none;
-  margin-top: 8px;
-  padding: 0 12px;
+  border-top: 1px solid var(--bg-line);
 }
 
-.stats-legend-row {
+.stats-row {
   display: grid;
   grid-template-columns: 10px minmax(0, 1fr) auto auto;
   align-items: center;
   column-gap: 12px;
   width: 100%;
-  min-height: 46px;
-  padding: 0 12px;
-  border-radius: 12px;
+  min-height: 52px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--bg-line);
   text-align: left;
   color: var(--text);
-  transition: background-color 0.2s ease, transform 0.25s var(--ease-spring);
+  transition: background-color 0.2s ease, opacity 0.26s ease;
 }
 
-.stats-legend-row:active {
-  transform: scale(0.98);
+.stats-row:active {
   background: var(--bg-up);
 }
 
-.stats-legend-row.active {
+.stats-row.active {
   background: var(--accent-wash);
 }
 
-.stats-legend-dot {
+.stats-row.dimmed {
+  opacity: 0.45;
+}
+
+.stats-row-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
 }
 
-.stats-legend-name {
-  font-size: 14px;
+.stats-row-name {
+  font-size: 15px;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.stats-legend-share {
+.stats-row-share {
   color: var(--text-muted);
   font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
-.stats-legend-amount {
+.stats-row-amount {
   min-width: 76px;
   font-family: var(--font-serif);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-/* ── 3. 变化 ── */
-.stats-attention-card {
-  margin: 24px 24px 0;
-  padding: 18px 20px;
-  border-radius: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  background: var(--warn-soft);
-}
-
-.stats-attention-card.good {
-  background: var(--green-soft);
-}
-
-.stats-attention-card.warning {
-  background: var(--danger-soft);
-}
-
-.stats-attention-card p {
-  color: var(--text-soft);
-  font-size: 13px;
-  line-height: 1.55;
-}
-
-/* ── 4. 底部区：周期归属 + 导出 ── */
-.stats-footer {
-  margin-top: 28px;
-  padding: 0 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.stats-fixed-card {
-  padding: 16px 18px;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  background: var(--bg-up);
-}
-
-.stats-fixed-card > span {
-  font-size: 12px;
-  color: var(--text-soft);
-  font-weight: 700;
-}
-
-.stats-fixed-card p {
-  color: var(--text-soft);
-  font-size: 13px;
-  line-height: 1.55;
-}
-
-.stats-export-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 0 12px;
-  border-radius: 10px;
+.stats-footnote {
+  padding: 12px 24px 0;
   color: var(--text-muted);
-  font-size: 13px;
-  font-weight: 600;
-  transition: color 0.2s ease, background-color 0.2s ease;
-}
-
-.stats-export-link:active {
-  color: var(--text);
-  background: var(--bg-up);
-}
-
-/* ── 数据册导出 ── */
-.data-book-export {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.data-book-export p {
-  color: var(--text-soft);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.export-field {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-
-.export-field > span {
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 760;
-}
-
-.export-choice-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.export-choice-grid.format {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.export-choice-grid button {
-  min-height: 42px;
-  padding: 0 12px;
-  border-radius: 9px;
-  color: var(--text-muted);
-  background: var(--bg-card);
-  border: 1px solid var(--bg-line);
-  font-size: 13px;
-  font-weight: 720;
-  text-align: left;
-  overflow-wrap: anywhere;
-  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
-}
-
-.export-choice-grid button.active {
-  color: var(--bg);
-  background: var(--accent);
-  border-color: var(--accent);
-  box-shadow: 0 4px 12px var(--accent-glow);
-}
-
-.data-book-note {
-  padding: 12px;
-  border-radius: 9px;
-  color: var(--text-soft);
-  background: var(--accent-wash);
-  border: 1px solid var(--accent-pale);
   font-size: 12px;
-  line-height: 1.55;
-}
-
-.data-book-error {
-  padding: 12px 14px;
-  border-radius: 9px;
-  background: var(--danger-soft);
-  color: var(--danger);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.data-book-submit {
-  min-height: 48px;
-  border-radius: 14px;
-  color: var(--bg);
-  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
-  font-size: 15px;
-  font-weight: 800;
-  box-shadow: 0 8px 24px var(--accent-glow);
-  transition: transform 0.2s var(--ease-spring);
-}
-
-.data-book-submit:active {
-  transform: scale(0.98);
-}
-
-@media (max-width: 390px) {
-  .stats-headline {
-    font-size: 24px;
-  }
-
-  .export-choice-grid.format {
-    grid-template-columns: 1fr;
-  }
+  font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 360px) {
-  .stats-headline {
-    font-size: 22px;
+  .stats-overview {
+    padding-left: 18px;
+    padding-right: 18px;
   }
 
-  .stats-legend {
-    padding: 0 8px;
-  }
-
-  .stats-legend-row {
+  .stats-row {
     column-gap: 10px;
+    padding: 0 18px;
   }
 
-  .stats-legend-amount {
+  .stats-row-amount {
     min-width: 68px;
-    font-size: 13px;
+    font-size: 15px;
+  }
+
+  .stats-footnote {
+    padding-left: 18px;
+    padding-right: 18px;
   }
 
   .stats-donut-center strong {
-    font-size: 22px;
+    font-size: 23px;
+  }
+
+  .stats-donut-center strong.is-long {
+    font-size: 19px;
+  }
+
+  .stats-donut-center strong.is-longer {
+    font-size: 15px;
   }
 }
