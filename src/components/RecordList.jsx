@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Modal from './Modal';
 import DataBookExport from './DataBookExport';
 import TagInput from './TagInput';
+import SpendCalendar from './SpendCalendar';
 import { formatAmount, toDatetimeLocal, getDateGroup, getDateKey } from '../utils/format';
 import { exportBackupJSON, exportCSV, exportJSON } from '../utils/export';
 import { SAVE_RESULT } from '../utils/saveFile';
@@ -257,17 +258,6 @@ function formatReviewLabel(mode, date) {
   return `${date.getMonth() + 1}月${date.getDate()}日 ${weekdays[date.getDay()]}`;
 }
 
-function toDateInputValue(date) {
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${month}-${day}`;
-}
-
-function toMonthInputValue(date) {
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  return `${date.getFullYear()}-${month}`;
-}
-
 function isCurrentOrFutureReview(mode, date) {
   const now = new Date();
   if (mode === 'month') {
@@ -326,8 +316,8 @@ export default function RecordList({
   const [showMoreExport, setShowMoreExport] = useState(false);
   const fileInputRef = useRef(null);
   const exportSuccessTimerRef = useRef(null);
-  const reviewDateInputRef = useRef(null);
-  const reviewMonthInputRef = useRef(null);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarSession, setCalendarSession] = useState(0);
 
   useEffect(() => () => {
     if (exportSuccessTimerRef.current) {
@@ -374,10 +364,12 @@ export default function RecordList({
 
   const normalizedSearchQuery = normalizeSearchText(searchQuery);
   const isSearching = normalizedSearchQuery.length > 0;
-  const rangeRecords = records.filter((record) => isRecordInPaymentRange(record, reviewRange));
+  // 「日」下搜索放到全部记录里找（一天的数据太少，没必要只搜当天）；「月」下仍只搜这个月
+  const searchRange = reviewMode === 'month' ? reviewRange : null;
   const visibleRecords = isSearching
-    ? rangeRecords.filter((record) => recordMatchesSearch(record, normalizedSearchQuery))
-    : rangeRecords;
+    ? records.filter((record) => isRecordInPaymentRange(record, searchRange)
+      && recordMatchesSearch(record, normalizedSearchQuery))
+    : records.filter((record) => isRecordInPaymentRange(record, reviewRange));
 
   const sortedRecords = [...visibleRecords].sort(
     (left, right) => new Date(right.datetime) - new Date(left.datetime)
@@ -394,7 +386,7 @@ export default function RecordList({
     }
     groupedRecords.push({ type: 'record', ...record });
   }
-  const showDateGroupHeaders = reviewMode === 'all';
+  const showDateGroupHeaders = reviewMode === 'all' || isSearching;
 
   const toggleGroup = (key) => {
     setExpandedGroups((prev) => {
@@ -434,14 +426,17 @@ export default function RecordList({
     setSearchQuery('');
   };
 
-  const showReviewPicker = () => {
-    const input = reviewMode === 'month' ? reviewMonthInputRef.current : reviewDateInputRef.current;
-    if (!input) return;
-    if (input.showPicker) {
-      input.showPicker();
-      return;
-    }
-    input.click();
+  // 每次打开都重新挂载日历，让它从当前回看的那个月开始
+  const openCalendar = () => {
+    setCalendarSession((value) => value + 1);
+    setCalendarOpen(true);
+  };
+
+  const pickCalendarDay = (date) => {
+    setReviewMode('day');
+    setReviewDate(date);
+    setSearchQuery('');
+    setCalendarOpen(false);
   };
 
   const handleTouchStart = (event) => {
@@ -770,10 +765,15 @@ export default function RecordList({
           <button
             type="button"
             className="time-review-title"
-            onClick={showReviewPicker}
+            onClick={openCalendar}
             disabled={reviewMode === 'all'}
+            aria-label={`${reviewLabel}，打开花销日历`}
           >
             {reviewLabel}
+            <svg className="time-review-cal-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="3" y="4.5" width="18" height="16.5" rx="3" />
+              <path d="M8 2.5v4M16 2.5v4M3 10h18" />
+            </svg>
           </button>
           <button
             type="button"
@@ -785,23 +785,6 @@ export default function RecordList({
             ›
           </button>
         </div>
-
-        <input
-          ref={reviewDateInputRef}
-          className="review-date-input"
-          type="date"
-          value={toDateInputValue(reviewDate)}
-          max={toDateInputValue(new Date())}
-          onChange={(event) => setReviewDate(new Date(`${event.target.value}T12:00:00`))}
-        />
-        <input
-          ref={reviewMonthInputRef}
-          className="review-date-input"
-          type="month"
-          value={toMonthInputValue(reviewDate)}
-          max={toMonthInputValue(new Date())}
-          onChange={(event) => setReviewDate(new Date(`${event.target.value}-01T12:00:00`))}
-        />
 
         <div className="time-review-metrics">
           <span>
@@ -857,7 +840,7 @@ export default function RecordList({
         </div>
         {isSearching && (
           <div className="record-search-status">
-            找到 {sortedRecords.length} 条相关记录
+            在{reviewMode === 'month' ? reviewLabel : '全部记录'}中找到 {sortedRecords.length} 条
           </div>
         )}
       </div>
@@ -949,6 +932,15 @@ export default function RecordList({
           )}
         </div>
       )}
+
+      <SpendCalendar
+        key={calendarSession}
+        open={calendarOpen}
+        records={records}
+        selectedDate={reviewDate}
+        onPick={pickCalendarDay}
+        onClose={() => setCalendarOpen(false)}
+      />
 
       <Modal
         open={creatingRecord}
