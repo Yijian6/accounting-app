@@ -8,8 +8,8 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Existing Commits
 
+- 2026-11-17T14:56:42+08:00 | df49e96 | fix: route exports through a platform-aware file saver
 - 2026-11-16T13:05:37+08:00 | 1ed0e62 | fix: adapt layout for iPhone SE 3 width and height
-
 - 2026-06-18T13:39:17+08:00 | 7b8c18a | fix: reveal custom destinations in quick entry
 - 2026-06-15T14:36:32+08:00 | 226e3cf | fix: allow periodic spending in day backfill
 - 2026-06-15T14:13:58+08:00 | 51cfea9 | docs: record polished image master icons
