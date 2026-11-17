@@ -168,9 +168,20 @@
   from { opacity: 0; transform: scale(0.6); }
 }
 
-/* 换月时整格轻轻从翻动方向滑入 */
-.spend-cal-grid.slide-1 { animation: spend-cal-from-right 360ms var(--ease-out) both; }
-.spend-cal-grid.slide--1 { animation: spend-cal-from-left 360ms var(--ease-out) both; }
+/* 换月时内容从翻动方向滑入；切换日历 / 圆环时原地淡入 */
+.spend-cal-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: spend-cal-fade 300ms var(--ease-out) both;
+}
+
+.spend-cal-stage.slide-1 { animation: spend-cal-from-right 360ms var(--ease-out) both; }
+.spend-cal-stage.slide--1 { animation: spend-cal-from-left 360ms var(--ease-out) both; }
+
+@keyframes spend-cal-fade {
+  from { opacity: 0; transform: scale(0.98); }
+}
 
 @keyframes spend-cal-from-right {
   from { transform: translate3d(24px, 0, 0); }
@@ -215,6 +226,190 @@
 .spend-cal-legend i.level-2::before { opacity: 0.28; }
 .spend-cal-legend i.level-3::before { opacity: 0.46; }
 .spend-cal-legend i.level-4::before { opacity: 0.68; }
+
+/* ── 日历 / 圆环 切换：两枚图标，一个滑块 ── */
+.spend-cal-views {
+  position: relative;
+  align-self: center;
+  display: grid;
+  grid-template-columns: repeat(2, 40px);
+  padding: 3px;
+  border: 1px solid var(--bg-line);
+  border-radius: 999px;
+  background: var(--bg-up);
+}
+
+.spend-cal-views-thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: 40px;
+  border-radius: 999px;
+  background: var(--bg-card);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
+  transition: transform 420ms var(--ease-spring);
+}
+
+.spend-cal-views button {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  color: var(--text-muted);
+  transition: color 0.25s ease, transform 0.3s var(--ease-spring);
+}
+
+.spend-cal-views button[aria-pressed='true'] {
+  color: var(--accent);
+}
+
+.spend-cal-views button:active {
+  transform: scale(0.88);
+}
+
+/* ── 圆环视图 ── */
+.spend-cal-ring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.spend-cal-ring .donut {
+  width: min(230px, 64vw);
+}
+
+.spend-cal-ring-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
+  animation: spend-cal-center-in 300ms var(--ease-out) both;
+}
+
+.spend-cal-ring-center strong {
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.spend-cal-ring-center strong.is-long {
+  font-size: 17px;
+}
+
+.spend-cal-ring-center strong.is-percent {
+  font-size: 32px;
+}
+
+.spend-cal-ring-label,
+.spend-cal-ring-sub {
+  max-width: 100%;
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.spend-cal-ring-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.spend-cal-ring-label i {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+@keyframes spend-cal-center-in {
+  from { opacity: 0; transform: scale(0.94); }
+}
+
+.spend-cal-rows {
+  width: 100%;
+  list-style: none;
+  border-top: 1px solid var(--bg-line);
+}
+
+.spend-cal-rows li {
+  animation: spend-cal-row-in 360ms var(--ease-out) backwards;
+  animation-delay: calc(120ms + var(--row, 0) * 40ms);
+}
+
+.spend-cal-row {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  border-bottom: 1px solid var(--bg-line);
+  color: var(--text);
+  text-align: left;
+  transition: opacity 0.25s ease, background-color 0.2s ease;
+}
+
+.spend-cal-row i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.spend-cal-row.is-active {
+  background: var(--accent-wash);
+}
+
+.spend-cal-row.is-dimmed {
+  opacity: 0.45;
+}
+
+.spend-cal-row-name {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spend-cal-row-name small {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.spend-cal-row-share {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.spend-cal-row-amount {
+  min-width: 68px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes spend-cal-row-in {
+  from { opacity: 0; transform: translate3d(0, 6px, 0); }
+}
 
 @media (max-width: 360px) {
   .spend-cal-week,

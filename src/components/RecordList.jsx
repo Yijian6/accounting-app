@@ -310,6 +310,8 @@ export default function RecordList({
   const exportSuccessTimerRef = useRef(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [calendarSession, setCalendarSession] = useState(0);
+  // 日历按天看还是按去向（圆环）看；这次打开期间记住上次的选择
+  const [calendarView, setCalendarView] = useState('grid');
 
   useEffect(() => () => {
     if (exportSuccessTimerRef.current) {
@@ -846,6 +848,8 @@ export default function RecordList({
         open={calendarOpen}
         records={records}
         selectedDate={reviewDate}
+        view={calendarView}
+        onViewChange={setCalendarView}
         onPick={pickCalendarDay}
         onClose={() => setCalendarOpen(false)}
       />
