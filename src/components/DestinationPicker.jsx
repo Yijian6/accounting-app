@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { NAME_MAX, orderDestinations } from '../utils/taxonomy';
 import './DestinationPicker.css';
 
 const LONG_PRESS_MS = 450;
@@ -14,32 +15,6 @@ function GearIcon() {
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </svg>
   );
-}
-
-const PREFERRED_ORDER = {
-  expense: ['餐饮', '交通', '咖啡', '购物', '订阅', '日用', '娱乐'],
-  income: ['工资', '兼职', '理财'],
-};
-const TRAILING_NAME = '其他';
-
-/** 同名去向只留一个；常用去向排前面，「其他」放最后，其余保持用户自己的顺序 */
-function orderDestinations(items, type) {
-  const seen = new Set();
-  const unique = items.filter((item) => {
-    if (!item.name || seen.has(item.name)) return false;
-    seen.add(item.name);
-    return true;
-  });
-  const preferred = PREFERRED_ORDER[type] || [];
-  const rank = (item) => {
-    if (item.name === TRAILING_NAME) return Number.MAX_SAFE_INTEGER;
-    const index = preferred.indexOf(item.name);
-    return index === -1 ? preferred.length : index;
-  };
-  return unique
-    .map((item, index) => ({ item, index }))
-    .sort((left, right) => (rank(left.item) - rank(right.item)) || (left.index - right.index))
-    .map(({ item }) => item);
 }
 
 /** 一个从 (2, tipY) 指向左侧去向、上下张开到 [top, bottom] 的大括号 */
@@ -88,6 +63,8 @@ export default function DestinationPicker({
   onDeleteTag,
   onManageCategories,
   onManageTags,
+  onOrganize,
+  keepUnknownTags = false,
   title,
 }) {
   const railRef = useRef(null);
@@ -96,10 +73,11 @@ export default function DestinationPicker({
   const braceRef = useRef(null);
   const frameRef = useRef(0);
   const pressRef = useRef({ timer: 0, fired: false });
+  const railPressRef = useRef({ timer: 0, fired: false });
   // 回车提交后输入框卸载还可能触发 blur：用它保证一次编辑只提交一次
   const editDoneRef = useRef(false);
 
-  // 长按菜单：{ id, mode: 'menu' | 'rename' | 'confirm-delete' }
+  // 长按菜单：{ id, mode: 'menu' | 'rename' }
   const [menu, setMenu] = useState(null);
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState('');
@@ -223,6 +201,7 @@ export default function DestinationPicker({
   }, [copies, count, destinations, mid]);
 
   const handleScroll = () => {
+    clearTimeout(railPressRef.current.timer);
     cancelAnimationFrame(frameRef.current);
     frameRef.current = requestAnimationFrame(paintWheel);
     clearTimeout(settleTimerRef.current);
@@ -272,8 +251,40 @@ export default function DestinationPicker({
 
   useEffect(() => () => clearTimeout(pressRef.current.timer), []);
 
+  // 选中的去向 / 细分在别处被改名或删除了：清掉，免得存出一个不存在的名字。
+  // 编辑旧记录时（keepUnknownTags）保留列表里没有的旧细分。
+  useEffect(() => {
+    if (!category) return;
+    if (!selectedCategory) {
+      latestRef.current.onChange('', []);
+      return;
+    }
+    if (keepUnknownTags || !selectedTags?.length) return;
+    const known = new Set(categoryTags.map((tag) => tag.name));
+    const kept = selectedTags.filter((name) => known.has(name));
+    if (kept.length !== selectedTags.length) latestRef.current.onChange(category, kept);
+  }, [category, selectedCategory, categoryTags, selectedTags, keepUnknownTags]);
+
+  // ── 长按左栏的去向：打开整理面板并展开它 ──
+  const startRailPress = (item) => {
+    clearTimeout(railPressRef.current.timer);
+    railPressRef.current.fired = false;
+    if (!onOrganize) return;
+    railPressRef.current.timer = setTimeout(() => {
+      railPressRef.current.fired = true;
+      window.navigator?.vibrate?.(8);
+      onOrganize({ type, focusId: item.id });
+    }, 520);
+  };
+  const cancelRailPress = () => clearTimeout(railPressRef.current.timer);
+  useEffect(() => () => clearTimeout(railPressRef.current.timer), []);
+
   // ── 选择 ──
   const pickCategory = (index, name) => {
+    if (railPressRef.current.fired) {
+      railPressRef.current.fired = false;
+      return;
+    }
     setMenu(null);
     setAdding(false);
     const rail = railRef.current;
@@ -321,34 +332,46 @@ export default function DestinationPicker({
   const commitAdd = () => {
     if (editDoneRef.current) return;
     editDoneRef.current = true;
-    const name = draft.trim();
+    const name = draft.replace(/\s+/g, ' ').trim();
     setAdding(false);
     setDraft('');
     if (!name || !selectedCategory) return;
     const existing = categoryTags.find((tag) => tag.name === name);
-    if (!existing) onAddTag?.(name, selectedCategory.id);
+    if (!existing) {
+      const result = onAddTag?.(name, selectedCategory.id);
+      if (result?.error) return;
+    }
     onChange(category, [name]);
   };
 
+  /** 改名 / 合并 / 删除转移完成后，把选中的细分换成结果里的那个（可能换了去向） */
+  const followResult = (oldName, result) => {
+    if (!isSelected(oldName)) return;
+    const target = result?.result;
+    if (!target) return;
+    if (target.categoryName && target.categoryName !== category) {
+      onChange(target.categoryName, target.tagName ? [target.tagName] : []);
+      return;
+    }
+    const next = selectedTags
+      .map((item) => (item === oldName ? target.tagName : item))
+      .filter((item, index, list) => item && list.indexOf(item) === index);
+    onChange(category, next);
+  };
+
+  // 重名会弹出合并确认，有记录的删除会弹出转移面板；都在完成后才回调
   const commitRename = (tag) => {
     if (editDoneRef.current) return;
     editDoneRef.current = true;
-    const name = draft.trim();
+    const name = draft.replace(/\s+/g, ' ').trim();
     setMenu(null);
     if (!name || name === tag.name) return;
-    if (categoryTags.some((item) => item.id !== tag.id && item.name === name)) return;
-    onRenameTag?.(tag, name);
-    if (isSelected(tag.name)) {
-      onChange(category, selectedTags.map((item) => (item === tag.name ? name : item)));
-    }
+    onRenameTag?.(tag, name, (result) => followResult(tag.name, result));
   };
 
   const commitDelete = (tag) => {
     setMenu(null);
-    onDeleteTag?.(tag);
-    if (isSelected(tag.name)) {
-      onChange(category, selectedTags.filter((item) => item !== tag.name));
-    }
+    onDeleteTag?.(tag, (result) => followResult(tag.name, result));
   };
 
   const renderTag = (tag, index) => {
@@ -360,6 +383,7 @@ export default function DestinationPicker({
         <span key={tag.id} className="dpick-tag is-editing" style={style}>
           <input
             value={draft}
+            maxLength={NAME_MAX}
             aria-label="细分新名称"
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={(event) => {
@@ -376,18 +400,9 @@ export default function DestinationPicker({
     if (active) {
       return (
         <span key={tag.id} className="dpick-tag is-menu" style={style}>
-          {active.mode === 'confirm-delete' ? (
-            <>
-              <button type="button" className="is-danger" onClick={() => commitDelete(tag)}>确认删除</button>
-              <button type="button" onClick={() => setMenu(null)}>取消</button>
-            </>
-          ) : (
-            <>
-              <button type="button" onClick={() => { editDoneRef.current = false; setMenu({ id: tag.id, mode: 'rename' }); }}>改名</button>
-              <button type="button" className="is-danger" onClick={() => setMenu({ id: tag.id, mode: 'confirm-delete' })}>删除</button>
-              <button type="button" onClick={() => setMenu(null)}>取消</button>
-            </>
-          )}
+          <button type="button" onClick={() => { editDoneRef.current = false; setMenu({ id: tag.id, mode: 'rename' }); }}>改名</button>
+          <button type="button" className="is-danger" onClick={() => commitDelete(tag)}>删除</button>
+          <button type="button" onClick={() => setMenu(null)}>取消</button>
         </span>
       );
     }
@@ -460,6 +475,11 @@ export default function DestinationPicker({
                 aria-hidden={copy !== mid || undefined}
                 tabIndex={copy === mid ? 0 : -1}
                 onClick={() => pickCategory(index, item.name)}
+                onPointerDown={() => startRailPress(item)}
+                onPointerUp={cancelRailPress}
+                onPointerLeave={cancelRailPress}
+                onPointerCancel={cancelRailPress}
+                onContextMenu={(event) => event.preventDefault()}
               >
                 {item.name}
               </button>
@@ -498,6 +518,7 @@ export default function DestinationPicker({
                   <span className="dpick-tag is-editing" style={{ '--i': categoryTags.length + legacyNames.length }}>
                     <input
                       value={draft}
+                      maxLength={NAME_MAX}
                       placeholder="新细分"
                       aria-label="新细分名称"
                       onChange={(event) => setDraft(event.target.value)}

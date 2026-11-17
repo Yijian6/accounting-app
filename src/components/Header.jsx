@@ -6,10 +6,23 @@ const TABS = [
   { key: 'stats', label: '统计' },
 ];
 
-export default function Header({ activeTab, onTabChange }) {
+export default function Header({ activeTab, onTabChange, theme }) {
   return (
     <header className="header">
-      <span className="header-logo">拾序</span>
+      <span className="header-brand">
+        {theme && (
+          <img
+            key={theme}
+            className="header-icon"
+            src={`${import.meta.env.BASE_URL}theme-icons/${theme}-192.png`}
+            alt=""
+            width="22"
+            height="22"
+            decoding="async"
+          />
+        )}
+        <span className="header-logo">拾序</span>
+      </span>
       <nav className="header-nav">
         <span
           className="header-indicator"

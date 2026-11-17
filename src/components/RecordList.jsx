@@ -282,6 +282,7 @@ export default function RecordList({
   onDelete,
   onImportBackup,
   tagActions,
+  onOrganize,
 }) {
   const [editingRecord, setEditingRecord] = useState(null);
   const [creatingRecord, setCreatingRecord] = useState(false);
@@ -938,6 +939,22 @@ export default function RecordList({
           </div>
 
           <div className="data-manager-divider" />
+
+          {onOrganize && (
+            <>
+              <button
+                type="button"
+                className="export-option-btn secondary"
+                onClick={() => {
+                  closeDataManager();
+                  onOrganize();
+                }}
+              >
+                整理去向与细分
+              </button>
+              <div className="data-manager-divider" />
+            </>
+          )}
 
           <DataBookExport records={records} onExport={runExport} />
 

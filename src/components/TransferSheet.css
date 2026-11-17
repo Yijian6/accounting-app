@@ -1,0 +1,129 @@
+.transfer {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.transfer-lead {
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.transfer-lead strong {
+  color: var(--accent);
+  font-family: var(--font-serif);
+  font-variant-numeric: tabular-nums;
+}
+
+.transfer-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.transfer-group h4 {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.transfer-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.transfer-sub {
+  padding-left: 12px;
+  border-left: 1px solid var(--bg-line);
+  animation: transfer-in 260ms var(--ease-out) both;
+}
+
+.transfer-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  max-width: 100%;
+  padding: 0 14px;
+  border: 1px solid var(--bg-line);
+  border-radius: var(--radius-pill);
+  background: var(--bg-card);
+  color: var(--text-soft);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, transform 0.3s var(--ease-spring);
+}
+
+.transfer-chip:active {
+  transform: scale(0.94);
+}
+
+.transfer-chip.is-dashed {
+  border-style: dashed;
+  border-color: var(--text-ghost);
+  background: transparent;
+}
+
+.transfer-chip.is-active {
+  border-style: solid;
+  border-color: var(--accent);
+  background: var(--accent-wash);
+  color: var(--accent);
+}
+
+.transfer-chip.is-input {
+  padding: 0 12px;
+}
+
+.transfer-chip input {
+  width: 7em;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.transfer-error {
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.transfer-summary {
+  min-height: 20px;
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.transfer-submit {
+  min-height: 50px;
+  border-radius: 14px;
+  background: var(--danger);
+  color: var(--bg);
+  font-size: 15px;
+  font-weight: 700;
+  transition: opacity 0.2s, transform 0.2s var(--ease-spring);
+}
+
+.transfer-submit:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+.transfer-submit:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+@keyframes transfer-in {
+  from { opacity: 0; transform: translate3d(0, -4px, 0); }
+}

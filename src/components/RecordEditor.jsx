@@ -100,6 +100,8 @@ export default function RecordEditor({
           onRenameTag={tagActions.onRenameTag}
           onDeleteTag={tagActions.onDeleteTag}
           onManageTags={tagActions.onManageTags}
+          onOrganize={tagActions.onOrganize}
+          keepUnknownTags={!!initial?.id}
         />
 
         <button

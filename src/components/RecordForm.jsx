@@ -104,6 +104,7 @@ export default function RecordForm({
         onRenameTag={tagActions.onRenameTag}
         onDeleteTag={tagActions.onDeleteTag}
         onManageTags={tagActions.onManageTags}
+        onOrganize={tagActions.onOrganize}
         onManageCategories={() => onManageCategories?.(type)}
       />
 
