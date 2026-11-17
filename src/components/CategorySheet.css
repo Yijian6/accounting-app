@@ -172,6 +172,10 @@
   opacity: 0.55;
 }
 
+.csheet-record--edit {
+  border-radius: 0;
+}
+
 .csheet-record--link > svg {
   flex: 0 0 auto;
   margin-left: -4px;

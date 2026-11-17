@@ -180,3 +180,60 @@
   color: var(--text-soft);
   font-size: 14px;
 }
+
+/* 未归属的细分：点一下收进当前去向 */
+.manage-orphans {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--bg-line);
+}
+
+.manage-orphans-head {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.manage-orphans-head strong {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.manage-orphans-head span {
+  color: var(--text-soft);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.manage-orphans-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.manage-orphan {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px dashed var(--text-ghost);
+  border-radius: var(--radius-pill);
+  color: var(--text-soft);
+  font-size: 13px;
+  font-weight: 600;
+  transition: color 0.2s, border-color 0.2s, background-color 0.2s, transform 0.3s var(--ease-spring);
+}
+
+.manage-orphan span {
+  color: var(--accent);
+}
+
+.manage-orphan:active {
+  transform: scale(0.94);
+  border-color: var(--accent);
+  background: var(--accent-wash);
+}

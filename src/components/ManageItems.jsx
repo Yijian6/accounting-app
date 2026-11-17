@@ -9,13 +9,17 @@ export default function ManageItems({
   itemType,
   categories = [],
   initialCategoryId = null,
+  scopeCategoryId = null,
+  orphans = [],
   onClose,
   onAdd,
   onUpdate,
   onDelete,
 }) {
   const [newName, setNewName] = useState('');
-  const [newCategoryId, setNewCategoryId] = useState(initialCategoryId || '');
+  const [newCategoryId, setNewCategoryId] = useState(scopeCategoryId || initialCategoryId || '');
+  // 从某个去向打开时只管这个去向的细分，不再出现「归属分类」选择
+  const scoped = itemType === 'tag' && !!scopeCategoryId;
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
   const [editCategoryId, setEditCategoryId] = useState('');
@@ -30,8 +34,12 @@ export default function ManageItems({
     if (!name) return;
 
     if (itemType === 'tag') {
-      onAdd(name, newCategoryId || null);
-      setNewCategoryId('');
+      if (scoped && items.some((item) => item.name === name)) {
+        setNewName('');
+        return;
+      }
+      onAdd(name, scoped ? scopeCategoryId : (newCategoryId || null));
+      if (!scoped) setNewCategoryId('');
     } else {
       onAdd(name);
     }
@@ -82,7 +90,7 @@ export default function ManageItems({
           </button>
         </div>
 
-        {itemType === 'tag' && (
+        {itemType === 'tag' && !scoped && (
           <div className="manage-meta-row">
             <label className="manage-meta-field">
               <span>归属分类</span>
@@ -118,7 +126,7 @@ export default function ManageItems({
                     <button className="cancel-btn" onClick={cancelEdit}>取消</button>
                   </div>
 
-                  {itemType === 'tag' && (
+                  {itemType === 'tag' && !scoped && (
                     <div className="manage-meta-row">
                       <label className="manage-meta-field">
                         <span>归属分类</span>
@@ -138,7 +146,7 @@ export default function ManageItems({
                 <div className="manage-item-row">
                   <div className="manage-item-copy">
                     <span className="manage-item-name">{item.name}</span>
-                    {itemType === 'tag' && (
+                    {itemType === 'tag' && !scoped && (
                       <span className="manage-item-meta">
                         {item.categoryId ? (categoryNameMap[item.categoryId] || '未归属') : '未归属'}
                       </span>
@@ -155,9 +163,31 @@ export default function ManageItems({
           ))}
 
           {items.length === 0 && (
-            <div className="manage-empty">暂无项目</div>
+            <div className="manage-empty">{scoped ? '这个去向还没有细分' : '暂无项目'}</div>
           )}
         </div>
+
+        {scoped && orphans.length > 0 && (
+          <div className="manage-orphans">
+            <div className="manage-orphans-head">
+              <strong>未归属的细分</strong>
+              <span>早先建的、或去向被删后留下的，可以收进这里</span>
+            </div>
+            <div className="manage-orphans-list">
+              {orphans.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="manage-orphan"
+                  onClick={() => onUpdate(item.id, item.name, scopeCategoryId)}
+                >
+                  {item.name}
+                  <span aria-hidden="true">＋</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </Modal>
   );

@@ -1,0 +1,223 @@
+/* ═══════════════════════════════
+   补记 / 编辑浮层：和记录页同一套去向选择
+═══════════════════════════════ */
+.record-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.record-editor-date {
+  align-self: center;
+  max-width: 100%;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--bg-up);
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.record-editor-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 支出 ⇄ 收入：点一下换类型，颜色跟着换 */
+.type-toggle {
+  min-height: 30px;
+  padding: 0 16px;
+  border: 1px solid var(--accent-glow);
+  border-radius: var(--radius-pill);
+  background: var(--accent-wash);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  transition: color 0.35s ease, background-color 0.35s ease, border-color 0.35s ease, transform 0.35s var(--ease-spring);
+}
+
+.type-toggle span {
+  display: inline-block;
+  animation: type-toggle-flip 360ms var(--ease-spring) both;
+}
+
+.type-toggle:active {
+  transform: scale(0.92);
+}
+
+.type-toggle.is-income {
+  border-color: var(--green-soft);
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+@keyframes type-toggle-flip {
+  from { opacity: 0; transform: translate3d(0, 6px, 0) scale(0.9); }
+  to { opacity: 1; transform: none; }
+}
+
+.record-editor-amount {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px;
+}
+
+.record-editor-amount span {
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 300;
+}
+
+.record-editor-amount input {
+  max-width: 200px;
+  padding: 6px 0;
+  border: none;
+  border-bottom: 2px solid var(--bg-line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 32px;
+  font-weight: 400;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 0.2s;
+}
+
+.record-editor-amount input:focus {
+  border-bottom-color: var(--accent);
+  box-shadow: none;
+}
+
+.record-editor-amount.is-income input:focus {
+  border-bottom-color: var(--green);
+}
+
+.record-editor .dpick {
+  --dpick-height: 196px;
+}
+
+.record-editor-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  color: var(--text-soft);
+}
+
+.record-editor-more .more-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--accent-deep);
+}
+
+.record-editor-more small {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.record-editor-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: record-editor-in 220ms var(--ease-out) both;
+}
+
+.record-editor-panel input[type='text'],
+.record-editor-panel input[type='datetime-local'] {
+  min-height: 44px;
+  background: var(--bg-up);
+}
+
+.record-editor-fixed {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--accent-wash);
+  border-radius: 9px;
+  background: var(--accent-wash);
+}
+
+.record-editor-fixed.is-income {
+  border-color: var(--green-soft);
+  background: var(--green-soft);
+}
+
+.record-editor-fixed label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.record-editor-fixed label input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.record-editor-recurrence {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--bg-line);
+  border-radius: 9px;
+  background: var(--bg-up);
+}
+
+.record-editor-recurrence button {
+  min-height: 34px;
+  border-radius: 8px;
+  color: var(--text-soft);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.18s, color 0.18s;
+}
+
+.record-editor-recurrence button.active {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.record-editor-submit {
+  min-height: 52px;
+  margin-top: 4px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+  color: var(--bg);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  box-shadow: 0 6px 18px var(--accent-glow);
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.record-editor-submit:not(:disabled):active {
+  transform: scale(0.99);
+}
+
+.record-editor-submit:disabled {
+  opacity: 0.38;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+@keyframes record-editor-in {
+  from { opacity: 0; transform: translate3d(0, -4px, 0); }
+}

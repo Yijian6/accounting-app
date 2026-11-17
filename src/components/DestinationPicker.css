@@ -1,0 +1,361 @@
+/* ═══════════════════════════════
+   去向 + 细分：左栏 · 分割线 · 大括号
+═══════════════════════════════ */
+.dpick {
+  --dpick-height: 208px;
+  --dpick-rail: 104px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dpick-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 34px;
+}
+
+.dpick-head h3 {
+  padding-left: 4px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+
+.dpick-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dpick-gear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 9px;
+  border: 1px solid var(--bg-line);
+  border-radius: 9px;
+  background: var(--bg-card);
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 600;
+  transition: color 0.2s, background-color 0.2s, transform 0.3s var(--ease-spring);
+}
+
+.dpick-gear:active {
+  transform: scale(0.94);
+  color: var(--accent);
+  background: var(--accent-wash);
+}
+
+.dpick-gear--label {
+  animation: dpick-fade 260ms var(--ease-out) both;
+}
+
+/* ── 主体：三列 ── */
+.dpick-body {
+  display: grid;
+  grid-template-columns: var(--dpick-rail) 1px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  height: var(--dpick-height);
+}
+
+/* 左栏是一只循环滚轮：上下留出半屏空白，任意一行都能停在正中 */
+.dpick-wheel {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dpick-rail {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  scroll-snap-type: y mandatory;
+  padding: calc((var(--dpick-height) - 42px) / 2) 6px;
+  padding-left: 0;
+  -webkit-mask-image: linear-gradient(transparent, #000 32%, #000 68%, transparent);
+  mask-image: linear-gradient(transparent, #000 32%, #000 68%, transparent);
+}
+
+.dpick-rail::-webkit-scrollbar {
+  display: none;
+}
+
+/* 每一行的缩放和透明度由滚动位置逐帧算出（JS），这里不给 transform 过渡 */
+.dpick-rail-item {
+  display: block;
+  width: 100%;
+  height: 42px;
+  padding: 0 8px 0 6px;
+  color: var(--text-soft);
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  scroll-snap-align: center;
+  transform-origin: left center;
+  transition: color 0.25s ease;
+}
+
+.dpick-rail-item.is-active {
+  color: var(--accent);
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* 中线上下两条细线框出「选中」这一行 */
+.dpick-lens {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 8px;
+  height: 42px;
+  margin-top: -21px;
+  border-top: 1px solid var(--bg-line);
+  border-bottom: 1px solid var(--bg-line);
+  pointer-events: none;
+}
+
+.dpick-rail-empty {
+  display: block;
+  padding: 12px 4px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* 收入用绿色，和顶部「收 入」一致 */
+.dpick.is-income .dpick-rail-item.is-active {
+  color: var(--green);
+}
+
+/* ── 分割线：一条细线，一小段主题色滑到所选去向 ── */
+.dpick-line {
+  position: relative;
+  background: linear-gradient(transparent, var(--bg-line) 12%, var(--bg-line) 88%, transparent);
+}
+
+.dpick-indicator {
+  position: absolute;
+  top: calc(50% - 12px);
+  left: -1px;
+  width: 3px;
+  height: 24px;
+  border-radius: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
+  opacity: 0;
+  transform: scaleY(0.4);
+  transition: transform 0.45s var(--ease-spring), opacity 0.3s ease, background-color 0.3s ease;
+}
+
+.dpick-body.has-selection .dpick-indicator {
+  opacity: 1;
+  transform: none;
+}
+
+.dpick.is-income .dpick-indicator {
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green-soft);
+}
+
+/* ── 右侧：大括号 + 细分 ── */
+.dpick-branch {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dpick-brace {
+  position: absolute;
+  top: 0;
+  left: 6px;
+  width: 20px;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.dpick-brace path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  opacity: 0.55;
+  animation: dpick-brace-draw 520ms var(--ease-out) both;
+}
+
+@keyframes dpick-brace-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+.dpick-tags {
+  position: absolute;
+  top: 50%;
+  left: 30px;
+  transform: translate3d(0, -50%, 0);
+  right: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 8px 7px;
+  max-height: 100%;
+}
+
+.dpick-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 34px;
+  max-width: 100%;
+  padding: 0 13px;
+  border: 1px solid var(--bg-line);
+  border-radius: var(--radius-pill);
+  background: var(--bg-card);
+  color: var(--text-soft);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-touch-callout: none;
+  user-select: none;
+  animation: dpick-tag-in 480ms var(--ease-spring) backwards;
+  animation-delay: calc(120ms + var(--i, 0) * 38ms);
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.35s var(--ease-spring);
+}
+
+.dpick-tag:active {
+  transform: scale(0.93);
+}
+
+/* 还没有记录用过的细分：虚线框 */
+.dpick-tag.is-unused {
+  border-style: dashed;
+  border-color: var(--text-ghost);
+  background: transparent;
+}
+
+.dpick-tag.is-selected {
+  border-style: solid;
+  border-color: var(--accent);
+  background: var(--accent-wash);
+  color: var(--accent);
+}
+
+.dpick-tag.is-legacy {
+  font-style: normal;
+}
+
+.dpick-add {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 0 8px;
+}
+
+.dpick-add:active {
+  color: var(--accent);
+}
+
+.dpick-tag.is-editing {
+  padding: 0 4px 0 12px;
+  border-color: var(--accent);
+  background: var(--bg-card);
+}
+
+.dpick-tag.is-editing input {
+  width: 6.5em;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dpick-tag.is-menu {
+  gap: 0;
+  padding: 0 4px;
+  border-color: var(--accent);
+  background: var(--bg-up);
+  animation: dpick-fade 200ms var(--ease-out) both;
+}
+
+.dpick-tag.is-menu button {
+  min-height: 30px;
+  padding: 0 8px;
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dpick-tag.is-menu button.is-danger {
+  color: var(--danger);
+}
+
+.dpick-tag.is-menu button:active {
+  background: var(--accent-wash);
+}
+
+.dpick-hint {
+  position: absolute;
+  top: 50%;
+  left: 22px;
+  right: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-line;
+  transform: translate3d(0, -50%, 0);
+  animation: dpick-fade 320ms var(--ease-out) both;
+}
+
+@keyframes dpick-tag-in {
+  from {
+    opacity: 0;
+    transform: translate3d(-16px, 0, 0) scale(0.82);
+  }
+}
+
+@keyframes dpick-fade {
+  from { opacity: 0; }
+}
+
+@media (max-width: 380px) {
+  .dpick {
+    --dpick-rail: 94px;
+  }
+
+  .dpick-rail-item {
+    font-size: 14px;
+  }
+
+  .dpick-rail-item.is-active {
+    font-size: 16px;
+  }
+
+  .dpick-tag {
+    padding: 0 11px;
+    font-size: 12.5px;
+  }
+}

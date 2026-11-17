@@ -24,6 +24,7 @@ export default function App() {
     updateRecord,
     deleteRecord,
     renameRecordCategory,
+    renameRecordTag,
     replaceRecords,
   } = useRecords();
   const {
@@ -38,8 +39,8 @@ export default function App() {
 
   const snapshot = { records, categories, tags };
 
-  const handleManageCategories = () => {
-    setManageType('categories-expense');
+  const handleManageCategories = (type = 'expense') => {
+    setManageType(type === 'income' ? 'categories-income' : 'categories-expense');
   };
 
   const handleManageTags = (categoryId) => {
@@ -60,6 +61,24 @@ export default function App() {
     }
   };
 
+  // 细分改名时，这个去向下用旧名字的记录一起改；移到别的去向则不动旧记录
+  const handleUpdateTag = (id, name, categoryId = null) => {
+    const tag = tags.find((item) => item.id === id);
+    updateTag(id, name, categoryId);
+    if (!tag || !tag.categoryId || tag.categoryId !== categoryId) return;
+    const category = categories.find((item) => item.id === tag.categoryId);
+    if (category) {
+      renameRecordTag(category.name, tag.name, name);
+    }
+  };
+
+  const tagActions = {
+    onAddTag: addTag,
+    onRenameTag: (tag, name) => handleUpdateTag(tag.id, name, tag.categoryId),
+    onDeleteTag: (tag) => deleteTag(tag.id),
+    onManageTags: handleManageTags,
+  };
+
   const handleImportBackup = (payload, mode) => {
     const currentData = snapshot;
     const result = mode === 'replace'
@@ -75,13 +94,20 @@ export default function App() {
 
   const getManageItems = () => {
     if (manageType === 'tags') {
+      const expenseCategories = getCategoriesByType('expense');
+      const scope = expenseCategories.find((item) => item.id === manageInitialCategoryId) || null;
+      const knownIds = new Set(expenseCategories.map((item) => item.id));
+      // 没有归属、或归属的去向已被删掉的细分：放进「未归属」，可以一键收进当前去向
+      const orphans = tags.filter((tag) => !tag.categoryId || !knownIds.has(tag.categoryId));
       return {
-        title: '管理标签',
+        title: scope ? `${scope.name} · 细分` : '管理细分',
         itemType: 'tag',
-        items: tags,
-        categories: getCategoriesByType('expense'),
+        items: scope ? tags.filter((tag) => tag.categoryId === scope.id) : tags,
+        categories: expenseCategories,
+        scopeCategoryId: scope?.id || null,
+        orphans: scope ? orphans : [],
         onAdd: addTag,
-        onUpdate: updateTag,
+        onUpdate: handleUpdateTag,
         onDelete: deleteTag,
       };
     }
@@ -125,9 +151,10 @@ export default function App() {
         <RecordForm
           categories={categories}
           tags={tags}
+          records={records}
+          tagActions={tagActions}
           onSubmit={(data) => { addRecord(data); setActiveTab('list'); }}
           onManageCategories={handleManageCategories}
-          onManageTags={handleManageTags}
         />
       )}
 
@@ -140,11 +167,18 @@ export default function App() {
           onUpdate={updateRecord}
           onDelete={deleteRecord}
           onImportBackup={handleImportBackup}
+          tagActions={tagActions}
         />
       )}
 
       {activeTab === 'stats' && (
-        <Statistics records={records} categories={categories} tags={tags} />
+        <Statistics
+          records={records}
+          categories={categories}
+          tags={tags}
+          tagActions={tagActions}
+          onUpdate={updateRecord}
+        />
       )}
       </main>
 
@@ -156,6 +190,8 @@ export default function App() {
           items={manageProps.items}
           categories={manageProps.categories}
           initialCategoryId={manageInitialCategoryId}
+          scopeCategoryId={manageProps.scopeCategoryId}
+          orphans={manageProps.orphans}
           onClose={closeManage}
           onAdd={manageProps.onAdd}
           onUpdate={manageProps.onUpdate}

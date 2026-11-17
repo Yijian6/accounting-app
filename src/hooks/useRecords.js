@@ -119,9 +119,34 @@ export function useRecords() {
     )));
   }, []);
 
+  // 细分改名时同步旧记录：只动这个去向下、带着旧名字的支出
+  const renameRecordTag = useCallback((categoryName, oldName, newName) => {
+    const from = normalizeText(oldName);
+    const to = normalizeText(newName);
+    if (!categoryName || !from || !to || from === to) {
+      return;
+    }
+
+    setRecords((prev) => prev.map((record) => {
+      if (record.type !== 'expense' || record.category !== categoryName || !record.tags.includes(from)) {
+        return record;
+      }
+      const tags = record.tags.map((tag) => (tag === from ? to : tag));
+      return { ...record, tags: tags.filter((tag, index) => tags.indexOf(tag) === index) };
+    }));
+  }, []);
+
   const replaceRecords = useCallback((nextRecords) => {
     setRecords(Array.isArray(nextRecords) ? normalizeRecords(nextRecords) : []);
   }, []);
 
-  return { records, addRecord, updateRecord, deleteRecord, renameRecordCategory, replaceRecords };
+  return {
+    records,
+    addRecord,
+    updateRecord,
+    deleteRecord,
+    renameRecordCategory,
+    renameRecordTag,
+    replaceRecords,
+  };
 }

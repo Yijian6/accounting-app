@@ -36,15 +36,36 @@ function BackButton({ onClick }) {
   );
 }
 
-function RecordRow({ record, withDate = true }) {
+function RecordRow({ record, withDate = true, onEdit }) {
   const subtitle = getRecordSubtitle(record, { withDate });
-  return (
-    <li className="csheet-record">
+  const content = (
+    <>
       <span className="csheet-record-text">
         <strong>{getRecordTitle(record)}</strong>
         {subtitle && <small>{subtitle}</small>}
       </span>
       <b>{money(getRecordDisplayAmount(record))}</b>
+    </>
+  );
+
+  if (!onEdit) {
+    return <li className="csheet-record">{content}</li>;
+  }
+
+  // 点一笔直接打开它的编辑浮层
+  return (
+    <li>
+      <button
+        type="button"
+        className="csheet-record csheet-record--link csheet-record--edit"
+        onClick={() => onEdit(record.id)}
+        aria-label={`编辑：${getRecordTitle(record)} ${money(getRecordDisplayAmount(record))}`}
+      >
+        {content}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <polyline points="9 6 15 12 9 18" />
+        </svg>
+      </button>
     </li>
   );
 }
@@ -66,7 +87,7 @@ function SheetHeader({ name, color, amount, meta, onClose, onBack }) {
   );
 }
 
-function AllRecords({ records }) {
+function AllRecords({ records, onEdit }) {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState('time');
   const deferredQuery = useDeferredValue(query);
@@ -125,7 +146,7 @@ function AllRecords({ records }) {
           <p className="csheet-empty">没有找到「{deferredQuery.trim()}」相关的记录。</p>
         ) : byAmount ? (
           <ul className="csheet-records">
-            {byAmount.map((record) => <RecordRow key={record.id} record={record} />)}
+            {byAmount.map((record) => <RecordRow key={record.id} record={record} onEdit={onEdit} />)}
           </ul>
         ) : (
           groups.map((group) => (
@@ -135,7 +156,7 @@ function AllRecords({ records }) {
                 <span>{money(group.total)}</span>
               </h3>
               <ul className="csheet-records">
-                {group.items.map((record) => <RecordRow key={record.id} record={record} withDate={false} />)}
+                {group.items.map((record) => <RecordRow key={record.id} record={record} withDate={false} onEdit={onEdit} />)}
               </ul>
             </section>
           ))
@@ -145,7 +166,7 @@ function AllRecords({ records }) {
   );
 }
 
-function CategoryBody({ detail, color, detent, onExpand, onClose, onBack, previousPeriodLabel, peekRef }) {
+function CategoryBody({ detail, color, detent, onExpand, onClose, onBack, previousPeriodLabel, peekRef, onEdit }) {
   const records = useMemo(() => detail.records || [], [detail.records]);
   const top = useMemo(
     () => [...records]
@@ -171,12 +192,12 @@ function CategoryBody({ detail, color, detent, onExpand, onClose, onBack, previo
       />
 
       {detent === 'full' ? (
-        <AllRecords records={records} />
+        <AllRecords records={records} onEdit={onEdit} />
       ) : (
         <div className="csheet-peek" ref={peekRef}>
           <h3 className="csheet-section-title">金额最大的 {Math.min(TOP_COUNT, records.length)} 笔</h3>
           <ul className="csheet-records">
-            {top.map((record) => <RecordRow key={record.id} record={record} />)}
+            {top.map((record) => <RecordRow key={record.id} record={record} onEdit={onEdit} />)}
           </ul>
           {records.length > TOP_COUNT && (
             <button type="button" className="csheet-more" onClick={onExpand}>
@@ -228,7 +249,7 @@ function RestBody({ segment, onPick, onClose, peekRef }) {
  * 分类详情浮层。
  * view: { kind: 'category', detail, color, fromRest } | { kind: 'rest', segment } | null
  */
-export default function CategorySheet({ view, onClose, onPickRestCategory, onBackToRest, previousPeriodLabel }) {
+export default function CategorySheet({ view, onClose, onPickRestCategory, onBackToRest, previousPeriodLabel, onEditRecord }) {
   const [detent, setDetent] = useState('half');
   const [lastView, setLastView] = useState(view);
   const peekRef = useRef(null);
@@ -275,6 +296,7 @@ export default function CategorySheet({ view, onClose, onPickRestCategory, onBac
           onBack={shown.fromRest ? onBackToRest : undefined}
           previousPeriodLabel={previousPeriodLabel}
           peekRef={peekRef}
+          onEdit={onEditRecord}
         />
       )}
     </Sheet>

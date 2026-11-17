@@ -27,18 +27,52 @@
   transition: background 0.5s;
 }
 
+/* 支出 ⇄ 收入：点这个小按钮切换，颜色和字一起换 */
 .quick-entry-kicker {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.18em;
   color: var(--accent);
-  padding: 5px 16px;
+  padding: 0 18px;
   border: 1px solid var(--text-ghost);
   border-radius: var(--radius-pill);
+  background: transparent;
   margin-bottom: 24px;
   position: relative;
-  transition: color 0.4s, border-color 0.4s;
+  transition: color 0.35s ease, border-color 0.35s ease, background-color 0.35s ease, transform 0.35s var(--ease-spring);
+}
+
+.quick-entry-kicker span {
+  display: inline-block;
+  animation: quick-kicker-flip 360ms var(--ease-spring) both;
+}
+
+.quick-entry-kicker:active {
+  transform: scale(0.92);
+}
+
+.quick-entry.is-income .quick-entry-kicker {
+  color: var(--green);
+  border-color: var(--green-soft);
+  background: var(--green-soft);
+}
+
+.quick-entry.is-income .quick-entry-hero::before {
+  background: radial-gradient(circle, var(--green-soft) 0%, transparent 70%);
+}
+
+.quick-entry.is-income .quick-submit-btn {
+  background: linear-gradient(135deg, var(--green), var(--green));
+  box-shadow: 0 8px 24px var(--green-soft);
+}
+
+@keyframes quick-kicker-flip {
+  from { opacity: 0; transform: translate3d(0, 6px, 0) scale(0.9); }
+  to { opacity: 1; transform: none; }
 }
 
 .quick-amount-input {
@@ -97,120 +131,8 @@
   transition: color 0.4s;
 }
 
-.quick-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.quick-section-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.quick-section-head h3 {
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  font-weight: 600;
-  padding-left: 4px;
-  transition: color 0.4s;
-}
-
-.quick-section-head p {
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-.quick-manage-btn {
-  flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9px;
-  color: var(--text-soft);
-  background: var(--bg-card);
-  border: 1px solid var(--bg-line);
-  transition: color 0.2s, background 0.2s;
-}
-
-.quick-destination-grid {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  scrollbar-width: none;
-}
-.quick-destination-grid::-webkit-scrollbar { display: none; }
-
-.quick-destination {
-  flex-shrink: 0;
-  min-height: 48px;
-  padding: 14px 22px;
-  border-radius: 14px;
-  border: 1px solid var(--bg-line);
-  background: var(--bg-card);
-  color: var(--text-muted);
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-  transition: background-color 0.22s ease, border-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease, transform 0.25s var(--ease-spring);
-}
-
-.quick-destination.active {
-  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
-  border-color: transparent;
-  color: var(--bg);
-  box-shadow: 0 4px 16px var(--accent-glow), 0 0 40px var(--accent-wash);
-}
-
-.quick-destination-more {
-  border-style: dashed;
-  background: transparent;
-  color: var(--text-soft);
-}
-
-.quick-destination-more:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-wash);
-}
-
-.quick-destination:active {
-  transform: scale(0.97);
-}
-
-.quick-tags-section {
-  animation: quick-slide-in 0.18s ease both;
-}
-
-.quick-tags-section .tag-input {
-  gap: 6px;
-}
-
-.quick-tags-section .tag-chip {
-  min-height: 36px;
-  border-radius: var(--radius-pill);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 8px 16px;
-  border: 1px solid var(--text-ghost);
-  background: transparent;
-  color: var(--text-muted);
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.25s var(--ease-spring);
-}
-
-.quick-tags-section .tag-chip.active {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-wash);
-  box-shadow: 0 0 16px var(--accent-wash);
+.record-form .dpick {
+  margin-bottom: 6px;
 }
 
 .quick-more {
@@ -289,7 +211,6 @@
   color: var(--text);
 }
 
-.quick-type-switch,
 .quick-recurrence-switch {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -300,7 +221,6 @@
   border: 1px solid var(--bg-line);
 }
 
-.quick-type-btn,
 .quick-recurrence-switch button {
   min-height: 38px;
   border-radius: 8px;
@@ -310,17 +230,10 @@
   transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
 }
 
-.quick-type-btn.active.expense,
 .quick-recurrence-switch button.active {
   background: var(--accent);
   color: var(--bg);
   box-shadow: 0 4px 10px var(--accent-glow);
-}
-
-.quick-type-btn.active.income {
-  background: var(--green);
-  color: var(--bg);
-  box-shadow: 0 4px 10px var(--green-soft);
 }
 
 .quick-fixed-box {
@@ -408,10 +321,18 @@
 @media (max-width: 390px) {
   .quick-amount-input input { font-size: 60px; }
   .quick-amount-input span { font-size: 28px; }
-  .quick-destination { min-height: 44px; padding: 12px 18px; font-size: 13px; }
 }
 
 @media (max-width: 360px) {
   .quick-amount-input input { font-size: 50px; }
-  .quick-destination { padding: 10px 14px; font-size: 12px; }
+}
+
+/* iPhone SE 这类矮屏：收紧金额区，让去向和落笔留在一屏内 */
+@media (max-height: 700px) {
+  .quick-entry-hero { padding: 12px 24px 8px; }
+  .quick-entry-kicker { margin-bottom: 10px; }
+  .amount-hint { margin-top: 8px; }
+  .record-form .dpick { --dpick-height: 184px; }
+  .quick-more-toggle { min-height: 40px; padding: 8px 12px; }
+  .quick-more { margin-bottom: 6px; }
 }

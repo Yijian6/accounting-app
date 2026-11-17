@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Modal from './Modal';
 import DataBookExport from './DataBookExport';
-import TagInput from './TagInput';
+import RecordEditor from './RecordEditor';
 import SpendCalendar from './SpendCalendar';
 import { formatAmount, toDatetimeLocal, getDateGroup, getDateKey } from '../utils/format';
 import { exportBackupJSON, exportCSV, exportJSON } from '../utils/export';
@@ -281,32 +281,23 @@ export default function RecordList({
   onUpdate,
   onDelete,
   onImportBackup,
+  tagActions,
 }) {
   const [editingRecord, setEditingRecord] = useState(null);
-  const [editForm, setEditForm] = useState({});
   const [creatingRecord, setCreatingRecord] = useState(false);
-  const [createForm, setCreateForm] = useState({
-    amount: '',
-    type: 'expense',
-    category: '',
-    tags: [],
-    note: '',
-    datetime: '',
-    recurrence: null,
-  });
+  // 每次打开补记 / 编辑都换一个 key，让浮层重新取初值
+  const [editorSession, setEditorSession] = useState(0);
   const [showDataManager, setShowDataManager] = useState(false);
   const [pendingBackup, setPendingBackup] = useState(null);
   const [importError, setImportError] = useState('');
   const [importSuccess, setImportSuccess] = useState('');
   const [exportSuccess, setExportSuccess] = useState('');
   const [backupMonth, setBackupMonth] = useState('all');
-  const [showMoreEdit, setShowMoreEdit] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [reviewMode, setReviewMode] = useState('day');
   const [reviewDate, setReviewDate] = useState(() => new Date());
   const [deleteTargetId, setDeleteTargetId] = useState('');
   const [pressedRecordId, setPressedRecordId] = useState('');
-  const [showMoreCreate, setShowMoreCreate] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState(() => {
     const today = new Date();
     const yesterday = new Date();
@@ -455,17 +446,8 @@ export default function RecordList({
 
   const startEdit = (record) => {
     setDeleteTargetId('');
+    setEditorSession((value) => value + 1);
     setEditingRecord(record);
-    setEditForm({
-      amount: record.amount.toString(),
-      type: record.type,
-      category: record.category,
-      tags: [...record.tags],
-      note: record.note || '',
-      datetime: toDatetimeLocal(record.datetime),
-      recurrence: record.recurrence || null,
-    });
-    setShowMoreEdit(false);
   };
 
   const revealDeleteAction = (record) => {
@@ -513,101 +495,26 @@ export default function RecordList({
     onDelete(recordId);
   };
 
-  const getAvailableTagsForCategory = (type, categoryName) => {
-    if (type !== 'expense' || !categoryName) {
-      return [];
-    }
-
-    const category = categories.find((item) => item.type === 'expense' && item.name === categoryName);
-    if (!category) {
-      return [];
-    }
-
-    return tags.filter((tag) => tag.categoryId === category.id);
-  };
-
-  const getDefaultCategoryName = (type) => {
-    return categories.find((category) => category.type === type)?.name || '';
-  };
-
   const openCreateForReviewDay = () => {
-    const type = 'expense';
+    setEditorSession((value) => value + 1);
     setCreatingRecord(true);
-    setShowMoreCreate(false);
-    setCreateForm({
-      amount: '',
-      type,
-      category: getDefaultCategoryName(type),
-      tags: [],
-      note: '',
-      datetime: buildReviewDateTime(reviewDate),
-      recurrence: null,
-    });
   };
 
-  const closeCreate = () => {
-    setCreatingRecord(false);
-    setShowMoreCreate(false);
-  };
-
-  const saveCreate = () => {
-    const amount = parseFloat(createForm.amount);
-    const date = new Date(createForm.datetime);
-    if (!onAdd || !Number.isFinite(amount) || amount <= 0 || !createForm.category || Number.isNaN(date.getTime())) {
-      return;
-    }
-
-    const allowedTagNames = new Set(filteredCreateTags.map((tag) => tag.name));
-    const nextTags = createForm.type === 'expense'
-      ? createForm.tags.filter((tag) => allowedTagNames.has(tag))
-      : [];
-
-    onAdd({
-      amount,
-      type: createForm.type,
-      category: createForm.category,
-      tags: nextTags,
-      note: createForm.note || '',
-      datetime: date.toISOString(),
-      recurrence: createForm.recurrence || null,
-    });
-
+  const saveCreate = (data) => {
+    if (!onAdd) return;
+    onAdd(data);
+    const date = new Date(data.datetime);
     setReviewMode('day');
     setReviewDate(date);
     setSearchQuery('');
-    closeCreate();
+    setCreatingRecord(false);
   };
 
-  const saveEdit = () => {
-    if (!editForm.amount || !editForm.category) return;
-    const allowedTagNames = new Set(filteredEditTags.map((tag) => tag.name));
-    const nextTags = editForm.type === 'expense'
-      ? editForm.tags.filter((tag) => allowedTagNames.has(tag))
-      : [];
-
-    onUpdate(editingRecord.id, {
-      ...editForm,
-      tags: nextTags,
-      amount: parseFloat(editForm.amount),
-      datetime: new Date(editForm.datetime).toISOString(),
-      recurrence: editForm.recurrence || null,
-    });
+  const saveEdit = (data) => {
+    if (!editingRecord) return;
+    onUpdate(editingRecord.id, data);
     setEditingRecord(null);
   };
-
-  const filteredEditCategories = categories.filter((category) => category.type === editForm.type);
-  // 旧记录上的细分可能已被改名、删除或移到别的去向：只要去向没换，就照原样保留并显示出来，不悄悄丢掉
-  const editLegacyTags = editingRecord && editForm.type === 'expense' && editForm.category === editingRecord.category
-    ? (editingRecord.tags || [])
-      .filter((name) => !getAvailableTagsForCategory('expense', editForm.category).some((tag) => tag.name === name))
-      .map((name) => ({ id: `legacy:${name}`, name }))
-    : [];
-  const filteredEditTags = [
-    ...getAvailableTagsForCategory(editForm.type, editForm.category),
-    ...editLegacyTags,
-  ];
-  const filteredCreateCategories = categories.filter((category) => category.type === createForm.type);
-  const filteredCreateTags = getAvailableTagsForCategory(createForm.type, createForm.category);
 
   const openDataManager = () => {
     setImportError('');
@@ -942,278 +849,33 @@ export default function RecordList({
         onClose={() => setCalendarOpen(false)}
       />
 
-      <Modal
+      <RecordEditor
+        key={`create:${editorSession}`}
         open={creatingRecord}
         title="为这一天记一笔"
-        onClose={closeCreate}
-      >
-        {creatingRecord && (
-          <div className="edit-form create-form">
-            <div className="create-date-note">{formatReviewLabel('day', reviewDate)}</div>
+        dateNote={formatReviewLabel('day', reviewDate)}
+        initial={{ type: 'expense', datetime: buildReviewDateTime(reviewDate) }}
+        categories={categories}
+        tags={tags}
+        records={records}
+        tagActions={tagActions}
+        onSubmit={saveCreate}
+        onClose={() => setCreatingRecord(false)}
+      />
 
-            <div className="edit-type-switch">
-              <button
-                type="button"
-                className={`type-btn ${createForm.type === 'expense' ? 'active expense' : ''}`}
-                onClick={() => {
-                  const type = 'expense';
-                  setCreateForm((form) => ({
-                    ...form,
-                    type,
-                    category: getDefaultCategoryName(type),
-                    tags: [],
-                  }));
-                }}
-              >
-                支出
-              </button>
-              <button
-                type="button"
-                className={`type-btn ${createForm.type === 'income' ? 'active income' : ''}`}
-                onClick={() => {
-                  const type = 'income';
-                  setCreateForm((form) => ({
-                    ...form,
-                    type,
-                    category: getDefaultCategoryName(type),
-                    tags: [],
-                  }));
-                }}
-              >
-                收入
-              </button>
-            </div>
-
-            <div className="edit-amount-input">
-              <span className="amount-symbol">{createForm.type === 'expense' ? '-' : '+'}</span>
-              <input
-                type="number"
-                step="0.01"
-                inputMode="decimal"
-                value={createForm.amount}
-                onChange={(event) => setCreateForm((form) => ({ ...form, amount: event.target.value }))}
-                autoFocus
-              />
-            </div>
-
-            <div className="category-grid">
-              {filteredCreateCategories.map((category) => (
-                <button
-                  key={category.id}
-                  type="button"
-                  className={`category-item ${createForm.category === category.name ? 'active' : ''}`}
-                  onClick={() => setCreateForm((form) => ({ ...form, category: category.name, tags: [] }))}
-                >
-                  {category.name}
-                </button>
-              ))}
-            </div>
-
-            {createForm.type === 'expense' && (
-              <TagInput
-                tags={filteredCreateTags}
-                selectedTags={createForm.tags}
-                onChange={(nextTags) => setCreateForm((form) => ({ ...form, tags: nextTags }))}
-                emptyMessage={createForm.category ? '这个分类下还没有细分标签' : '先选分类，再选细分标签'}
-              />
-            )}
-
-            <button
-              type="button"
-              className={`more-toggle ${showMoreCreate ? 'expanded' : ''}`}
-              onClick={() => setShowMoreCreate(!showMoreCreate)}
-            >
-              {showMoreCreate ? '收起' : '更多选项'}
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-
-            {showMoreCreate && (
-              <div className="more-section">
-                <input
-                  type="text"
-                  placeholder="添加备注..."
-                  value={createForm.note}
-                  onChange={(event) => setCreateForm((form) => ({ ...form, note: event.target.value }))}
-                />
-                <input
-                  type="datetime-local"
-                  value={createForm.datetime}
-                  onChange={(event) => setCreateForm((form) => ({ ...form, datetime: event.target.value }))}
-                />
-                <div className={`edit-fixed-section ${createForm.type}`}>
-                  <label className="edit-fixed-toggle">
-                    <input
-                      type="checkbox"
-                      checked={!!createForm.recurrence}
-                      onChange={(event) => setCreateForm((form) => ({
-                        ...form,
-                        recurrence: event.target.checked ? { type: form.recurrence?.type || 'monthly' } : null,
-                      }))}
-                    />
-                    <span>{createForm.type === 'income' ? '这是周期收入' : '这是周期支出'}</span>
-                  </label>
-                  {createForm.recurrence && (
-                    <div className="edit-recurrence-switch">
-                      <button
-                        type="button"
-                        className={createForm.recurrence.type === 'monthly' ? 'active' : ''}
-                        onClick={() => setCreateForm((form) => ({ ...form, recurrence: { type: 'monthly' } }))}
-                      >
-                        月
-                      </button>
-                      <button
-                        type="button"
-                        className={createForm.recurrence.type === 'yearly' ? 'active' : ''}
-                        onClick={() => setCreateForm((form) => ({ ...form, recurrence: { type: 'yearly' } }))}
-                      >
-                        年
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <button className="submit-btn" onClick={saveCreate}>
-              落 笔
-            </button>
-          </div>
-        )}
-      </Modal>
-
-      <Modal
+      <RecordEditor
+        key={`edit:${editorSession}`}
         open={!!editingRecord}
         title="编辑记录"
+        initial={editingRecord}
+        submitLabel="保 存"
+        categories={categories}
+        tags={tags}
+        records={records}
+        tagActions={tagActions}
+        onSubmit={saveEdit}
         onClose={() => setEditingRecord(null)}
-      >
-        {editingRecord && (
-          <div className="edit-form">
-            <div className="edit-type-switch">
-              <button
-                type="button"
-                className={`type-btn ${editForm.type === 'expense' ? 'active expense' : ''}`}
-                onClick={() => setEditForm((form) => ({
-                  ...form,
-                  type: 'expense',
-                  category: '',
-                  tags: [],
-                }))}
-              >
-                支出
-              </button>
-              <button
-                type="button"
-                className={`type-btn ${editForm.type === 'income' ? 'active income' : ''}`}
-                onClick={() => setEditForm((form) => ({
-                  ...form,
-                  type: 'income',
-                  category: '',
-                  tags: [],
-                }))}
-              >
-                收入
-              </button>
-            </div>
-
-            <div className="edit-amount-input">
-              <span className="amount-symbol">{editForm.type === 'expense' ? '-' : '+'}</span>
-              <input
-                type="number"
-                step="0.01"
-                inputMode="decimal"
-                value={editForm.amount}
-                onChange={(event) => setEditForm((form) => ({ ...form, amount: event.target.value }))}
-              />
-            </div>
-
-            <div className="category-grid">
-              {filteredEditCategories.map((category) => (
-                <button
-                  key={category.id}
-                  type="button"
-                  className={`category-item ${editForm.category === category.name ? 'active' : ''}`}
-                  onClick={() => setEditForm((form) => ({ ...form, category: category.name, tags: [] }))}
-                >
-                  {category.name}
-                </button>
-              ))}
-            </div>
-
-            {editForm.type === 'expense' && (
-              <TagInput
-                tags={filteredEditTags}
-                selectedTags={editForm.tags}
-                onChange={(nextTags) => setEditForm((form) => ({ ...form, tags: nextTags }))}
-                emptyMessage={editForm.category ? '这个分类下还没有细分标签' : '先选分类，再选细分标签'}
-              />
-            )}
-
-            <button
-              type="button"
-              className={`more-toggle ${showMoreEdit ? 'expanded' : ''}`}
-              onClick={() => setShowMoreEdit(!showMoreEdit)}
-            >
-              {showMoreEdit ? '收起' : '更多选项'}
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-
-            {showMoreEdit && (
-              <div className="more-section">
-                <input
-                  type="text"
-                  placeholder="添加备注..."
-                  value={editForm.note}
-                  onChange={(event) => setEditForm((form) => ({ ...form, note: event.target.value }))}
-                />
-                <input
-                  type="datetime-local"
-                  value={editForm.datetime}
-                  onChange={(event) => setEditForm((form) => ({ ...form, datetime: event.target.value }))}
-                />
-                <div className={`edit-fixed-section ${editForm.type}`}>
-                  <label className="edit-fixed-toggle">
-                    <input
-                      type="checkbox"
-                      checked={!!editForm.recurrence}
-                      onChange={(event) => setEditForm((form) => ({
-                        ...form,
-                        recurrence: event.target.checked ? { type: form.recurrence?.type || 'monthly' } : null,
-                      }))}
-                    />
-                    <span>{editForm.type === 'income' ? '这是周期收入' : '这是周期支出'}</span>
-                  </label>
-                  {editForm.recurrence && (
-                    <div className="edit-recurrence-switch">
-                      <button
-                        type="button"
-                        className={editForm.recurrence.type === 'monthly' ? 'active' : ''}
-                        onClick={() => setEditForm((form) => ({ ...form, recurrence: { type: 'monthly' } }))}
-                      >
-                        月
-                      </button>
-                      <button
-                        type="button"
-                        className={editForm.recurrence.type === 'yearly' ? 'active' : ''}
-                        onClick={() => setEditForm((form) => ({ ...form, recurrence: { type: 'yearly' } }))}
-                      >
-                        年
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <button className="submit-btn" onClick={saveEdit}>
-              保存
-            </button>
-          </div>
-        )}
-      </Modal>
+      />
 
       <Modal
         open={showDataManager}

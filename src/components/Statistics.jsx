@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import DonutChart from './DonutChart';
 import CategorySheet from './CategorySheet';
+import RecordEditor from './RecordEditor';
 import { getStatisticsInsightViewModel } from '../utils/statistics';
 import { money, percent } from '../utils/statsText';
 import './Statistics.css';
@@ -130,8 +131,12 @@ function DestinationList({ segments, highlightedName, onSelect }) {
   );
 }
 
-export default function Statistics({ records }) {
+export default function Statistics({ records, categories = [], tags = [], tagActions, onUpdate }) {
   const [periodDays, setPeriodDays] = useState(1);
+  // 从分类详情里点开的那一笔（原始记录，不是分摊后的副本）
+  const [editingId, setEditingId] = useState('');
+  const [editorSession, setEditorSession] = useState(0);
+  const editingRecord = editingId ? records.find((record) => record.id === editingId) || null : null;
   // null | { kind: 'category', name, fromRest } | { kind: 'rest' }
   const [sheet, setSheet] = useState(null);
 
@@ -226,7 +231,30 @@ export default function Statistics({ records }) {
         onPickRestCategory={(name) => setSheet({ kind: 'category', name, fromRest: true })}
         onBackToRest={() => setSheet({ kind: 'rest' })}
         previousPeriodLabel={vm.previousPeriodLabel}
+        onEditRecord={onUpdate ? (id) => {
+          setEditorSession((value) => value + 1);
+          setEditingId(id);
+        } : undefined}
       />
+
+      {onUpdate && (
+        <RecordEditor
+          key={editorSession}
+          open={!!editingRecord}
+          title="编辑记录"
+          initial={editingRecord}
+          submitLabel="保 存"
+          categories={categories}
+          tags={tags}
+          records={records}
+          tagActions={tagActions}
+          onSubmit={(data) => {
+            onUpdate(editingId, data);
+            setEditingId('');
+          }}
+          onClose={() => setEditingId('')}
+        />
+      )}
     </div>
   );
 }
