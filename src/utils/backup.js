@@ -217,3 +217,34 @@ export function replaceBackupData(incomingData) {
     },
   };
 }
+
+function getLocalMonthKey(datetime) {
+  const date = new Date(datetime);
+  if (!Number.isFinite(date.getTime())) return '';
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/** 有记录的月份，新的在前：[{ key: '2026-11', year: 2026, month: 11, count }] */
+export function getBackupMonths(records) {
+  const counts = new Map();
+  records.forEach((record) => {
+    const key = getLocalMonthKey(record.datetime);
+    if (key) counts.set(key, (counts.get(key) || 0) + 1);
+  });
+
+  return [...counts.entries()]
+    .sort(([a], [b]) => (a < b ? 1 : -1))
+    .map(([key, count]) => {
+      const [year, month] = key.split('-').map(Number);
+      return { key, year, month, count };
+    });
+}
+
+/** 单月备份：只取该月记录，分类和标签全量带上，导入新设备后去向不会丢 */
+export function filterBackupDataByMonth({ records, categories, tags }, monthKey) {
+  return {
+    records: records.filter((record) => getLocalMonthKey(record.datetime) === monthKey),
+    categories,
+    tags,
+  };
+}

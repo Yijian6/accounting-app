@@ -1,5 +1,5 @@
 import { formatFullDate } from './format';
-import { buildBackupPayload } from './backup';
+import { buildBackupPayload, filterBackupDataByMonth } from './backup';
 import { saveFile } from './saveFile';
 
 export function exportCSV(records) {
@@ -29,10 +29,13 @@ export function exportJSON(records) {
   return downloadFile(json, '记账数据.json', 'application/json;charset=utf-8');
 }
 
-export function exportBackupJSON(data) {
-  const backup = buildBackupPayload(data);
+/** monthKey 为 '2026-11' 时只导出该月记录；不传则导出全部 */
+export function exportBackupJSON(data, { monthKey } = {}) {
+  const scoped = monthKey ? filterBackupDataByMonth(data, monthKey) : data;
+  const backup = buildBackupPayload(scoped);
   const json = JSON.stringify(backup, null, 2);
-  return downloadFile(json, `accounting-backup-${Date.now()}.json`, 'application/json;charset=utf-8');
+  const suffix = monthKey ? `${monthKey}-` : '';
+  return downloadFile(json, `accounting-backup-${suffix}${Date.now()}.json`, 'application/json;charset=utf-8');
 }
 
 function downloadFile(content, filename, mimeType) {

@@ -5,7 +5,7 @@ import TagInput from './TagInput';
 import { formatAmount, toDatetimeLocal, getDateGroup, getDateKey } from '../utils/format';
 import { exportBackupJSON, exportCSV, exportJSON } from '../utils/export';
 import { SAVE_RESULT } from '../utils/saveFile';
-import { formatBackupSummary, parseBackupFileContent } from '../utils/backup';
+import { formatBackupSummary, getBackupMonths, parseBackupFileContent } from '../utils/backup';
 import './RecordList.css';
 
 function buildImportResultMessage(summary) {
@@ -309,6 +309,7 @@ export default function RecordList({
   const [importError, setImportError] = useState('');
   const [importSuccess, setImportSuccess] = useState('');
   const [exportSuccess, setExportSuccess] = useState('');
+  const [backupMonth, setBackupMonth] = useState('all');
   const [showMoreEdit, setShowMoreEdit] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [reviewMode, setReviewMode] = useState('day');
@@ -653,7 +654,23 @@ export default function RecordList({
     }
   };
 
-  const handleExportBackup = () => runExport('备份', () => exportBackupJSON({ records, categories, tags }));
+  const backupMonths = showDataManager ? getBackupMonths(records) : [];
+  const currentYear = new Date().getFullYear();
+  const formatBackupMonth = (item) => (
+    item.year === currentYear ? `${item.month} 月` : `${item.year} 年 ${item.month} 月`
+  );
+  const selectedBackupMonth = backupMonths.find((item) => item.key === backupMonth) || null;
+
+  const handleExportBackup = () => {
+    if (selectedBackupMonth) {
+      const label = `${formatBackupMonth(selectedBackupMonth)}备份`;
+      return runExport(label, () => exportBackupJSON(
+        { records, categories, tags },
+        { monthKey: selectedBackupMonth.key },
+      ));
+    }
+    return runExport('备份', () => exportBackupJSON({ records, categories, tags }));
+  };
 
   const triggerImport = () => {
     setImportError('');
@@ -1212,11 +1229,38 @@ export default function RecordList({
           />
 
           <div className="data-manager-section">
+            {backupMonths.length > 0 && (
+              <div className="backup-range" role="group" aria-label="备份范围">
+                <button
+                  type="button"
+                  className={!selectedBackupMonth ? 'active' : ''}
+                  aria-pressed={!selectedBackupMonth}
+                  onClick={() => setBackupMonth('all')}
+                >
+                  全部
+                  <small>{records.length} 笔</small>
+                </button>
+                {backupMonths.map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className={selectedBackupMonth?.key === item.key ? 'active' : ''}
+                    aria-pressed={selectedBackupMonth?.key === item.key}
+                    onClick={() => setBackupMonth(item.key)}
+                  >
+                    {formatBackupMonth(item)}
+                    <small>{item.count} 笔</small>
+                  </button>
+                ))}
+              </div>
+            )}
             <button
               className="export-option-btn"
               onClick={handleExportBackup}
             >
-              导出备份
+              {selectedBackupMonth
+                ? `导出 ${formatBackupMonth(selectedBackupMonth)}备份`
+                : '导出备份'}
             </button>
             <button
               className="export-option-btn secondary"
@@ -1227,7 +1271,7 @@ export default function RecordList({
           </div>
 
           <div className="data-manager-note">
-            数据保存在本地。需要迁移或留存时，先导出备份，再在新设备导入。
+            数据保存在本地。需要迁移或留存时，先导出备份，再在新设备导入。选某个月时只带走那个月的记录，分类和标签会一并带上；在新设备选「合并到当前数据」即可。
           </div>
 
           <div className="data-manager-divider" />
