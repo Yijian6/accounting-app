@@ -650,6 +650,15 @@
   line-height: 1.55;
 }
 
+.data-book-error {
+  padding: 12px 14px;
+  border-radius: 9px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .data-book-submit {
   min-height: 48px;
   border-radius: 14px;

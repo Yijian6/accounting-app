@@ -1,5 +1,6 @@
 import { getRecordAmountInRange } from './statistics';
 import { formatAmount } from './format';
+import { saveFile } from './saveFile';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const APP_NAME = '拾序记账';
@@ -1186,14 +1187,7 @@ function buildHtmlDocument(book, colors) {
 }
 
 function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
-  URL.revokeObjectURL(url);
+  return saveFile(blob, filename);
 }
 
 function getThemeColors() {
@@ -1235,20 +1229,18 @@ export function exportDataBook(records, { rangeType = 'month', format = 'xlsx' }
 
   if (format === 'json') {
     const blob = new Blob([JSON.stringify(book, null, 2)], { type: 'application/json;charset=utf-8' });
-    downloadBlob(blob, `${filenameBase}.json`);
-    return;
+    return downloadBlob(blob, `${filenameBase}.json`);
   }
 
   if (format === 'html') {
     const html = buildHtmlDocument(book, colors);
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    downloadBlob(blob, `${filenameBase}.html`);
-    return;
+    return downloadBlob(blob, `${filenameBase}.html`);
   }
 
   const xlsxBytes = buildXlsx(book, colors);
   const blob = new Blob([xlsxBytes], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
-  downloadBlob(blob, `${filenameBase}.xlsx`);
+  return downloadBlob(blob, `${filenameBase}.xlsx`);
 }

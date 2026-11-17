@@ -3,6 +3,7 @@ import Modal from './Modal';
 import TagInput from './TagInput';
 import { formatAmount, toDatetimeLocal, getDateGroup, getDateKey } from '../utils/format';
 import { exportBackupJSON, exportCSV, exportJSON } from '../utils/export';
+import { SAVE_RESULT } from '../utils/saveFile';
 import { formatBackupSummary, parseBackupFileContent } from '../utils/backup';
 import './RecordList.css';
 
@@ -634,10 +635,24 @@ export default function RecordList({
     }, 3000);
   };
 
-  const handleExportBackup = () => {
-    exportBackupJSON({ records, categories, tags });
-    showExportSuccess('备份已导出，请在浏览器下载中查收。');
+  // task 必须同步发起保存（iOS 分享面板要求在点击的同步调用链里打开）
+  const runExport = async (label, task) => {
+    setImportError('');
+    setImportSuccess('');
+    setExportSuccess('');
+    try {
+      const result = await task();
+      if (result === SAVE_RESULT.SAVED) {
+        showExportSuccess(`${label}已保存。`);
+      } else if (result === SAVE_RESULT.DOWNLOADED) {
+        showExportSuccess(`${label}已导出，请在下载中查收。`);
+      }
+    } catch {
+      setImportError(`${label}这次没有导出成功，可以再试一次。`);
+    }
   };
+
+  const handleExportBackup = () => runExport('备份', () => exportBackupJSON({ records, categories, tags }));
 
   const triggerImport = () => {
     setImportError('');
@@ -1295,19 +1310,13 @@ export default function RecordList({
           <div className="data-manager-section">
             <button
               className="export-option-btn secondary"
-              onClick={() => {
-                exportCSV(records);
-                showExportSuccess('CSV 已导出，请在浏览器下载中查收。');
-              }}
+              onClick={() => runExport('CSV ', () => exportCSV(records))}
             >
               导出 CSV
             </button>
             <button
               className="export-option-btn secondary"
-              onClick={() => {
-                exportJSON(records);
-                showExportSuccess('展示 JSON 已导出，请在浏览器下载中查收。');
-              }}
+              onClick={() => runExport('展示 JSON ', () => exportJSON(records))}
             >
               导出展示 JSON
             </button>

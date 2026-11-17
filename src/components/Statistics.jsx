@@ -3,6 +3,7 @@ import Modal from './Modal';
 import { getStatisticsInsightViewModel } from '../utils/statistics';
 import { formatAmount } from '../utils/format';
 import { exportDataBook } from '../utils/dataBookExport';
+import { SAVE_RESULT } from '../utils/saveFile';
 import './Statistics.css';
 
 const PERIOD_OPTIONS = [
@@ -236,6 +237,7 @@ export default function Statistics({ records }) {
   const [showDataExport, setShowDataExport] = useState(false);
   const [exportRangeType, setExportRangeType] = useState('month');
   const [exportFormat, setExportFormat] = useState('html');
+  const [exportError, setExportError] = useState('');
 
   const vm = useMemo(
     () => getStatisticsInsightViewModel(records, periodDays, selectedCategory),
@@ -244,12 +246,19 @@ export default function Statistics({ records }) {
 
   const activeCategoryName = vm.selectedCategoryDetail?.name || '';
 
-  const handleDataBookExport = () => {
-    exportDataBook(records, {
-      rangeType: exportRangeType,
-      format: exportFormat,
-    });
-    setShowDataExport(false);
+  const handleDataBookExport = async () => {
+    setExportError('');
+    try {
+      const result = await exportDataBook(records, {
+        rangeType: exportRangeType,
+        format: exportFormat,
+      });
+      if (result !== SAVE_RESULT.CANCELLED) {
+        setShowDataExport(false);
+      }
+    } catch {
+      setExportError('这次没有导出成功，可以再试一次。');
+    }
   };
 
   return (
@@ -294,7 +303,7 @@ export default function Statistics({ records }) {
         <button
           type="button"
           className="stats-export-link"
-          onClick={() => setShowDataExport(true)}
+          onClick={() => { setExportError(''); setShowDataExport(true); }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -350,6 +359,10 @@ export default function Statistics({ records }) {
           <div className="data-book-note">
             HTML 数据册包含总览、分类去向、时间轨迹、记录明细和周期归属；只呈现数据，不做消费评价。
           </div>
+
+          {exportError && (
+            <div className="data-book-error">{exportError}</div>
+          )}
 
           <button
             type="button"
