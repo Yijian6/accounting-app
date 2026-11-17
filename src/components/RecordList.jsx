@@ -601,7 +601,16 @@ export default function RecordList({
   };
 
   const filteredEditCategories = categories.filter((category) => category.type === editForm.type);
-  const filteredEditTags = getAvailableTagsForCategory(editForm.type, editForm.category);
+  // 旧记录上的细分可能已被改名、删除或移到别的去向：只要去向没换，就照原样保留并显示出来，不悄悄丢掉
+  const editLegacyTags = editingRecord && editForm.type === 'expense' && editForm.category === editingRecord.category
+    ? (editingRecord.tags || [])
+      .filter((name) => !getAvailableTagsForCategory('expense', editForm.category).some((tag) => tag.name === name))
+      .map((name) => ({ id: `legacy:${name}`, name }))
+    : [];
+  const filteredEditTags = [
+    ...getAvailableTagsForCategory(editForm.type, editForm.category),
+    ...editLegacyTags,
+  ];
   const filteredCreateCategories = categories.filter((category) => category.type === createForm.type);
   const filteredCreateTags = getAvailableTagsForCategory(createForm.type, createForm.category);
 

@@ -86,14 +86,20 @@
 .delete-btn,
 .save-btn,
 .cancel-btn {
+  min-height: 30px;
   font-size: 12px;
-  padding: 4px 10px;
+  font-weight: 600;
+  padding: 0 12px;
   border-radius: 8px;
-  transition: background 0.18s, color 0.18s;
+  border: 1px solid transparent;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
 }
 
+/* 编辑 / 取消：在暗色主题里也要清楚可见，用 text-soft + 底色，不靠半透明灰字 */
 .edit-btn {
-  color: var(--text-muted);
+  color: var(--text-soft);
+  background: var(--bg-up);
+  border-color: var(--bg-line);
 }
 
 .edit-btn:hover {
@@ -111,6 +117,7 @@
 
 .manage-edit-row {
   display: flex;
+  align-items: center;
   gap: 8px;
   padding: 8px 16px;
 }
@@ -158,7 +165,9 @@
 }
 
 .cancel-btn {
-  color: var(--text-muted);
+  color: var(--text-soft);
+  background: var(--bg-up);
+  border-color: var(--bg-line);
 }
 
 .cancel-btn:hover {

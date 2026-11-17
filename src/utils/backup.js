@@ -142,8 +142,13 @@ export function mergeBackupData(currentData, incomingData) {
   const recordIds = new Set(currentData.records.map((item) => item.id));
   const categoryIds = new Set(currentData.categories.map((item) => item.id));
   const categoryKeys = new Set(currentData.categories.map((item) => `${item.type}::${item.name}`));
+  const categoryIdByKey = new Map(currentData.categories.map((item) => [`${item.type}::${item.name}`, item.id]));
+  // 细分按「归属去向 + 名字」判重：不同去向下同名的细分（如两个「其他」）都要保留
+  const tagKey = (tag) => `${tag.categoryId || ''}::${tag.name}`;
   const tagIds = new Set(currentData.tags.map((item) => item.id));
-  const tagNames = new Set(currentData.tags.map((item) => item.name));
+  const tagKeys = new Set(currentData.tags.map(tagKey));
+  // 备份里的去向若与本机同名同类型但 id 不同，被跳过后要把它的细分改挂到本机那个去向上，否则细分会成为孤儿
+  const categoryIdRemap = new Map();
 
   const addedRecords = [];
   let skippedRecords = 0;
@@ -161,23 +166,31 @@ export function mergeBackupData(currentData, incomingData) {
   incomingData.categories.forEach((category) => {
     const key = `${category.type}::${category.name}`;
     if (categoryIds.has(category.id) || categoryKeys.has(key)) {
+      const existingId = categoryIdByKey.get(key);
+      if (existingId && existingId !== category.id) {
+        categoryIdRemap.set(category.id, existingId);
+      }
       skippedCategories += 1;
       return;
     }
     categoryIds.add(category.id);
     categoryKeys.add(key);
+    categoryIdByKey.set(key, category.id);
     addedCategories.push(category);
   });
 
   const addedTags = [];
   let skippedTags = 0;
-  incomingData.tags.forEach((tag) => {
-    if (tagIds.has(tag.id) || tagNames.has(tag.name)) {
+  incomingData.tags.forEach((incomingTag) => {
+    const tag = categoryIdRemap.has(incomingTag.categoryId)
+      ? { ...incomingTag, categoryId: categoryIdRemap.get(incomingTag.categoryId) }
+      : incomingTag;
+    if (tagIds.has(tag.id) || tagKeys.has(tagKey(tag))) {
       skippedTags += 1;
       return;
     }
     tagIds.add(tag.id);
-    tagNames.add(tag.name);
+    tagKeys.add(tagKey(tag));
     addedTags.push(tag);
   });
 

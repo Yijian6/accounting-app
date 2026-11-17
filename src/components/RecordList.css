@@ -279,16 +279,21 @@
 }
 
 .manage-icon-btn-inline {
-  width: 14px;
-  height: 14px;
-  color: var(--text-muted);
-  opacity: 0.35;
-  transition: opacity 0.2s, color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: -9px -9px -9px 0;
+  border-radius: 8px;
+  color: var(--text-soft);
+  transition: color 0.2s, background-color 0.2s;
 }
 
-.manage-icon-btn-inline:hover {
-  opacity: 0.7;
+.manage-icon-btn-inline:hover,
+.manage-icon-btn-inline:active {
   color: var(--accent);
+  background: var(--accent-wash);
 }
 
 /* ── 空状态 ── */

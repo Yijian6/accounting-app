@@ -134,7 +134,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 9px;
-  color: var(--text-muted);
+  color: var(--text-soft);
   background: var(--bg-card);
   border: 1px solid var(--bg-line);
   transition: color 0.2s, background 0.2s;

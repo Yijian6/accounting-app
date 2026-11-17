@@ -131,7 +131,7 @@ function DestinationList({ segments, highlightedName, onSelect }) {
 }
 
 export default function Statistics({ records }) {
-  const [periodDays, setPeriodDays] = useState(7);
+  const [periodDays, setPeriodDays] = useState(1);
   // null | { kind: 'category', name, fromRest } | { kind: 'rest' }
   const [sheet, setSheet] = useState(null);
 
