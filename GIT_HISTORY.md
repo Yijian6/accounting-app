@@ -8,6 +8,7 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Existing Commits
 
+- 2026-11-17T17:18:53+08:00 | e6eaf44 | feat: distill statistics to ring, one sentence and destination list
 - 2026-11-17T15:21:07+08:00 | a555b38 | feat: redesign statistics with donut chart and category sheet
 - 2026-11-17T14:56:42+08:00 | df49e96 | fix: route exports through a platform-aware file saver
 - 2026-11-16T13:05:37+08:00 | 1ed0e62 | fix: adapt layout for iPhone SE 3 width and height
