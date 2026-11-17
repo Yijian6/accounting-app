@@ -82,15 +82,22 @@ function PeriodSwitch({ value, onChange }) {
   );
 }
 
-function DonutCenter({ periodLabel, total, destinationCount, selected }) {
+function DonutCenter({ periodLabel, total, destinationCount, selected, canOpen }) {
   const rollingTotal = useRollingNumber(total);
 
+  // 选中一块：中心只讲它占多少
   if (selected) {
     return (
-      <div className="stats-donut-center" key={`sel:${selected.name}`}>
-        <span className="stats-donut-label">{selected.name}</span>
-        <strong className={amountSizeClass(selected.amount)}>{money(selected.amount)}</strong>
-        <span className="stats-donut-sub">占 {percent(selected.share)}</span>
+      <div className="stats-donut-center is-focus" key={`sel:${selected.name}`}>
+        <span className="stats-donut-label">
+          <i style={{ background: selected.color }} aria-hidden="true" />
+          {selected.name}
+        </span>
+        <strong className="stats-donut-percent">{percent(selected.share)}</strong>
+        <span className="stats-donut-sub">
+          {money(selected.amount)}
+          {canOpen && <em aria-hidden="true"> ›</em>}
+        </span>
       </div>
     );
   }
@@ -133,12 +140,18 @@ function DestinationList({ segments, highlightedName, onSelect }) {
 
 export default function Statistics({ records, categories = [], tags = [], tagActions, onUpdate }) {
   const [periodDays, setPeriodDays] = useState(1);
+  const changePeriod = (days) => {
+    setPeriodDays(days);
+    setFocusName('');
+  };
   // 从分类详情里点开的那一笔（原始记录，不是分摊后的副本）
   const [editingId, setEditingId] = useState('');
   const [editorSession, setEditorSession] = useState(0);
   const editingRecord = editingId ? records.find((record) => record.id === editingId) || null : null;
   // null | { kind: 'category', name, fromRest } | { kind: 'rest' }
   const [sheet, setSheet] = useState(null);
+  // 圆环上点选的那一块：只改变圆环和中心，不弹详情
+  const [focusName, setFocusName] = useState('');
 
   const selectedCategory = sheet?.kind === 'category' ? sheet.name : '';
   const vm = useMemo(
@@ -160,11 +173,13 @@ export default function Statistics({ records, categories = [], tags = [], tagAct
   );
 
   const restSegment = segments.find((segment) => segment.isRest) || null;
-  const highlightedName = !sheet
+  const sheetName = !sheet
     ? ''
     : sheet.kind === 'rest' || sheet.fromRest
       ? REST_NAME
       : sheet.name;
+  const focusSegment = segments.find((segment) => segment.name === focusName) || null;
+  const highlightedName = sheetName || (focusSegment ? focusName : '');
   const highlightedSegment = segments.find((segment) => segment.name === highlightedName) || null;
 
   const sheetView = useMemo(() => {
@@ -183,10 +198,25 @@ export default function Statistics({ records, categories = [], tags = [], tagAct
     };
   }, [sheet, restSegment, vm.selectedCategoryDetail, segments]);
 
-  const handleSelect = (name) => {
+  const openSheet = (name) => {
     const segment = segments.find((item) => item.name === name);
     if (!segment) return;
     setSheet(segment.isRest ? { kind: 'rest' } : { kind: 'category', name, fromRest: false });
+  };
+
+  // 圆环：点一块只聚焦，再点同一块取消；聚焦时点中心才看详情
+  const handleDonutSelect = (name) => {
+    setFocusName((current) => (current === name ? '' : name));
+  };
+
+  const handleDonutCenter = () => {
+    if (focusSegment) openSheet(focusSegment.name);
+  };
+
+  // 列表行：直接看详情，并让圆环停在这一块
+  const handleRowSelect = (name) => {
+    setFocusName(name);
+    openSheet(name);
   };
 
   const fixedSummary = vm.fixedExpenseSummary;
@@ -194,14 +224,15 @@ export default function Statistics({ records, categories = [], tags = [], tagAct
   return (
     <div className="statistics">
       <div className="stats-top">
-        <PeriodSwitch value={periodDays} onChange={setPeriodDays} />
+        <PeriodSwitch value={periodDays} onChange={changePeriod} />
       </div>
 
       <section className="stats-overview" aria-label="钱去了哪里">
         <DonutChart
           segments={segments}
           selectedName={highlightedName}
-          onSelect={handleSelect}
+          onSelect={handleDonutSelect}
+          onCenterClick={handleDonutCenter}
           label={segments.map((segment) => `${segment.name} ${percent(segment.share)}`).join('，') || '暂无支出'}
         >
           <DonutCenter
@@ -209,6 +240,7 @@ export default function Statistics({ records, categories = [], tags = [], tagAct
             total={vm.currentTotal}
             destinationCount={destinationCount}
             selected={highlightedSegment}
+            canOpen={!sheet && !!focusSegment}
           />
         </DonutChart>
 
@@ -218,7 +250,7 @@ export default function Statistics({ records, categories = [], tags = [], tagAct
       <DestinationList
         segments={segments}
         highlightedName={highlightedName}
-        onSelect={handleSelect}
+        onSelect={handleRowSelect}
       />
 
       {fixedSummary.count > 0 && fixedSummary.total > 0 && (

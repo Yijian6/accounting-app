@@ -88,7 +88,7 @@ function arcTransform(arc, lifted) {
  * 焦点弧下方垫一层缓慢呼吸的光晕。点击圆环（含周围一圈宽松热区）按角度命中分类；
  * 中心内容由 children 提供。
  */
-export default function DonutChart({ segments, selectedName, onSelect, label, children }) {
+export default function DonutChart({ segments, selectedName, onSelect, onCenterClick, label, children }) {
   // useId 带有 : 或 « » 这类字符，放进 url(#...) 会失效
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const maskId = `donut-mask-${uid}`;
@@ -104,7 +104,12 @@ export default function DonutChart({ segments, selectedName, onSelect, label, ch
     const x = (event.clientX - rect.left) * scale - CENTER;
     const y = (event.clientY - rect.top) * scale - CENTER;
     const distance = Math.hypot(x, y);
-    if (distance < RADIUS - HIT_BAND || distance > RADIUS + HIT_BAND) return;
+    // 点中间的空心：交给外面（例如打开所选分类的详情）
+    if (distance < RADIUS - HIT_BAND) {
+      onCenterClick?.();
+      return;
+    }
+    if (distance > RADIUS + HIT_BAND) return;
     let turn = Math.atan2(x, -y) / (Math.PI * 2);
     if (turn < 0) turn += 1;
     const hit = arcs.find((arc) => turn >= arc.start && turn < arc.end) || arcs[arcs.length - 1];

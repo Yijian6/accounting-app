@@ -114,6 +114,37 @@
   font-size: 17px;
 }
 
+/* 圆环聚焦一块：名字 + 大号百分比 + 金额 */
+.stats-donut-center.is-focus .stats-donut-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-soft);
+}
+
+.stats-donut-label i {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.stats-donut-center strong.stats-donut-percent {
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-donut-sub em {
+  color: var(--accent);
+  font-style: normal;
+  font-weight: 700;
+}
+
 .stats-summary {
   max-width: 22em;
   margin-top: 10px;
@@ -230,5 +261,9 @@
 
   .stats-donut-center strong.is-longer {
     font-size: 15px;
+  }
+
+  .stats-donut-center strong.stats-donut-percent {
+    font-size: 30px;
   }
 }
