@@ -8,6 +8,7 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Existing Commits
 
+- 2026-11-17T20:30:21+08:00 | 67349e0 | feat: wheel destination picker with brace sub-tags across record, backfill and edit
 - 2026-11-17T20:13:45+08:00 | 2b6a668 | feat: spending calendar on the review date and day-mode search across all records
 - 2026-11-17T20:05:16+08:00 | 59d729b | fix: legible edit buttons, intact tag gear, today-first stats, keep tags on edit and merge
 - 2026-11-17T19:45:03+08:00 | 5b43712 | feat: export a single month as backup
