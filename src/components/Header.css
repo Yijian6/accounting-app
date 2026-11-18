@@ -10,6 +10,31 @@
   transition: background 0.5s ease;
 }
 
+/* 左侧：图标 + 拾序（页面指南），旁边一枚很淡的设置齿轮 */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-width: 0;
+}
+
+.header-settings {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  color: var(--text-muted);
+  transition: color 0.2s, background-color 0.2s, transform 0.3s var(--ease-spring);
+}
+
+.header-settings:active {
+  color: var(--accent);
+  background: var(--bg-up);
+  transform: scale(0.92) rotate(30deg);
+}
+
 /* 应用图标 + 拾序：图标用和桌面图标同一套按主题生成的图，换主题时淡入 */
 .header-brand {
   position: relative;

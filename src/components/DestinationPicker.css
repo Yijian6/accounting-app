@@ -324,6 +324,68 @@
   from { opacity: 0; }
 }
 
+/* ── 去向在右：滚轮、分割线、大括号整体镜像，细分靠向中线 ── */
+.dpick.is-rail-right .dpick-body {
+  grid-template-columns: minmax(0, 1fr) 1px var(--dpick-rail);
+}
+
+.dpick.is-rail-right .dpick-branch {
+  order: 1;
+}
+
+.dpick.is-rail-right .dpick-line {
+  order: 2;
+}
+
+.dpick.is-rail-right .dpick-wheel {
+  order: 3;
+}
+
+.dpick.is-rail-right .dpick-rail {
+  padding-left: 6px;
+  padding-right: 0;
+}
+
+.dpick.is-rail-right .dpick-rail-item {
+  padding: 0 6px 0 8px;
+  text-align: right;
+  transform-origin: right center;
+}
+
+.dpick.is-rail-right .dpick-lens {
+  left: 8px;
+  right: 0;
+}
+
+.dpick.is-rail-right .dpick-brace {
+  left: auto;
+  right: 6px;
+  transform: scaleX(-1);
+}
+
+.dpick.is-rail-right .dpick-tags {
+  left: 0;
+  right: 30px;
+  justify-content: flex-end;
+}
+
+.dpick.is-rail-right .dpick-hint {
+  left: 0;
+  right: 22px;
+  text-align: right;
+}
+
+.dpick.is-rail-right .dpick-tag {
+  animation-name: dpick-tag-in-right;
+}
+
+@keyframes dpick-tag-in-right {
+  from {
+    opacity: 0;
+    transform: translate3d(16px, 0, 0) scale(0.82);
+  }
+}
+
 @media (max-width: 380px) {
   .dpick {
     --dpick-rail: 94px;

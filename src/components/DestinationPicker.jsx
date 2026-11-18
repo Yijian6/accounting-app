@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import ActionMenu, { PencilIcon, TrashIcon } from './ActionMenu';
+import { usePrefsContext } from '../hooks/usePrefs';
 import { NAME_MAX, orderDestinations, usageCounter } from '../utils/taxonomy';
 import './DestinationPicker.css';
 
@@ -68,6 +69,8 @@ export default function DestinationPicker({
   keepUnknownTags = false,
   title,
 }) {
+  // 设置里选的「去向在左 / 在右」
+  const { railSide } = usePrefsContext();
   const railRef = useRef(null);
   const branchRef = useRef(null);
   const tagsRef = useRef(null);
@@ -401,7 +404,7 @@ export default function DestinationPicker({
     : '收入不再细分';
 
   return (
-    <section className={`dpick${isExpense ? '' : ' is-income'}`}>
+    <section className={`dpick${isExpense ? '' : ' is-income'}${railSide === 'right' ? ' is-rail-right' : ''}`}>
       <div className="dpick-head">
         <h3>{title || (isExpense ? '去 向' : '来 源')}</h3>
         <div className="dpick-head-actions">

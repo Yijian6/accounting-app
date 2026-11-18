@@ -9,12 +9,14 @@ import RenameSheet from './components/RenameSheet';
 import UndoToast from './components/UndoToast';
 import GuideSheet from './components/GuideSheet';
 import Spotlight from './components/Spotlight';
+import SettingsSheet from './components/SettingsSheet';
 import ThemePicker from './components/ThemePicker';
 import InstallPrompt from './components/InstallPrompt';
 import { useRecords } from './hooks/useRecords';
 import { useCategories } from './hooks/useCategories';
 import { useTags } from './hooks/useTags';
 import { useTheme } from './hooks/useTheme';
+import { PrefsContext, usePrefs } from './hooks/usePrefs';
 import { mergeBackupData, replaceBackupData } from './utils/backup';
 import * as taxonomy from './utils/taxonomy';
 import { getStorage, setStorage } from './utils/storage';
@@ -38,6 +40,15 @@ export default function App() {
   const [tour, setTour] = useState(null);
   const [guideSeen, setGuideSeen] = useState(() => getStorage(GUIDE_SEEN_KEY, false) === true);
   const tourTimerRef = useRef(0);
+  // 设置：{ focus, key } | null；focus = 'data' 时直接停在数据管理
+  const [settings, setSettings] = useState(null);
+  const settingsKeyRef = useRef(0);
+  const { prefs, updatePrefs } = usePrefs();
+
+  const openSettings = (focus = null) => {
+    settingsKeyRef.current += 1;
+    setSettings({ focus, key: settingsKeyRef.current });
+  };
 
   const openGuide = () => {
     setGuideOpen(true);
@@ -175,10 +186,11 @@ export default function App() {
   };
 
   return (
-    <>
+    <PrefsContext.Provider value={prefs}>
       <Header
         theme={theme}
         onGuide={openGuide}
+        onSettings={() => openSettings()}
         guideHint={!guideSeen}
         activeTab={activeTab}
         onTabChange={(tab) => {
@@ -207,9 +219,8 @@ export default function App() {
           onAdd={addRecord}
           onUpdate={updateRecord}
           onDelete={deleteRecord}
-          onImportBackup={handleImportBackup}
           tagActions={tagActions}
-          onOrganize={() => tagActions.onOrganize({ type: 'expense' })}
+          onOpenData={() => openSettings('data')}
         />
       )}
 
@@ -257,10 +268,30 @@ export default function App() {
         onClose={() => setGuideOpen(false)}
       />
 
+      <SettingsSheet
+        open={!!settings}
+        focus={settings?.focus}
+        sessionKey={settings?.key ?? 0}
+        prefs={prefs}
+        onPrefsChange={updatePrefs}
+        onOpenGuide={() => {
+          setSettings(null);
+          openGuide();
+        }}
+        dataProps={{
+          records,
+          categories,
+          tags,
+          onImportBackup: handleImportBackup,
+          onOrganize: () => tagActions.onOrganize({ type: 'expense' }),
+        }}
+        onClose={() => setSettings(null)}
+      />
+
       <Spotlight key={tour ? tour[0]?.title : 'none'} steps={tour} onClose={() => setTour(null)} />
 
       <InstallPrompt />
       <ThemePicker theme={theme} onChangeTheme={setTheme} />
-    </>
+    </PrefsContext.Provider>
   );
 }

@@ -1,21 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Modal from './Modal';
-import DataBookExport from './DataBookExport';
 import RecordEditor from './RecordEditor';
 import SpendCalendar from './SpendCalendar';
 import { formatAmount, toDatetimeLocal, getDateGroup, getDateKey } from '../utils/format';
-import { exportBackupJSON, exportCSV, exportJSON } from '../utils/export';
-import { SAVE_RESULT } from '../utils/saveFile';
-import { formatBackupSummary, getBackupMonths, parseBackupFileContent } from '../utils/backup';
 import './RecordList.css';
-
-function buildImportResultMessage(summary) {
-  if (summary.mode === 'replace') {
-    return `已覆盖为 ${summary.addedRecords} 条记录、${summary.addedCategories} 个分类、${summary.addedTags} 个标签。`;
-  }
-
-  return `已新增 ${summary.addedRecords} 条记录、${summary.addedCategories} 个分类、${summary.addedTags} 个标签；跳过 ${summary.skippedRecords} 条重复记录、${summary.skippedCategories} 个重复分类、${summary.skippedTags} 个重复标签。`;
-}
 
 function normalizeSearchText(value) {
   return String(value ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -296,20 +283,13 @@ export default function RecordList({
   onAdd,
   onUpdate,
   onDelete,
-  onImportBackup,
   tagActions,
-  onOrganize,
+  onOpenData,
 }) {
   const [editingRecord, setEditingRecord] = useState(null);
   const [creatingRecord, setCreatingRecord] = useState(false);
   // 每次打开补记 / 编辑都换一个 key，让浮层重新取初值
   const [editorSession, setEditorSession] = useState(0);
-  const [showDataManager, setShowDataManager] = useState(false);
-  const [pendingBackup, setPendingBackup] = useState(null);
-  const [importError, setImportError] = useState('');
-  const [importSuccess, setImportSuccess] = useState('');
-  const [exportSuccess, setExportSuccess] = useState('');
-  const [backupMonth, setBackupMonth] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [reviewMode, setReviewMode] = useState('day');
   const [reviewDate, setReviewDate] = useState(() => new Date());
@@ -321,9 +301,6 @@ export default function RecordList({
     yesterday.setDate(yesterday.getDate() - 1);
     return new Set([getDateKey(today.toISOString()), getDateKey(yesterday.toISOString())]);
   });
-  const [showMoreExport, setShowMoreExport] = useState(false);
-  const fileInputRef = useRef(null);
-  const exportSuccessTimerRef = useRef(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [calendarSession, setCalendarSession] = useState(0);
   // 日历按天看还是按去向（圆环）看；这次打开期间记住上次的选择
@@ -331,11 +308,6 @@ export default function RecordList({
   // 年视图里被点过的月份分组（在「默认只展开最近一个月」上取反）
   const [monthToggles, setMonthToggles] = useState(() => new Set());
 
-  useEffect(() => () => {
-    if (exportSuccessTimerRef.current) {
-      clearTimeout(exportSuccessTimerRef.current);
-    }
-  }, []);
   const touchStartXRef = useRef(null);
   const longPressTimerRef = useRef(null);
   const longPressTriggeredRef = useRef(false);
@@ -575,115 +547,6 @@ export default function RecordList({
     setEditingRecord(null);
   };
 
-  const openDataManager = () => {
-    setImportError('');
-    setImportSuccess('');
-    setPendingBackup(null);
-    setShowDataManager(true);
-  };
-
-  const closeDataManager = () => {
-    setShowDataManager(false);
-    setPendingBackup(null);
-    setImportError('');
-    setExportSuccess('');
-    if (exportSuccessTimerRef.current) {
-      clearTimeout(exportSuccessTimerRef.current);
-      exportSuccessTimerRef.current = null;
-    }
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const showExportSuccess = (message) => {
-    setExportSuccess(message);
-    if (exportSuccessTimerRef.current) {
-      clearTimeout(exportSuccessTimerRef.current);
-    }
-    exportSuccessTimerRef.current = setTimeout(() => {
-      setExportSuccess('');
-      exportSuccessTimerRef.current = null;
-    }, 3000);
-  };
-
-  // task 必须同步发起保存（iOS 分享面板要求在点击的同步调用链里打开）
-  const runExport = async (label, task) => {
-    setImportError('');
-    setImportSuccess('');
-    setExportSuccess('');
-    try {
-      const result = await task();
-      if (result === SAVE_RESULT.SAVED) {
-        showExportSuccess(`${label}已保存。`);
-      } else if (result === SAVE_RESULT.DOWNLOADED) {
-        showExportSuccess(`${label}已导出，请在下载中查收。`);
-      }
-    } catch {
-      setImportError(`${label}这次没有导出成功，可以再试一次。`);
-    }
-  };
-
-  const backupMonths = showDataManager ? getBackupMonths(records) : [];
-  const currentYear = new Date().getFullYear();
-  const formatBackupMonth = (item) => (
-    item.year === currentYear ? `${item.month} 月` : `${item.year} 年 ${item.month} 月`
-  );
-  const selectedBackupMonth = backupMonths.find((item) => item.key === backupMonth) || null;
-
-  const handleExportBackup = () => {
-    if (selectedBackupMonth) {
-      const label = `${formatBackupMonth(selectedBackupMonth)}备份`;
-      return runExport(label, () => exportBackupJSON(
-        { records, categories, tags },
-        { monthKey: selectedBackupMonth.key },
-      ));
-    }
-    return runExport('备份', () => exportBackupJSON({ records, categories, tags }));
-  };
-
-  const triggerImport = () => {
-    setImportError('');
-    setImportSuccess('');
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleBackupFileChange = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setImportError('');
-    setImportSuccess('');
-
-    try {
-      const content = await file.text();
-      const payload = parseBackupFileContent(content);
-      setPendingBackup({
-        filename: file.name,
-        payload,
-        summary: formatBackupSummary(payload),
-      });
-    } catch (error) {
-      setPendingBackup(null);
-      setImportError(error instanceof Error ? error.message : '导入备份失败。');
-    }
-  };
-
-  const runImport = (mode) => {
-    if (!pendingBackup) return;
-
-    const summary = onImportBackup(pendingBackup.payload, mode);
-    setImportSuccess(buildImportResultMessage(summary));
-    setImportError('');
-    setPendingBackup(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
   return (
     <div className="record-list">
       <section
@@ -829,7 +692,7 @@ export default function RecordList({
         >
           查看全部
         </button>
-        <button className="manage-icon-btn-inline" onClick={openDataManager} title="数据管理" data-guide="data-manager">
+        <button className="manage-icon-btn-inline" onClick={() => onOpenData?.()} title="数据管理" data-guide="data-manager">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
@@ -959,183 +822,6 @@ export default function RecordList({
         onClose={() => setEditingRecord(null)}
       />
 
-      <Modal
-        open={showDataManager}
-        title="数据管理"
-        onClose={closeDataManager}
-      >
-        <div className="data-manager">
-          <input
-            ref={fileInputRef}
-            className="file-input-hidden"
-            type="file"
-            accept="application/json,.json"
-            onChange={handleBackupFileChange}
-          />
-
-          <div className="data-manager-section">
-            {backupMonths.length > 0 && (
-              <div className="backup-range" role="group" aria-label="备份范围">
-                <button
-                  type="button"
-                  className={!selectedBackupMonth ? 'active' : ''}
-                  aria-pressed={!selectedBackupMonth}
-                  onClick={() => setBackupMonth('all')}
-                >
-                  全部
-                  <small>{records.length} 笔</small>
-                </button>
-                {backupMonths.map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    className={selectedBackupMonth?.key === item.key ? 'active' : ''}
-                    aria-pressed={selectedBackupMonth?.key === item.key}
-                    onClick={() => setBackupMonth(item.key)}
-                  >
-                    {formatBackupMonth(item)}
-                    <small>{item.count} 笔</small>
-                  </button>
-                ))}
-              </div>
-            )}
-            <button
-              className="export-option-btn"
-              onClick={handleExportBackup}
-            >
-              {selectedBackupMonth
-                ? `导出 ${formatBackupMonth(selectedBackupMonth)}备份`
-                : '导出备份'}
-            </button>
-            <button
-              className="export-option-btn secondary"
-              onClick={triggerImport}
-            >
-              导入备份
-            </button>
-          </div>
-
-          <div className="data-manager-note">
-            数据保存在本地。需要迁移或留存时，先导出备份，再在新设备导入。选某个月时只带走那个月的记录，分类和标签会一并带上；在新设备选「合并到当前数据」即可。
-          </div>
-
-          <div className="data-manager-divider" />
-
-          {onOrganize && (
-            <>
-              <button
-                type="button"
-                className="export-option-btn secondary"
-                onClick={() => {
-                  closeDataManager();
-                  onOrganize();
-                }}
-              >
-                整理去向与细分
-              </button>
-              <div className="data-manager-divider" />
-            </>
-          )}
-
-          <DataBookExport records={records} onExport={runExport} />
-
-          {exportSuccess && (
-            <div className="import-status success">{exportSuccess}</div>
-          )}
-
-          {importError && (
-            <div className="import-status error">{importError}</div>
-          )}
-
-          {importSuccess && (
-            <div className="import-status success">{importSuccess}</div>
-          )}
-
-          {pendingBackup && (
-            <div className="import-preview">
-              <div className="import-preview-head">
-                <strong>准备导入备份</strong>
-                <span>{pendingBackup.filename}</span>
-              </div>
-              <div className="import-summary-grid">
-                <div className="import-summary-item">
-                  <span>版本</span>
-                  <strong>{pendingBackup.summary.version}</strong>
-                </div>
-                <div className="import-summary-item">
-                  <span>导出时间</span>
-                  <strong>{pendingBackup.summary.exportedAt}</strong>
-                </div>
-                <div className="import-summary-item">
-                  <span>记录数</span>
-                  <strong>{pendingBackup.summary.recordCount}</strong>
-                </div>
-                <div className="import-summary-item">
-                  <span>分类数</span>
-                  <strong>{pendingBackup.summary.categoryCount}</strong>
-                </div>
-                <div className="import-summary-item">
-                  <span>标签数</span>
-                  <strong>{pendingBackup.summary.tagCount}</strong>
-                </div>
-              </div>
-
-              <div className="import-warning">
-                <strong>覆盖模式会替换当前本地数据。</strong>
-                <span>执行覆盖前，建议先导出一份当前备份。</span>
-              </div>
-
-              <div className="import-actions">
-                <button
-                  className="export-option-btn secondary"
-                  onClick={() => runImport('merge')}
-                >
-                  合并到当前数据
-                </button>
-                <button
-                  className="export-option-btn danger"
-                  onClick={() => runImport('replace')}
-                >
-                  覆盖当前数据
-                </button>
-              </div>
-            </div>
-          )}
-
-          <button
-            type="button"
-            className={`more-toggle ${showMoreExport ? 'expanded' : ''}`}
-            onClick={() => setShowMoreExport(!showMoreExport)}
-          >
-            {showMoreExport ? '收起' : '更多选项'}
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
-
-          {showMoreExport && (
-          <>
-          <div className="data-manager-divider" />
-
-          <div className="data-manager-section">
-            <button
-              className="export-option-btn secondary"
-              onClick={() => runExport('CSV ', () => exportCSV(records))}
-            >
-              导出 CSV
-            </button>
-            <button
-              className="export-option-btn secondary"
-              onClick={() => runExport('展示 JSON ', () => exportJSON(records))}
-            >
-              导出展示 JSON
-            </button>
-          </div>
-
-          </>
-          )}
-        </div>
-      </Modal>
     </div>
   );
 }

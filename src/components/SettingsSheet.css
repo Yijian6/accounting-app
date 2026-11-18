@@ -1,0 +1,200 @@
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-margin-top: 8px;
+}
+
+.settings-group h3 {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.settings-label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.settings-label strong {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.settings-label span {
+  color: var(--text-soft);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+/* ── 去向的位置：两张缩略图卡片 ── */
+.settings-sides {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.settings-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 10px 12px;
+  border: 1px solid var(--bg-line);
+  border-radius: 14px;
+  background: var(--bg-card);
+  color: var(--text-soft);
+  transition: border-color 0.25s, background-color 0.25s, color 0.25s, transform 0.3s var(--ease-spring);
+}
+
+.settings-side:active {
+  transform: scale(0.97);
+}
+
+.settings-side strong {
+  margin-top: 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.settings-side small {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.settings-side.is-active {
+  border-color: var(--accent);
+  background: var(--accent-wash);
+}
+
+.settings-side.is-active strong {
+  color: var(--accent);
+}
+
+.side-diagram {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  max-width: 120px;
+  height: 52px;
+}
+
+.side-diagram.is-right {
+  flex-direction: row-reverse;
+}
+
+.side-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 30px;
+}
+
+.side-rail i {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--text-ghost);
+}
+
+.side-rail i.is-on {
+  background: var(--accent);
+}
+
+.is-right .side-rail i {
+  margin-left: auto;
+  width: 80%;
+}
+
+.side-line {
+  align-self: stretch;
+  width: 1px;
+  background: var(--bg-line);
+}
+
+.side-brace {
+  width: 7px;
+  height: 30px;
+  border: 1.5px solid var(--accent);
+  border-right: 0;
+  border-radius: 6px 0 0 6px;
+  opacity: 0.6;
+}
+
+.is-right .side-brace {
+  border-right: 1.5px solid var(--accent);
+  border-left: 0;
+  border-radius: 0 6px 6px 0;
+}
+
+.side-tags {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.is-right .side-tags {
+  justify-content: flex-end;
+}
+
+.side-tags i {
+  display: block;
+  width: 40%;
+  height: 8px;
+  border: 1px solid var(--text-ghost);
+  border-radius: 4px;
+}
+
+.side-tags i.is-short {
+  width: 26%;
+}
+
+/* ── 帮助 ── */
+.settings-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 0 14px;
+  border: 1px solid var(--bg-line);
+  border-radius: 12px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  text-align: left;
+  transition: background-color 0.2s;
+}
+
+.settings-link:active {
+  background: var(--bg-up);
+}
+
+.settings-link span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-link strong {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.settings-link small {
+  color: var(--text-muted);
+  font-size: 12px;
+}
