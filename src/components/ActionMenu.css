@@ -1,0 +1,91 @@
+/* 操作菜单：浮起的面板，压一层很淡的暗幕 */
+.action-menu-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1060;
+  background: rgba(0, 0, 0, 0.16);
+  animation: action-menu-dim 200ms var(--ease-out) both;
+}
+
+.action-menu {
+  position: fixed;
+  overflow: hidden;
+  border: 1px solid var(--bg-line);
+  border-radius: 14px;
+  background: var(--bg-card);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+}
+
+.action-menu.is-placed {
+  animation: action-menu-in 360ms var(--ease-spring) both;
+}
+
+.action-menu-title {
+  padding: 11px 14px 9px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.action-menu-items {
+  max-height: min(320px, 50vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.action-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px;
+  border-top: 1px solid var(--bg-line);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  transition: background-color 0.15s ease;
+}
+
+.action-menu-item span {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.action-menu-item svg {
+  flex: 0 0 auto;
+  color: var(--text-soft);
+}
+
+.action-menu-item:active {
+  background: var(--bg-up);
+}
+
+.action-menu-item.is-danger,
+.action-menu-item.is-danger svg {
+  color: var(--danger);
+}
+
+@keyframes action-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes action-menu-dim {
+  from { opacity: 0; }
+}

@@ -292,29 +292,12 @@
   font-weight: 600;
 }
 
-.dpick-tag.is-menu {
-  gap: 0;
-  padding: 0 4px;
+/* 长按后菜单打开时，被按住的那个细分轻轻浮起 */
+.dpick-tag.is-pressed {
+  border-style: solid;
   border-color: var(--accent);
-  background: var(--bg-up);
-  animation: dpick-fade 200ms var(--ease-out) both;
-}
-
-.dpick-tag.is-menu button {
-  min-height: 30px;
-  padding: 0 8px;
-  border-radius: 999px;
-  color: var(--text);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.dpick-tag.is-menu button.is-danger {
-  color: var(--danger);
-}
-
-.dpick-tag.is-menu button:active {
-  background: var(--accent-wash);
+  color: var(--accent);
+  transform: scale(1.06);
 }
 
 .dpick-hint {

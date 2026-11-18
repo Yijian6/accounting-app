@@ -101,7 +101,7 @@ export default function RecordForm({
           setSelectedTags(nextTags);
         }}
         onAddTag={tagActions.onAddTag}
-        onRenameTag={tagActions.onRenameTag}
+        onRequestRename={tagActions.onRequestRename}
         onDeleteTag={tagActions.onDeleteTag}
         onManageTags={tagActions.onManageTags}
         onOrganize={tagActions.onOrganize}

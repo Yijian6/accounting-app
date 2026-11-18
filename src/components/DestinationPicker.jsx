@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { NAME_MAX, orderDestinations } from '../utils/taxonomy';
+import ActionMenu, { PencilIcon, TrashIcon } from './ActionMenu';
+import { NAME_MAX, orderDestinations, usageCounter } from '../utils/taxonomy';
 import './DestinationPicker.css';
 
 const LONG_PRESS_MS = 450;
@@ -59,7 +60,7 @@ export default function DestinationPicker({
   selectedTags,
   onChange,
   onAddTag,
-  onRenameTag,
+  onRequestRename,
   onDeleteTag,
   onManageCategories,
   onManageTags,
@@ -77,7 +78,7 @@ export default function DestinationPicker({
   // 回车提交后输入框卸载还可能触发 blur：用它保证一次编辑只提交一次
   const editDoneRef = useRef(false);
 
-  // 长按菜单：{ id, mode: 'menu' | 'rename' }
+  // 长按细分弹出的操作菜单：{ ownerId, anchor, title, items }
   const [menu, setMenu] = useState(null);
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState('');
@@ -188,7 +189,6 @@ export default function DestinationPicker({
     const expected = programmaticRef.current;
     programmaticRef.current = null;
     if (expected !== index && name && name !== latestRef.current.category) {
-      setMenu(null);
       setAdding(false);
       latestRef.current.onChange(name, []);
     }
@@ -302,10 +302,6 @@ export default function DestinationPicker({
       pressRef.current.fired = false;
       return;
     }
-    if (menu) {
-      setMenu(null);
-      return;
-    }
     if (isSelected(name)) {
       onChange(category, selectedTags.filter((item) => item !== name));
       return;
@@ -313,16 +309,29 @@ export default function DestinationPicker({
     onChange(category, [name]);
   };
 
-  const startPress = (tag) => {
+  const startPress = (event, tag) => {
     clearTimeout(pressRef.current.timer);
     pressRef.current.fired = false;
+    const element = event.currentTarget;
     pressRef.current.timer = setTimeout(() => {
       pressRef.current.fired = true;
       setAdding(false);
-      editDoneRef.current = false;
-      setMenu({ id: tag.id, mode: 'menu' });
-      setDraft(tag.name);
       window.navigator?.vibrate?.(8);
+      const count = usageCounter(records).tag(category, tag.name);
+      setMenu({
+        ownerId: tag.id,
+        anchor: element.getBoundingClientRect(),
+        title: `细分「${tag.name}」 · ${count} 笔`,
+        items: [
+          {
+            key: 'rename',
+            label: '改名',
+            icon: <PencilIcon />,
+            onSelect: () => onRequestRename?.(tag, (result) => followResult(tag.name, result)),
+          },
+          { key: 'delete', label: '删除', icon: <TrashIcon />, danger: true, onSelect: () => commitDelete(tag) },
+        ],
+      });
     }, LONG_PRESS_MS);
   };
 
@@ -359,65 +368,24 @@ export default function DestinationPicker({
     onChange(category, next);
   };
 
-  // 重名会弹出合并确认，有记录的删除会弹出转移面板；都在完成后才回调
-  const commitRename = (tag) => {
-    if (editDoneRef.current) return;
-    editDoneRef.current = true;
-    const name = draft.replace(/\s+/g, ' ').trim();
-    setMenu(null);
-    if (!name || name === tag.name) return;
-    onRenameTag?.(tag, name, (result) => followResult(tag.name, result));
-  };
-
+  // 改名在改名浮层里完成，有记录的删除会弹出转移面板；都在完成后才回调
   const commitDelete = (tag) => {
-    setMenu(null);
     onDeleteTag?.(tag, (result) => followResult(tag.name, result));
   };
 
   const renderTag = (tag, index) => {
-    const active = menu?.id === tag.id ? menu : null;
     const style = { '--i': index };
-
-    if (active?.mode === 'rename') {
-      return (
-        <span key={tag.id} className="dpick-tag is-editing" style={style}>
-          <input
-            value={draft}
-            maxLength={NAME_MAX}
-            aria-label="细分新名称"
-            onChange={(event) => setDraft(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') { event.preventDefault(); commitRename(tag); }
-              if (event.key === 'Escape') setMenu(null);
-            }}
-            onBlur={() => commitRename(tag)}
-            autoFocus
-          />
-        </span>
-      );
-    }
-
-    if (active) {
-      return (
-        <span key={tag.id} className="dpick-tag is-menu" style={style}>
-          <button type="button" onClick={() => { editDoneRef.current = false; setMenu({ id: tag.id, mode: 'rename' }); }}>改名</button>
-          <button type="button" className="is-danger" onClick={() => commitDelete(tag)}>删除</button>
-          <button type="button" onClick={() => setMenu(null)}>取消</button>
-        </span>
-      );
-    }
-
     const selected = isSelected(tag.name);
     return (
       <button
         key={tag.id}
         type="button"
-        className={`dpick-tag${selected ? ' is-selected' : ''}${isUsed(tag.name) ? '' : ' is-unused'}`}
+        className={`dpick-tag${selected ? ' is-selected' : ''}${isUsed(tag.name) ? '' : ' is-unused'}${menu?.ownerId === tag.id ? ' is-pressed' : ''}`}
         style={style}
         aria-pressed={selected}
         title={isUsed(tag.name) ? undefined : '还没有记录用过这个细分'}
         onClick={() => pickTag(tag.name)}
-        onPointerDown={() => startPress(tag)}
+        onPointerDown={(event) => startPress(event, tag)}
         onPointerUp={cancelPress}
         onPointerLeave={cancelPress}
         onPointerCancel={cancelPress}
@@ -549,6 +517,7 @@ export default function DestinationPicker({
           )}
         </div>
       </div>
+      <ActionMenu request={menu} onClose={() => setMenu(null)} />
     </section>
   );
 }

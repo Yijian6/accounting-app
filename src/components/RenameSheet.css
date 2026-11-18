@@ -1,0 +1,63 @@
+.rename-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rename-sheet-lead {
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.rename-sheet input {
+  min-height: 50px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: var(--bg-up);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.rename-sheet-hint {
+  min-height: 20px;
+  color: var(--text-soft);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.rename-sheet-hint.is-merge {
+  color: var(--warn);
+}
+
+.rename-sheet-hint.is-error {
+  color: var(--danger);
+}
+
+.rename-sheet-save {
+  min-height: 50px;
+  margin-top: 4px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+  color: var(--bg);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  box-shadow: 0 6px 18px var(--accent-glow);
+  transition: opacity 0.2s, transform 0.2s var(--ease-spring);
+}
+
+.rename-sheet-save.is-merge {
+  background: var(--warn);
+  box-shadow: none;
+}
+
+.rename-sheet-save:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+.rename-sheet-save:disabled {
+  opacity: 0.35;
+  box-shadow: none;
+  cursor: not-allowed;
+}

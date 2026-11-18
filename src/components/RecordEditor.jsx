@@ -97,7 +97,7 @@ export default function RecordEditor({
           selectedTags={form.tags}
           onChange={(category, nextTags) => update({ category, tags: nextTags })}
           onAddTag={tagActions.onAddTag}
-          onRenameTag={tagActions.onRenameTag}
+          onRequestRename={tagActions.onRequestRename}
           onDeleteTag={tagActions.onDeleteTag}
           onManageTags={tagActions.onManageTags}
           onOrganize={tagActions.onOrganize}

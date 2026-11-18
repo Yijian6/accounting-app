@@ -5,7 +5,7 @@ import RecordList from './components/RecordList';
 import Statistics from './components/Statistics';
 import OrganizeSheet from './components/OrganizeSheet';
 import TransferSheet from './components/TransferSheet';
-import ConfirmSheet from './components/ConfirmSheet';
+import RenameSheet from './components/RenameSheet';
 import UndoToast from './components/UndoToast';
 import ThemePicker from './components/ThemePicker';
 import InstallPrompt from './components/InstallPrompt';
@@ -20,8 +20,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('add');
   // 整理去向与细分：{ type, focusId } | null
   const [organize, setOrganize] = useState(null);
-  // 合并前的确认：{ title, body, confirmLabel, onConfirm } | null
-  const [confirm, setConfirm] = useState(null);
+  // 改名：{ kind: 'category' | 'tag', id, onDone } | null
+  const [rename, setRename] = useState(null);
   // 删除前的转移：{ kind: 'tag' | 'category', id, onDone } | null
   const [transfer, setTransfer] = useState(null);
   // 底部提示：{ id, message, snapshot }；snapshot 存在时可撤销
@@ -77,39 +77,17 @@ export default function App() {
   };
 
   // ── 整理动作：所有入口（记录页、补记/编辑、统计、整理面板）都走这里 ──
-  const renameCategory = (id, name, onDone) => {
-    const clean = taxonomy.cleanName(name);
-    const conflict = taxonomy.categoryConflict(snapshot, id, clean);
-    if (!conflict || taxonomy.nameError(clean)) return apply(taxonomy.renameCategory(snapshot, id, clean), onDone);
+  // 改名都在 RenameSheet 里完成：输入时已提示会不会合并，所以保存即生效，6 秒内可撤销
+  const requestRename = (kind, id, onDone) => setRename({ kind, id, onDone });
 
-    const source = categories.find((item) => item.id === id);
-    const count = taxonomy.usageCounter(records).category(source);
-    const tagCount = tags.filter((tag) => tag.categoryId === id).length;
-    const parts = [count > 0 ? `${count} 笔记录` : '', tagCount > 0 ? `${tagCount} 个细分` : ''].filter(Boolean).join('和');
-    setConfirm({
-      title: '合并去向',
-      body: `已经有「${conflict.name}」了。${parts ? `「${source.name}」的${parts}会并入「${conflict.name}」，` : ''}「${source.name}」随后移除。`,
-      confirmLabel: '合并',
-      onConfirm: () => apply(taxonomy.renameCategory(snapshot, id, clean), onDone),
-    });
-    return { pending: true };
-  };
-
-  const renameTag = (id, name, onDone) => {
-    const clean = taxonomy.cleanName(name);
-    const conflict = taxonomy.tagConflict(snapshot, id, clean);
-    if (!conflict || taxonomy.nameError(clean)) return apply(taxonomy.renameTag(snapshot, id, clean), onDone);
-
-    const source = tags.find((item) => item.id === id);
-    const category = categories.find((item) => item.id === source.categoryId);
-    const count = category ? taxonomy.usageCounter(records).tag(category.name, source.name) : 0;
-    setConfirm({
-      title: '合并细分',
-      body: `「${category?.name || ''}」下已经有「${conflict.name}」了。${count > 0 ? `「${source.name}」的 ${count} 笔记录会并入「${conflict.name}」，` : ''}「${source.name}」随后移除。`,
-      confirmLabel: '合并',
-      onConfirm: () => apply(taxonomy.renameTag(snapshot, id, clean), onDone),
-    });
-    return { pending: true };
+  const saveRename = (name) => {
+    if (!rename) return null;
+    const result = rename.kind === 'tag'
+      ? taxonomy.renameTag(snapshot, rename.id, name)
+      : taxonomy.renameCategory(snapshot, rename.id, name);
+    const applied = apply(result, rename.onDone);
+    if (!applied?.error) setRename(null);
+    return applied;
   };
 
   const deleteCategory = (id) => {
@@ -141,10 +119,9 @@ export default function App() {
 
   const organizeActions = {
     addCategory: (name, type) => apply(taxonomy.addCategory(snapshot, name, type)),
-    renameCategory,
+    requestRename,
     deleteCategory,
     addTag: (name, categoryId) => apply(taxonomy.addTag(snapshot, name, categoryId)),
-    renameTag,
     deleteTag,
     adoptTag: (id, categoryId) => apply(taxonomy.adoptTag(snapshot, id, categoryId)),
   };
@@ -152,7 +129,7 @@ export default function App() {
   // 选择器（记录页 / 补记 / 编辑）用的动作
   const tagActions = {
     onAddTag: (name, categoryId) => organizeActions.addTag(name, categoryId),
-    onRenameTag: (tag, name, onDone) => renameTag(tag.id, name, onDone),
+    onRequestRename: (tag, onDone) => requestRename('tag', tag.id, onDone),
     onDeleteTag: (tag, onDone) => deleteTag(tag.id, onDone),
     onManageTags: (categoryId) => setOrganize({ type: 'expense', focusId: categoryId || null }),
     onOrganize: ({ type = 'expense', focusId = null } = {}) => setOrganize({ type, focusId }),
@@ -236,9 +213,11 @@ export default function App() {
         onClose={() => setTransfer(null)}
       />
 
-      <ConfirmSheet
-        request={confirm}
-        onClose={() => setConfirm(null)}
+      <RenameSheet
+        request={rename}
+        data={snapshot}
+        onSave={saveRename}
+        onClose={() => setRename(null)}
       />
 
       <UndoToast toast={toast} onUndo={undo} onDismiss={() => setToast(null)} />

@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
 import Modal from './Modal';
+import ActionMenu, { InboxIcon, PencilIcon, TrashIcon } from './ActionMenu';
 import { NAME_MAX, cleanName, nameError, orderDestinations, orphanTags, usageCounter } from '../utils/taxonomy';
 import './OrganizeSheet.css';
 
-/** 一行就地改名：回车或「保存」提交，Esc 或「取消」放弃 */
-function NameEditor({ initial = '', placeholder, onSave, onCancel }) {
-  const [draft, setDraft] = useState(initial);
+/** 新建时的一行输入：回车或「添加」提交，Esc 或「取消」放弃 */
+function NameEditor({ placeholder, onSave, onCancel }) {
+  const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
 
   const save = () => {
@@ -34,8 +35,12 @@ function NameEditor({ initial = '', placeholder, onSave, onCancel }) {
           }}
           autoFocus
         />
-        <button type="button" className="org-editor-save" onClick={save}>保存</button>
-        <button type="button" className="org-editor-cancel" onClick={onCancel}>取消</button>
+        <button type="button" className="org-editor-save" onClick={save}>添加</button>
+        <button type="button" className="org-editor-cancel" onClick={onCancel} aria-label="取消">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
       </div>
       {error && <p className="org-error">{error}</p>}
     </div>
@@ -53,10 +58,10 @@ function Chevron({ open }) {
 function OrganizeBody({ initialType, focusId, data, actions }) {
   const [type, setType] = useState(initialType || 'expense');
   const [expandedId, setExpandedId] = useState(focusId || '');
-  // 正在编辑：{ kind: 'category' | 'tag' | 'new-category' | 'new-tag', id }
-  const [editing, setEditing] = useState(null);
-  const [tagMenuId, setTagMenuId] = useState('');
-  const [adoptId, setAdoptId] = useState('');
+  // 正在新建：{ kind: 'new-category' | 'new-tag', id }
+  const [adding, setAdding] = useState(null);
+  // 操作菜单：{ ownerId, anchor, title, items }
+  const [menu, setMenu] = useState(null);
 
   const usage = useMemo(() => usageCounter(data.records), [data.records]);
   const destinations = orderDestinations(data.categories.filter((item) => item.type === type), type);
@@ -67,18 +72,35 @@ function OrganizeBody({ initialType, focusId, data, actions }) {
   const switchType = (next) => {
     setType(next);
     setExpandedId('');
-    setEditing(null);
-    setTagMenuId('');
+    setAdding(null);
   };
 
   const toggle = (id) => {
-    setEditing(null);
-    setTagMenuId('');
+    setAdding(null);
     setExpandedId((current) => (current === id ? '' : id));
   };
 
-  const closeEditor = () => setEditing(null);
-  const isEditing = (kind, id) => editing?.kind === kind && editing?.id === id;
+  const openMenu = (event, ownerId, title, items) => {
+    setMenu({ ownerId, anchor: event.currentTarget.getBoundingClientRect(), title, items });
+  };
+
+  const categoryMenu = (event, category, count) => openMenu(event, category.id, `${noun}「${category.name}」 · ${count} 笔`, [
+    { key: 'rename', label: '改名', icon: <PencilIcon />, onSelect: () => actions.requestRename('category', category.id) },
+    { key: 'delete', label: '删除', icon: <TrashIcon />, danger: true, onSelect: () => actions.deleteCategory(category.id) },
+  ]);
+
+  const tagMenu = (event, tag, count) => openMenu(event, tag.id, `细分「${tag.name}」 · ${count} 笔`, [
+    { key: 'rename', label: '改名', icon: <PencilIcon />, onSelect: () => actions.requestRename('tag', tag.id) },
+    { key: 'delete', label: '删除', icon: <TrashIcon />, danger: true, onSelect: () => actions.deleteTag(tag.id) },
+  ]);
+
+  const adoptMenu = (event, tag) => openMenu(event, tag.id, `把「${tag.name}」收进哪个去向`,
+    expenseDestinations.map((category) => ({
+      key: category.id,
+      label: category.name,
+      icon: <InboxIcon />,
+      onSelect: () => actions.adoptTag(tag.id, category.id),
+    })));
 
   return (
     <div className="organize">
@@ -96,106 +118,71 @@ function OrganizeBody({ initialType, focusId, data, actions }) {
 
           return (
             <li key={category.id} className={`org-cat${open ? ' is-open' : ''}`}>
-              {isEditing('category', category.id) ? (
-                <NameEditor
-                  initial={category.name}
-                  placeholder={`${noun}名字`}
-                  onSave={(name) => {
-                    const result = actions.renameCategory(category.id, name);
-                    if (!result?.error) closeEditor();
-                    return result;
-                  }}
-                  onCancel={closeEditor}
-                />
-              ) : (
-                <button type="button" className="org-cat-row" onClick={() => toggle(category.id)} aria-expanded={open}>
+              <div className="org-cat-head">
+                <button
+                  type="button"
+                  className="org-cat-row"
+                  onClick={(event) => (type === 'expense' ? toggle(category.id) : categoryMenu(event, category, count))}
+                  aria-expanded={type === 'expense' ? open : undefined}
+                >
                   <span className="org-cat-name">{category.name}</span>
                   <span className="org-count">{count > 0 ? `${count} 笔` : '未使用'}</span>
-                  <Chevron open={open} />
+                  {type === 'expense' && <Chevron open={open} />}
                 </button>
-              )}
+                <button
+                  type="button"
+                  className={`org-more${menu?.ownerId === category.id ? ' is-active' : ''}`}
+                  aria-label={`${category.name}的更多操作`}
+                  onClick={(event) => categoryMenu(event, category, count)}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <circle cx="5" cy="12" r="1.7" />
+                    <circle cx="12" cy="12" r="1.7" />
+                    <circle cx="19" cy="12" r="1.7" />
+                  </svg>
+                </button>
+              </div>
 
-              {open && !isEditing('category', category.id) && (
+              {open && type === 'expense' && (
                 <div className="org-cat-body">
-                  <div className="org-actions">
-                    <button type="button" onClick={() => { setTagMenuId(''); setEditing({ kind: 'category', id: category.id }); }}>改名</button>
-                    <button type="button" className="is-danger" onClick={() => actions.deleteCategory(category.id)}>删除</button>
+                  <div className="org-tags">
+                    {categoryTags.map((tag) => {
+                      const tagCount = usage.tag(category.name, tag.name);
+                      return (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          className={`org-tag${tagCount === 0 ? ' is-unused' : ''}${menu?.ownerId === tag.id ? ' is-active' : ''}`}
+                          aria-haspopup="menu"
+                          onClick={(event) => tagMenu(event, tag, tagCount)}
+                        >
+                          {tag.name}
+                          <small>{tagCount}</small>
+                        </button>
+                      );
+                    })}
+
+                    {adding?.kind === 'new-tag' && adding.id === category.id ? (
+                      <NameEditor
+                        placeholder="新细分名字"
+                        onSave={(name) => {
+                          const result = actions.addTag(name, category.id);
+                          if (!result?.error) setAdding(null);
+                          return result;
+                        }}
+                        onCancel={() => setAdding(null)}
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        className="org-add"
+                        onClick={() => setAdding({ kind: 'new-tag', id: category.id })}
+                      >
+                        + 新细分
+                      </button>
+                    )}
                   </div>
-
-                  {type === 'expense' && (
-                    <>
-                      <div className="org-tags">
-                        {categoryTags.map((tag) => {
-                          const tagCount = usage.tag(category.name, tag.name);
-                          if (isEditing('tag', tag.id)) {
-                            return (
-                              <NameEditor
-                                key={tag.id}
-                                initial={tag.name}
-                                placeholder="细分名字"
-                                onSave={(name) => {
-                                  const result = actions.renameTag(tag.id, name);
-                                  if (!result?.error) { closeEditor(); setTagMenuId(''); }
-                                  return result;
-                                }}
-                                onCancel={closeEditor}
-                              />
-                            );
-                          }
-                          return (
-                            <button
-                              key={tag.id}
-                              type="button"
-                              className={`org-tag${tagCount === 0 ? ' is-unused' : ''}${tagMenuId === tag.id ? ' is-active' : ''}`}
-                              aria-pressed={tagMenuId === tag.id}
-                              onClick={() => { setEditing(null); setTagMenuId((current) => (current === tag.id ? '' : tag.id)); }}
-                            >
-                              {tag.name}
-                              <small>{tagCount}</small>
-                            </button>
-                          );
-                        })}
-
-                        {isEditing('new-tag', category.id) ? (
-                          <NameEditor
-                            placeholder="新细分名字"
-                            onSave={(name) => {
-                              const result = actions.addTag(name, category.id);
-                              if (!result?.error) closeEditor();
-                              return result;
-                            }}
-                            onCancel={closeEditor}
-                          />
-                        ) : (
-                          <button
-                            type="button"
-                            className="org-tag org-add"
-                            onClick={() => { setTagMenuId(''); setEditing({ kind: 'new-tag', id: category.id }); }}
-                          >
-                            + 新细分
-                          </button>
-                        )}
-                      </div>
-
-                      {tagMenuId && categoryTags.some((tag) => tag.id === tagMenuId) && (
-                        <div className="org-tag-menu">
-                          <span>「{categoryTags.find((tag) => tag.id === tagMenuId)?.name}」</span>
-                          <button type="button" onClick={() => setEditing({ kind: 'tag', id: tagMenuId })}>改名</button>
-                          <button
-                            type="button"
-                            className="is-danger"
-                            onClick={() => {
-                              const id = tagMenuId;
-                              setTagMenuId('');
-                              actions.deleteTag(id);
-                            }}
-                          >
-                            删除
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  )}
+                  {categoryTags.length > 0 && <p className="org-tip">点细分可以改名或删除</p>}
                 </div>
               )}
             </li>
@@ -203,18 +190,18 @@ function OrganizeBody({ initialType, focusId, data, actions }) {
         })}
       </ul>
 
-      {isEditing('new-category', type) ? (
+      {adding?.kind === 'new-category' ? (
         <NameEditor
           placeholder={`新${noun}名字`}
           onSave={(name) => {
             const result = actions.addCategory(name, type);
-            if (!result?.error) closeEditor();
+            if (!result?.error) setAdding(null);
             return result;
           }}
-          onCancel={closeEditor}
+          onCancel={() => setAdding(null)}
         />
       ) : (
-        <button type="button" className="org-new" onClick={() => { setTagMenuId(''); setEditing({ kind: 'new-category', id: type }); }}>
+        <button type="button" className="org-new" onClick={() => setAdding({ kind: 'new-category', id: type })}>
           + 新{noun}
         </button>
       )}
@@ -228,36 +215,22 @@ function OrganizeBody({ initialType, focusId, data, actions }) {
               <button
                 key={tag.id}
                 type="button"
-                className={`org-tag is-unused${adoptId === tag.id ? ' is-active' : ''}`}
-                onClick={() => setAdoptId((current) => (current === tag.id ? '' : tag.id))}
+                className={`org-tag is-unused${menu?.ownerId === tag.id ? ' is-active' : ''}`}
+                aria-haspopup="menu"
+                onClick={(event) => adoptMenu(event, tag)}
               >
                 {tag.name}
               </button>
             ))}
           </div>
-          {adoptId && orphans.some((tag) => tag.id === adoptId) && (
-            <div className="org-adopt">
-              <span>收进</span>
-              {expenseDestinations.map((category) => (
-                <button
-                  key={category.id}
-                  type="button"
-                  onClick={() => {
-                    actions.adoptTag(adoptId, category.id);
-                    setAdoptId('');
-                  }}
-                >
-                  {category.name}
-                </button>
-              ))}
-            </div>
-          )}
         </section>
       )}
 
       <p className="org-footnote">
         改名、合并、删除后底部会出现「撤销」。改名前导出的旧备份，合并导入时会带回旧名字。
       </p>
+
+      <ActionMenu request={menu} onClose={() => setMenu(null)} />
     </div>
   );
 }
