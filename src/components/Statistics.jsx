@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import DonutChart from './DonutChart';
 import CategorySheet from './CategorySheet';
 import RecordEditor from './RecordEditor';
+import { track } from '../utils/telemetry';
 import { getStatisticsInsightViewModel } from '../utils/statistics';
 import { money, percent } from '../utils/statsText';
 import './Statistics.css';
@@ -141,6 +142,7 @@ function DestinationList({ segments, highlightedName, onSelect }) {
 export default function Statistics({ records, categories = [], tags = [], tagActions, onUpdate }) {
   const [periodDays, setPeriodDays] = useState(1);
   const changePeriod = (days) => {
+    if (days !== periodDays) track('stats_period', String(days));
     setPeriodDays(days);
     setFocusName('');
   };
@@ -206,15 +208,19 @@ export default function Statistics({ records, categories = [], tags = [], tagAct
 
   // 圆环：点一块只聚焦，再点同一块取消；聚焦时点中心才看详情
   const handleDonutSelect = (name) => {
+    if (name !== focusName) track('donut_focus');
     setFocusName((current) => (current === name ? '' : name));
   };
 
   const handleDonutCenter = () => {
-    if (focusSegment) openSheet(focusSegment.name);
+    if (!focusSegment) return;
+    track('stats_detail', 'center');
+    openSheet(focusSegment.name);
   };
 
   // 列表行：直接看详情，并让圆环停在这一块
   const handleRowSelect = (name) => {
+    track('stats_detail', 'row');
     setFocusName(name);
     openSheet(name);
   };

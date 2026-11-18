@@ -7,12 +7,15 @@ const PREFS_KEY = 'accounting_prefs';
 const DEFAULT_PREFS = {
   // 去向滚轮在左还是在右：'left' | 'right'
   railSide: 'left',
+  // 匿名使用统计，默认开启，可在设置里关闭
+  telemetry: true,
 };
 
 function normalizePrefs(value) {
   const prefs = value && typeof value === 'object' ? value : {};
   return {
     railSide: prefs.railSide === 'right' ? 'right' : 'left',
+    telemetry: prefs.telemetry !== false,
   };
 }
 

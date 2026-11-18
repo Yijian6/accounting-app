@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Modal from './Modal';
 import DestinationPicker from './DestinationPicker';
+import { track } from '../utils/telemetry';
 import { toDatetimeLocal } from '../utils/format';
 import './RecordEditor.css';
 
@@ -43,6 +44,7 @@ export default function RecordEditor({
   const isIncome = form.type === 'income';
 
   const switchType = () => {
+    track('type_toggle');
     update({ type: isIncome ? 'expense' : 'income', category: '', tags: [] });
   };
 

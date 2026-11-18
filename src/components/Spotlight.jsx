@@ -75,11 +75,11 @@ export default function Spotlight({ steps, onClose }) {
       frameRef.current = requestAnimationFrame(measure);
     };
     const onKey = (event) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') onClose('skip');
       if (event.key === 'ArrowRight' || event.key === 'Enter') {
         setIndex((current) => {
           if (current >= steps.length - 1) {
-            onClose();
+            onClose('done');
             return current;
           }
           return current + 1;
@@ -120,7 +120,7 @@ export default function Spotlight({ steps, onClose }) {
   }
 
   const next = () => {
-    if (last) onClose();
+    if (last) onClose('done');
     else setIndex((current) => current + 1);
   };
 
@@ -148,7 +148,7 @@ export default function Spotlight({ steps, onClose }) {
             ))}
           </div>
           <div className="spotlight-actions">
-            {!last && <button type="button" className="spotlight-skip" onClick={onClose}>跳过</button>}
+            {!last && <button type="button" className="spotlight-skip" onClick={() => onClose('skip')}>跳过</button>}
             <button type="button" className="spotlight-next" onClick={next} autoFocus>
               {last ? '知道了' : '下一步'}
             </button>

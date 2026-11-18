@@ -12,6 +12,7 @@ import {
   recordMatches,
 } from '../utils/statsText';
 import { tagBreakdown } from '../utils/periodView';
+import { track } from '../utils/telemetry';
 import './CategorySheet.css';
 
 const BREAKDOWN_SHOWN = 4;
@@ -332,7 +333,10 @@ export default function CategorySheet({
           detail={shown.detail}
           color={shown.color}
           detent={detent}
-          onExpand={() => setDetent('full')}
+          onExpand={() => {
+            track('detail_expand');
+            setDetent('full');
+          }}
           onClose={onClose}
           onBack={shown.fromRest ? onBackToRest : undefined}
           previousPeriodLabel={previousPeriodLabel}

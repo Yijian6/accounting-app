@@ -56,6 +56,8 @@ Cloudflare Pages 自动部署：push 到 `origin/master` → `accounting-app-9f0
 | `useCategories` | `accounting_categories` | 分类（expense/income） |
 | `useTags` | `accounting_tags` | 标签（归属于分类） |
 
+另有几项只属于界面、不进备份的本机记录：`accounting_theme`、`accounting_prefs`（去向左右、是否统计）、`accounting_guide_seen`、`accounting_telemetry`（统计队列与上次活跃日期）。
+
 每个 hook 内部做 normalize（防御性解析 + 旧数据编码修复），写回 localStorage 通过 `useEffect`。`utils/storage.js` 提供统一的 `getStorage`/`setStorage` 封装。
 
 ### 页面结构
@@ -75,6 +77,12 @@ Cloudflare Pages 自动部署：push 到 `origin/master` → `accounting-app-9f0
 iOS Safari 下输入框的 `line-height` 小于字体行高会把占位文字上下截掉：`index.css` 统一给 input/textarea 设 `line-height: normal` 并去掉 search 的系统外观，组件里不要再给输入框写小行高；占位文字要在 360px 下放得下。
 
 `RecordEditor` 是补记与编辑共用的浮层（类型切换 + 金额 + `DestinationPicker` + 备注/时间/周期），由父组件用 key 控制每次打开重新取初值。
+
+### 匿名使用统计
+
+`utils/telemetry.js` 的 `track(name, dim)` 只记「某天 · 事件 · 很粗的分组 → 次数」，先存本机队列（localStorage `accounting_telemetry`），切到后台或每分钟用 `sendBeacon` 发往 `https://stats.yijian6.com/collect`。事件白名单与中文名在 `utils/telemetryEvents.js`（应用、统计服务、看板共用）。活跃与留存不靠设备 ID：每天 / 每周 / 每月首次打开各发一次，周活跃按「开始使用的周」分组。**永远不发**金额、去向名、细分名、备注、时间点；分组只能是很短的小写英文。默认开启，设置 →「隐私」可关闭（关闭即清空队列），还能看到即将发送的原文；开发环境不发送。设置 →「关于」连点版本 5 次出现看板入口。
+
+统计服务是独立的 Cloudflare Worker：`cloudflare/stats/`（D1 `shixu-stats`，`npx wrangler deploy` 手动部署，不走 Pages 构建），看板在 `stats.yijian6.com`，由 Cloudflare Access 邮箱验证保护、Worker 内再校验 Access 令牌；未配置时一律 403。新增需要统计的交互时：先在 `telemetryEvents.js` 加事件，再在交互处 `track()`，然后应用和 Worker 都要重新部署。
 
 ### 动效
 

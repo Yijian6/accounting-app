@@ -3,6 +3,7 @@ import DataBookExport from './DataBookExport';
 import { exportBackupJSON, exportCSV, exportJSON } from '../utils/export';
 import { SAVE_RESULT } from '../utils/saveFile';
 import { formatBackupSummary, getBackupMonths, parseBackupFileContent } from '../utils/backup';
+import { track } from '../utils/telemetry';
 import './DataManager.css';
 
 function buildImportResultMessage(summary) {
@@ -41,18 +42,20 @@ export default function DataManager({ records, categories, tags, onImportBackup,
   };
 
   // task 必须同步发起保存（iOS 分享面板要求在点击的同步调用链里打开）
-  const runExport = async (label, task) => {
+  const runExport = async (label, task, kind = 'databook') => {
     setImportError('');
     setImportSuccess('');
     setExportSuccess('');
     try {
       const result = await task();
+      track('export', kind);
       if (result === SAVE_RESULT.SAVED) {
         showExportSuccess(`${label}已保存。`);
       } else if (result === SAVE_RESULT.DOWNLOADED) {
         showExportSuccess(`${label}已导出，请在下载中查收。`);
       }
     } catch {
+      track('export_fail', kind);
       setImportError(`${label}这次没有导出成功，可以再试一次。`);
     }
   };
@@ -70,9 +73,9 @@ export default function DataManager({ records, categories, tags, onImportBackup,
       return runExport(label, () => exportBackupJSON(
         { records, categories, tags },
         { monthKey: selectedBackupMonth.key },
-      ));
+      ), 'backup_month');
     }
-    return runExport('备份', () => exportBackupJSON({ records, categories, tags }));
+    return runExport('备份', () => exportBackupJSON({ records, categories, tags }), 'backup');
   };
 
   const triggerImport = () => {
@@ -100,6 +103,7 @@ export default function DataManager({ records, categories, tags, onImportBackup,
         summary: formatBackupSummary(payload),
       });
     } catch (error) {
+      track('import_fail');
       setPendingBackup(null);
       setImportError(error instanceof Error ? error.message : '导入备份失败。');
     }
@@ -109,6 +113,7 @@ export default function DataManager({ records, categories, tags, onImportBackup,
     if (!pendingBackup) return;
 
     const summary = onImportBackup(pendingBackup.payload, mode);
+    track('import', mode);
     setImportSuccess(buildImportResultMessage(summary));
     setImportError('');
     setPendingBackup(null);
@@ -241,14 +246,14 @@ export default function DataManager({ records, categories, tags, onImportBackup,
           <button
             type="button"
             className="export-option-btn secondary"
-            onClick={() => runExport('CSV ', () => exportCSV(records))}
+            onClick={() => runExport('CSV ', () => exportCSV(records), 'csv')}
           >
             导出 CSV
           </button>
           <button
             type="button"
             className="export-option-btn secondary"
-            onClick={() => runExport('展示 JSON ', () => exportJSON(records))}
+            onClick={() => runExport('展示 JSON ', () => exportJSON(records), 'json')}
           >
             导出展示 JSON
           </button>

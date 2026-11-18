@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Header from './components/Header';
 import RecordForm from './components/RecordForm';
 import RecordList from './components/RecordList';
@@ -20,6 +20,7 @@ import { PrefsContext, usePrefs } from './hooks/usePrefs';
 import { mergeBackupData, replaceBackupData } from './utils/backup';
 import * as taxonomy from './utils/taxonomy';
 import { getStorage, setStorage } from './utils/storage';
+import { setTelemetryEnabled, track } from './utils/telemetry';
 
 // 只是界面偏好（看没看过页面指南），不属于记录数据，也不进备份
 const GUIDE_SEEN_KEY = 'accounting_guide_seen';
@@ -45,12 +46,28 @@ export default function App() {
   const settingsKeyRef = useRef(0);
   const { prefs, updatePrefs } = usePrefs();
 
+  useEffect(() => {
+    setTelemetryEnabled(prefs.telemetry);
+  }, [prefs.telemetry]);
+
+  const changePrefs = (patch) => {
+    if (patch.railSide && patch.railSide !== prefs.railSide) track('rail_side', patch.railSide);
+    updatePrefs(patch);
+  };
+
+  const changeTheme = (id) => {
+    if (id !== theme) track('theme', id);
+    setTheme(id);
+  };
+
   const openSettings = (focus = null) => {
+    track('settings_open', focus === 'data' ? 'data' : 'header');
     settingsKeyRef.current += 1;
     setSettings({ focus, key: settingsKeyRef.current });
   };
 
   const openGuide = () => {
+    track('guide_open', activeTab);
     setGuideOpen(true);
     if (!guideSeen) {
       setGuideSeen(true);
@@ -60,6 +77,7 @@ export default function App() {
 
   // 清单浮层收起后再开始演示，免得聚光灯照到正在下滑的浮层
   const startTour = (steps) => {
+    track('guide_demo', activeTab);
     setGuideOpen(false);
     clearTimeout(tourTimerRef.current);
     tourTimerRef.current = setTimeout(() => setTour(steps), 380);
@@ -109,6 +127,7 @@ export default function App() {
 
   const undo = () => {
     if (!toast?.snapshot) return;
+    track('undo');
     writeData(toast.snapshot);
     showToast('已撤销');
   };
@@ -119,11 +138,18 @@ export default function App() {
 
   const saveRename = (name) => {
     if (!rename) return null;
+    const clean = taxonomy.cleanName(name);
+    const merging = rename.kind === 'tag'
+      ? taxonomy.tagConflict(snapshot, rename.id, clean)
+      : taxonomy.categoryConflict(snapshot, rename.id, clean);
     const result = rename.kind === 'tag'
       ? taxonomy.renameTag(snapshot, rename.id, name)
       : taxonomy.renameCategory(snapshot, rename.id, name);
     const applied = apply(result, rename.onDone);
-    if (!applied?.error) setRename(null);
+    if (!applied?.error) {
+      if (!applied?.unchanged) track(merging ? 'merge' : 'rename', rename.kind);
+      setRename(null);
+    }
     return applied;
   };
 
@@ -133,6 +159,7 @@ export default function App() {
       setTransfer({ kind: 'category', id });
       return { pending: true };
     }
+    if (!result.error) track('delete_item', 'category');
     return apply(result);
   };
 
@@ -142,6 +169,7 @@ export default function App() {
       setTransfer({ kind: 'tag', id, onDone });
       return { pending: true };
     }
+    if (!result.error) track('delete_item', 'tag');
     return apply(result, onDone);
   };
 
@@ -151,7 +179,10 @@ export default function App() {
       ? taxonomy.deleteTag(snapshot, transfer.id, destination)
       : taxonomy.deleteCategory(snapshot, transfer.id, destination.categoryId);
     const applied = apply(result, transfer.onDone);
-    if (!applied?.error) setTransfer(null);
+    if (!applied?.error) {
+      track('transfer', transfer.kind);
+      setTransfer(null);
+    }
   };
 
   const organizeActions = {
@@ -168,8 +199,14 @@ export default function App() {
     onAddTag: (name, categoryId) => organizeActions.addTag(name, categoryId),
     onRequestRename: (tag, onDone) => requestRename('tag', tag.id, onDone),
     onDeleteTag: (tag, onDone) => deleteTag(tag.id, onDone),
-    onManageTags: (categoryId) => setOrganize({ type: 'expense', focusId: categoryId || null }),
-    onOrganize: ({ type = 'expense', focusId = null } = {}) => setOrganize({ type, focusId }),
+    onManageTags: (categoryId) => {
+      track('organize_open', 'tags');
+      setOrganize({ type: 'expense', focusId: categoryId || null });
+    },
+    onOrganize: ({ type = 'expense', focusId = null, source } = {}) => {
+      track('organize_open', source || (focusId ? 'longpress' : 'gear'));
+      setOrganize({ type, focusId });
+    },
   };
 
   const handleImportBackup = (payload, mode) => {
@@ -206,7 +243,12 @@ export default function App() {
           tags={tags}
           records={records}
           tagActions={tagActions}
-          onSubmit={(data) => { addRecord(data); setActiveTab('list'); }}
+          onSubmit={(data) => {
+            track('record_add', data.type);
+            if (data.tags?.length) track('record_tagged');
+            addRecord(data);
+            setActiveTab('list');
+          }}
           onManageCategories={(type) => tagActions.onOrganize({ type })}
         />
       )}
@@ -216,9 +258,18 @@ export default function App() {
           records={records}
           categories={categories}
           tags={tags}
-          onAdd={addRecord}
-          onUpdate={updateRecord}
-          onDelete={deleteRecord}
+          onAdd={(data) => {
+            track('backfill_add');
+            addRecord(data);
+          }}
+          onUpdate={(id, data) => {
+            track('record_edit', 'list');
+            updateRecord(id, data);
+          }}
+          onDelete={(id) => {
+            track('record_delete');
+            deleteRecord(id);
+          }}
           tagActions={tagActions}
           onOpenData={() => openSettings('data')}
         />
@@ -230,7 +281,10 @@ export default function App() {
           categories={categories}
           tags={tags}
           tagActions={tagActions}
-          onUpdate={updateRecord}
+          onUpdate={(id, data) => {
+            track('record_edit', 'stats');
+            updateRecord(id, data);
+          }}
         />
       )}
       </main>
@@ -273,7 +327,7 @@ export default function App() {
         focus={settings?.focus}
         sessionKey={settings?.key ?? 0}
         prefs={prefs}
-        onPrefsChange={updatePrefs}
+        onPrefsChange={changePrefs}
         onOpenGuide={() => {
           setSettings(null);
           openGuide();
@@ -283,15 +337,22 @@ export default function App() {
           categories,
           tags,
           onImportBackup: handleImportBackup,
-          onOrganize: () => tagActions.onOrganize({ type: 'expense' }),
+          onOrganize: () => tagActions.onOrganize({ type: 'expense', source: 'data' }),
         }}
         onClose={() => setSettings(null)}
       />
 
-      <Spotlight key={tour ? tour[0]?.title : 'none'} steps={tour} onClose={() => setTour(null)} />
+      <Spotlight
+        key={tour ? tour[0]?.title : 'none'}
+        steps={tour}
+        onClose={(reason) => {
+          track('guide_finish', reason === 'done' ? 'done' : 'skip');
+          setTour(null);
+        }}
+      />
 
       <InstallPrompt />
-      <ThemePicker theme={theme} onChangeTheme={setTheme} />
+      <ThemePicker theme={theme} onChangeTheme={changeTheme} />
     </PrefsContext.Provider>
   );
 }

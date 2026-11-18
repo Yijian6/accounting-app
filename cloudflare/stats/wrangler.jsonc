@@ -1,0 +1,26 @@
+{
+  "$schema": "../worker/node_modules/wrangler/config-schema.json",
+  // 拾序匿名使用统计：收集计数 + 私人看板。和 Pages 应用分开部署，不影响应用的自动构建。
+  "name": "shixu-stats",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-01",
+  "routes": [
+    { "pattern": "stats.yijian6.com", "custom_domain": true }
+  ],
+  "d1_databases": [
+    {
+      "binding": "STATS",
+      "database_name": "shixu-stats",
+      "database_id": "87ecb820-9dc4-43dd-a7c8-0793bbcbd013"
+    }
+  ],
+  // 每天清理一次 400 天以前的计数
+  "triggers": { "crons": ["17 3 * * *"] },
+  "vars": {
+    // Cloudflare Access 设置好以后填写（不是密钥，只是用来校验登录令牌）：
+    // ACCESS_TEAM_DOMAIN 形如 xxx.cloudflareaccess.com；ACCESS_AUD 是 Access 应用的 Application Audience (AUD) Tag。
+    // 两项为空时，看板和数据接口一律拒绝访问。
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_AUD": ""
+  }
+}

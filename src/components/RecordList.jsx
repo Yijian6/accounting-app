@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import RecordEditor from './RecordEditor';
 import SpendCalendar from './SpendCalendar';
+import { track } from '../utils/telemetry';
 import { formatAmount, toDatetimeLocal, getDateGroup, getDateKey } from '../utils/format';
 import './RecordList.css';
 
@@ -422,6 +423,7 @@ export default function RecordList({
 
   const shiftReview = (direction) => {
     if (reviewMode === 'all') return;
+    track('review_shift');
     setReviewDate((date) => {
       const next = reviewMode === 'year'
         ? addYears(date, direction)
@@ -436,17 +438,20 @@ export default function RecordList({
   };
 
   const selectReviewMode = (mode) => {
+    if (mode !== reviewMode) track('review_mode', mode);
     setReviewMode(mode);
     setSearchQuery('');
   };
 
   // 每次打开都重新挂载日历，让它从当前回看的那个月开始
   const openCalendar = () => {
+    track('calendar_open', reviewMode === 'year' ? 'year' : 'month');
     setCalendarSession((value) => value + 1);
     setCalendarOpen(true);
   };
 
   const pickCalendarDay = (date) => {
+    track('calendar_jump', 'day');
     setReviewMode('day');
     setReviewDate(date);
     setSearchQuery('');
@@ -455,6 +460,7 @@ export default function RecordList({
 
   // 年日历里点某个月：切到「月」看那个月
   const pickCalendarMonth = (date) => {
+    track('calendar_jump', 'month');
     setReviewMode('month');
     setReviewDate(date);
     setSearchQuery('');
@@ -664,7 +670,10 @@ export default function RecordList({
             type="search"
             value={searchQuery}
             placeholder="日期、去向、细分、备注或金额"
-            onChange={(event) => setSearchQuery(event.target.value)}
+            onChange={(event) => {
+              if (!searchQuery.trim() && event.target.value.trim()) track('search_use');
+              setSearchQuery(event.target.value);
+            }}
           />
           {isSearching && (
             <button

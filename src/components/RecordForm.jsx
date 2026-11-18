@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import DestinationPicker from './DestinationPicker';
+import { track } from '../utils/telemetry';
 import { toDatetimeLocal } from '../utils/format';
 import './RecordForm.css';
 
@@ -57,6 +58,7 @@ export default function RecordForm({
   };
 
   const toggleType = () => {
+    track('type_toggle');
     setType(isIncome ? 'expense' : 'income');
     setCategory('');
     setSelectedTags([]);

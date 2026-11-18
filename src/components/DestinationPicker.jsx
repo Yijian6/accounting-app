@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import ActionMenu, { PencilIcon, TrashIcon } from './ActionMenu';
 import { usePrefsContext } from '../hooks/usePrefs';
+import { track } from '../utils/telemetry';
 import { NAME_MAX, orderDestinations, usageCounter } from '../utils/taxonomy';
 import './DestinationPicker.css';
 
@@ -192,6 +193,7 @@ export default function DestinationPicker({
     const expected = programmaticRef.current;
     programmaticRef.current = null;
     if (expected !== index && name && name !== latestRef.current.category) {
+      track('picker_pick', 'scroll');
       setAdding(false);
       latestRef.current.onChange(name, []);
     }
@@ -297,7 +299,10 @@ export default function DestinationPicker({
       return;
     }
     scrollToIndex(index, true);
-    if (name !== category) onChange(name, []);
+    if (name !== category) {
+      track('picker_pick', 'tap');
+      onChange(name, []);
+    }
   };
 
   const pickTag = (name) => {
@@ -319,6 +324,7 @@ export default function DestinationPicker({
     pressRef.current.timer = setTimeout(() => {
       pressRef.current.fired = true;
       setAdding(false);
+      track('tag_menu');
       window.navigator?.vibrate?.(8);
       const count = usageCounter(records).tag(category, tag.name);
       setMenu({
@@ -352,6 +358,7 @@ export default function DestinationPicker({
     if (!existing) {
       const result = onAddTag?.(name, selectedCategory.id);
       if (result?.error) return;
+      track('tag_create');
     }
     onChange(category, [name]);
   };

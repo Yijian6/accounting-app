@@ -4,6 +4,7 @@ import DonutChart from './DonutChart';
 import CategorySheet from './CategorySheet';
 import { formatAmount } from '../utils/format';
 import { buildPeriodView, monthRange, yearRange } from '../utils/periodView';
+import { track } from '../utils/telemetry';
 import './SpendCalendar.css';
 
 const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日'];
@@ -258,6 +259,7 @@ export default function SpendCalendar({
 
   const changeView = (next) => {
     if (next === view) return;
+    track('calendar_view', next);
     setSlide(0);
     setFocusName('');
     onViewChange?.(next);
@@ -275,6 +277,7 @@ export default function SpendCalendar({
   const openDetail = (name) => {
     const segment = period.segments.find((item) => item.name === name);
     if (!segment) return;
+    track('calendar_detail');
     setFocusName(name);
     setSheet(segment.isRest ? { kind: 'rest' } : { kind: 'category', name, fromRest: false });
   };
