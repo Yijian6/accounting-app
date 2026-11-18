@@ -335,6 +335,34 @@
   border-radius: 50%;
 }
 
+.spend-cal-ring-sub em {
+  color: var(--accent);
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* 一年：12 个月排成 3 列 4 行，格子比日历宽一些 */
+.spend-cal-grid.is-year {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.spend-cal-grid.is-year .spend-cal-day {
+  aspect-ratio: 1 / 0.62;
+  gap: 4px;
+  border-radius: 14px;
+}
+
+.spend-cal-grid.is-year .spend-cal-num {
+  font-size: 13px;
+}
+
+.spend-cal-grid.is-year .spend-cal-amt {
+  font-size: 13px;
+  line-height: 14px;
+  min-height: 14px;
+}
+
 @keyframes spend-cal-center-in {
   from { opacity: 0; transform: scale(0.94); }
 }
@@ -352,7 +380,7 @@
 
 .spend-cal-row {
   display: grid;
-  grid-template-columns: 8px minmax(0, 1fr) auto auto;
+  grid-template-columns: 8px minmax(0, 1fr) auto auto 12px;
   align-items: center;
   column-gap: 10px;
   width: 100%;
@@ -367,6 +395,14 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
+}
+
+.spend-cal-row-go {
+  color: var(--text-ghost);
+}
+
+.spend-cal-row:active {
+  background: var(--bg-up);
 }
 
 .spend-cal-row.is-active {

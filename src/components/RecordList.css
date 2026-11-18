@@ -233,7 +233,6 @@
   background: transparent;
   color: var(--text);
   font-size: 14px;
-  line-height: 1.3;
 }
 
 .record-search-input-wrap input:focus {
@@ -350,6 +349,16 @@
 
 .date-group-header svg {
   transition: transform 0.18s ease;
+}
+
+/* 年视图的月份分组：「11月 ¥932.90 · 13 笔」 */
+.date-group-meta {
+  margin: 0 4px 0 6px;
+  color: var(--text-soft);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .date-group-header.expanded svg {

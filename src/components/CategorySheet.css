@@ -87,6 +87,42 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* 细分构成：一行文字，不画图 */
+.csheet-tagline {
+  margin-top: 10px;
+  padding-right: 10px;
+  color: var(--text-soft);
+  font-size: 12.5px;
+  line-height: 1.75;
+  font-variant-numeric: tabular-nums;
+}
+
+.csheet-tagline > span {
+  white-space: nowrap;
+}
+
+.csheet-tagline b {
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-weight: 700;
+}
+
+.csheet-tagline i {
+  color: var(--text-ghost);
+  font-style: normal;
+}
+
+.csheet-tagline .is-untagged,
+.csheet-tagline .is-untagged b {
+  color: var(--text-muted);
+}
+
+.csheet-note {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+
 /* ── 半屏：金额最大的几笔 ── */
 .csheet-peek {
   flex: 0 0 auto;

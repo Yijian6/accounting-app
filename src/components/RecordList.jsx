@@ -56,6 +56,13 @@ function getMonthStart(date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
+/** 换年时保留月份，切回「月」还在原来那个月；不越过本月 */
+function addYears(date, amount) {
+  const next = new Date(date.getFullYear() + amount, date.getMonth(), 1);
+  const now = new Date();
+  return next > now ? new Date(now.getFullYear(), now.getMonth(), 1) : next;
+}
+
 function getSearchDateRange(query) {
   const text = normalizeSearchText(query).replace(/\s/g, '');
   const now = new Date();
@@ -217,6 +224,11 @@ function getRecordSearchMeta(record) {
 function getReviewRange(mode, date) {
   if (mode === 'all') return null;
 
+  if (mode === 'year') {
+    const start = new Date(date.getFullYear(), 0, 1);
+    return { start, endExclusive: new Date(date.getFullYear() + 1, 0, 1) };
+  }
+
   if (mode === 'month') {
     const start = getMonthStart(date);
     return {
@@ -251,6 +263,7 @@ function countRecordsInRange(records, range) {
 
 function formatReviewLabel(mode, date) {
   if (mode === 'all') return '全部记录';
+  if (mode === 'year') return `${date.getFullYear()}年`;
   const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
   if (mode === 'month') {
     return `${date.getFullYear()}年${date.getMonth() + 1}月`;
@@ -260,6 +273,9 @@ function formatReviewLabel(mode, date) {
 
 function isCurrentOrFutureReview(mode, date) {
   const now = new Date();
+  if (mode === 'year') {
+    return date.getFullYear() >= now.getFullYear();
+  }
   if (mode === 'month') {
     return getMonthStart(date).getTime() >= getMonthStart(now).getTime();
   }
@@ -312,6 +328,8 @@ export default function RecordList({
   const [calendarSession, setCalendarSession] = useState(0);
   // 日历按天看还是按去向（圆环）看；这次打开期间记住上次的选择
   const [calendarView, setCalendarView] = useState('grid');
+  // 年视图里被点过的月份分组（在「默认只展开最近一个月」上取反）
+  const [monthToggles, setMonthToggles] = useState(() => new Set());
 
   useEffect(() => () => {
     if (exportSuccessTimerRef.current) {
@@ -358,8 +376,8 @@ export default function RecordList({
 
   const normalizedSearchQuery = normalizeSearchText(searchQuery);
   const isSearching = normalizedSearchQuery.length > 0;
-  // 「日」下搜索放到全部记录里找（一天的数据太少，没必要只搜当天）；「月」下仍只搜这个月
-  const searchRange = reviewMode === 'month' ? reviewRange : null;
+  // 「日」下搜索放到全部记录里找（一天的数据太少，没必要只搜当天）；「月」「年」下只搜这段时间
+  const searchRange = reviewMode === 'month' || reviewMode === 'year' ? reviewRange : null;
   const visibleRecords = isSearching
     ? records.filter((record) => isRecordInPaymentRange(record, searchRange)
       && recordMatchesSearch(record, normalizedSearchQuery))
@@ -369,20 +387,47 @@ export default function RecordList({
     (left, right) => new Date(right.datetime) - new Date(left.datetime)
   );
 
+  // 年视图（不搜索时）按月分组折叠，其余按天分组
+  const groupByMonth = reviewMode === 'year' && !isSearching;
+  const groupKeyOf = (record) => {
+    if (!groupByMonth) return getDateKey(record.datetime);
+    const date = new Date(record.datetime);
+    return `month:${date.getFullYear()}-${date.getMonth()}`;
+  };
   const groupedRecords = [];
+  const monthSummaries = new Map();
   let currentKey = '';
   for (const record of sortedRecords) {
-    const key = getDateKey(record.datetime);
+    const key = groupKeyOf(record);
     if (key !== currentKey) {
       currentKey = key;
-      const label = getDateGroup(record.datetime);
+      const label = groupByMonth
+        ? `${new Date(record.datetime).getMonth() + 1}月`
+        : getDateGroup(record.datetime);
       groupedRecords.push({ type: 'header', label, key });
     }
-    groupedRecords.push({ type: 'record', ...record });
+    if (groupByMonth) {
+      const summary = monthSummaries.get(key) || { expense: 0, count: 0 };
+      summary.count += 1;
+      if (record.type === 'expense') summary.expense += Number(record.amount || 0);
+      monthSummaries.set(key, summary);
+    }
+    groupedRecords.push({ type: 'record', ...record, groupKey: key });
   }
-  const showDateGroupHeaders = reviewMode === 'all' || isSearching;
+  const showDateGroupHeaders = reviewMode === 'all' || reviewMode === 'year' || isSearching;
+  // 年视图默认只展开最近有记录的那个月；点标题在默认状态上取反
+  const defaultMonthKey = groupByMonth ? groupedRecords.find((item) => item.type === 'header')?.key : '';
 
   const toggleGroup = (key) => {
+    if (key.startsWith('month:')) {
+      setMonthToggles((prev) => {
+        const next = new Set(prev);
+        if (next.has(key)) next.delete(key);
+        else next.add(key);
+        return next;
+      });
+      return;
+    }
     setExpandedGroups((prev) => {
       const next = new Set(prev);
       if (next.has(key)) {
@@ -397,6 +442,7 @@ export default function RecordList({
   const isGroupExpanded = (key) => {
     if (!showDateGroupHeaders) return true;
     if (isSearching) return true;
+    if (key.startsWith('month:')) return (key === defaultMonthKey) !== monthToggles.has(key);
     if (expandedGroups.has(key)) return true;
     if (expandedGroups.has('__all__')) return true;
     return false;
@@ -405,9 +451,11 @@ export default function RecordList({
   const shiftReview = (direction) => {
     if (reviewMode === 'all') return;
     setReviewDate((date) => {
-      const next = reviewMode === 'month'
-        ? addMonths(date, direction)
-        : addDays(date, direction);
+      const next = reviewMode === 'year'
+        ? addYears(date, direction)
+        : reviewMode === 'month'
+          ? addMonths(date, direction)
+          : addDays(date, direction);
       if (direction > 0 && isCurrentOrFutureReview(reviewMode, date)) {
         return date;
       }
@@ -428,6 +476,14 @@ export default function RecordList({
 
   const pickCalendarDay = (date) => {
     setReviewMode('day');
+    setReviewDate(date);
+    setSearchQuery('');
+    setCalendarOpen(false);
+  };
+
+  // 年日历里点某个月：切到「月」看那个月
+  const pickCalendarMonth = (date) => {
+    setReviewMode('month');
     setReviewDate(date);
     setSearchQuery('');
     setCalendarOpen(false);
@@ -654,6 +710,13 @@ export default function RecordList({
             </button>
             <button
               type="button"
+              className={reviewMode === 'year' ? 'active' : ''}
+              onClick={() => selectReviewMode('year')}
+            >
+              年
+            </button>
+            <button
+              type="button"
               className={reviewMode === 'all' ? 'active' : ''}
               onClick={() => selectReviewMode('all')}
             >
@@ -735,7 +798,7 @@ export default function RecordList({
             id="record-search-input"
             type="search"
             value={searchQuery}
-            placeholder="输入日期、分类、标签、备注或金额"
+            placeholder="日期、去向、细分、备注或金额"
             onChange={(event) => setSearchQuery(event.target.value)}
           />
           {isSearching && (
@@ -750,7 +813,7 @@ export default function RecordList({
         </div>
         {isSearching && (
           <div className="record-search-status">
-            在{reviewMode === 'month' ? reviewLabel : '全部记录'}中找到 {sortedRecords.length} 条
+            在{searchRange ? reviewLabel : '全部记录'}中找到 {sortedRecords.length} 条
           </div>
         )}
       </div>
@@ -777,7 +840,7 @@ export default function RecordList({
       ) : sortedRecords.length === 0 ? (
         <div className="empty-state search-empty">
           <strong>{isSearching ? '没有找到相关记录' : '这段时间还没有记录'}</strong>
-          <span>{isSearching ? '换个日期、分类、标签或备注试试' : '可以切换时间，回看别的日子。'}</span>
+          <span>{isSearching ? '换个日期、去向、细分或备注试试' : '可以切换时间，回看别的日子。'}</span>
         </div>
       ) : (
         <div className="records">
@@ -789,12 +852,17 @@ export default function RecordList({
                 onClick={() => toggleGroup(item.key)}
               >
                 <span>{item.label}</span>
+                {monthSummaries.has(item.key) && (
+                  <small className="date-group-meta">
+                    ¥{formatAmount(monthSummaries.get(item.key).expense)} · {monthSummaries.get(item.key).count} 笔
+                  </small>
+                )}
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
               </button>
             ) : (
-              isGroupExpanded(getDateKey(item.datetime)) && (
+              isGroupExpanded(item.groupKey) && (
                 <div
                   key={item.id}
                   className={`record-row ${deleteTargetId === item.id ? 'delete-open' : ''}`}
@@ -848,9 +916,15 @@ export default function RecordList({
         open={calendarOpen}
         records={records}
         selectedDate={reviewDate}
+        scope={reviewMode === 'year' ? 'year' : 'month'}
         view={calendarView}
         onViewChange={setCalendarView}
-        onPick={pickCalendarDay}
+        onPickDay={pickCalendarDay}
+        onPickMonth={pickCalendarMonth}
+        onEditRecord={(id) => {
+          const record = records.find((item) => item.id === id);
+          if (record) startEdit(record);
+        }}
         onClose={() => setCalendarOpen(false)}
       />
 

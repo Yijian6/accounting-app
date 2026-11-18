@@ -11,7 +11,31 @@ import {
   percent,
   recordMatches,
 } from '../utils/statsText';
+import { tagBreakdown } from '../utils/periodView';
 import './CategorySheet.css';
+
+const BREAKDOWN_SHOWN = 4;
+
+/** 一行文字说清这个去向里钱又分到了哪些细分：午餐 ¥310 · 晚餐 ¥120 · 不分细分 ¥40 */
+function TagLine({ records }) {
+  const buckets = tagBreakdown(records, getRecordDisplayAmount);
+  if (buckets.length === 0) return null;
+  const shown = buckets.slice(0, BREAKDOWN_SHOWN);
+  const restAmount = buckets.slice(BREAKDOWN_SHOWN).reduce((sum, item) => sum + item.amount, 0);
+  return (
+    <p className="csheet-tagline">
+      {shown.map((item, index) => (
+        <span key={item.name} className={item.untagged ? 'is-untagged' : ''}>
+          {index > 0 && <i aria-hidden="true"> · </i>}
+          {item.name} <b>{money(item.amount)}</b>
+        </span>
+      ))}
+      {restAmount > 0 && (
+        <span><i aria-hidden="true"> · </i>其余 <b>{money(restAmount)}</b></span>
+      )}
+    </p>
+  );
+}
 
 const TOP_COUNT = 5;
 
@@ -70,7 +94,7 @@ function RecordRow({ record, withDate = true, onEdit }) {
   );
 }
 
-function SheetHeader({ name, color, amount, meta, onClose, onBack }) {
+function SheetHeader({ name, color, amount, meta, onClose, onBack, children }) {
   return (
     <div className="csheet-header" data-sheet-grab>
       <div className="csheet-title-row">
@@ -83,6 +107,7 @@ function SheetHeader({ name, color, amount, meta, onClose, onBack }) {
       </div>
       <div className="csheet-amount">{money(amount)}</div>
       <p className="csheet-meta">{meta}</p>
+      {children}
     </div>
   );
 }
@@ -129,7 +154,7 @@ function AllRecords({ records, onEdit }) {
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="标签、备注、金额、日期"
+            placeholder="细分、备注、金额"
             aria-label="搜索这个分类的记录"
             enterKeyHint="search"
           />
@@ -174,11 +199,15 @@ function CategoryBody({ detail, color, detent, onExpand, onClose, onBack, previo
       .slice(0, TOP_COUNT),
     [records]
   );
-  const change = getChangeLabel(detail);
-  const changeText = detail.changeState === 'up' || detail.changeState === 'down'
-    ? `较${previousPeriodLabel} ${change}`
-    : change;
-  const meta = `占本期 ${percent(detail.share)} · 日均 ${money(detail.dailyAverage)} · ${changeText}`;
+  // 日历里的月 / 年详情自带 meta（不和上一期比），统计页用原来的「占本期 · 日均 · 较上期」
+  let meta = detail.meta;
+  if (!meta) {
+    const change = getChangeLabel(detail);
+    const changeText = detail.changeState === 'up' || detail.changeState === 'down'
+      ? `较${previousPeriodLabel} ${change}`
+      : change;
+    meta = `占本期 ${percent(detail.share)} · 日均 ${money(detail.dailyAverage)} · ${changeText}`;
+  }
 
   return (
     <div className="csheet-body">
@@ -189,7 +218,10 @@ function CategoryBody({ detail, color, detent, onExpand, onClose, onBack, previo
         meta={meta}
         onClose={onClose}
         onBack={onBack}
-      />
+      >
+        <TagLine records={records} />
+        {detail.note && <p className="csheet-note">{detail.note}</p>}
+      </SheetHeader>
 
       {detent === 'full' ? (
         <AllRecords records={records} onEdit={onEdit} />
@@ -213,14 +245,14 @@ function CategoryBody({ detail, color, detent, onExpand, onClose, onBack, previo
   );
 }
 
-function RestBody({ segment, onPick, onClose, peekRef }) {
+function RestBody({ segment, onPick, onClose, peekRef, periodNoun }) {
   return (
     <div className="csheet-body">
       <SheetHeader
-        name="其他"
+        name={segment.name || '其他'}
         color={segment.color}
         amount={segment.amount}
-        meta={`占本期 ${percent(segment.share)} · ${segment.categories.length} 个较小的去向`}
+        meta={`占${periodNoun} ${percent(segment.share)} · ${segment.categories.length} 个较小的去向`}
         onClose={onClose}
       />
       <div className="csheet-peek csheet-peek--scroll" ref={peekRef}>
@@ -230,7 +262,7 @@ function RestBody({ segment, onPick, onClose, peekRef }) {
               <button type="button" className="csheet-record csheet-record--link" onClick={() => onPick(category.name)}>
                 <span className="csheet-record-text">
                   <strong>{category.name}</strong>
-                  <small>占本期 {percent(category.share)}</small>
+                  <small>占{periodNoun} {percent(category.share)}</small>
                 </span>
                 <b>{money(category.amount)}</b>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -249,7 +281,15 @@ function RestBody({ segment, onPick, onClose, peekRef }) {
  * 分类详情浮层。
  * view: { kind: 'category', detail, color, fromRest } | { kind: 'rest', segment } | null
  */
-export default function CategorySheet({ view, onClose, onPickRestCategory, onBackToRest, previousPeriodLabel, onEditRecord }) {
+export default function CategorySheet({
+  view,
+  onClose,
+  onPickRestCategory,
+  onBackToRest,
+  previousPeriodLabel,
+  onEditRecord,
+  periodNoun = '本期',
+}) {
   const [detent, setDetent] = useState('half');
   const [lastView, setLastView] = useState(view);
   const peekRef = useRef(null);
@@ -284,6 +324,7 @@ export default function CategorySheet({ view, onClose, onPickRestCategory, onBac
           onPick={onPickRestCategory}
           onClose={onClose}
           peekRef={peekRef}
+          periodNoun={periodNoun}
         />
       ) : (
         <CategoryBody
