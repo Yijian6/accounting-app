@@ -10,97 +10,200 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: #faf7f4; --card: #ffffff; --line: rgba(44,36,34,.10); --text: #2c2422;
-    --soft: rgba(44,36,34,.62); --muted: rgba(44,36,34,.42); --accent: #b8786a; --wash: rgba(184,120,106,.10);
+    --bg: #faf7f4; --card: #ffffff; --up: #f2ede8; --line: rgba(44,36,34,.10); --text: #2c2422;
+    --soft: rgba(44,36,34,.64); --muted: rgba(44,36,34,.42); --ghost: rgba(44,36,34,.14);
+    --accent: #b8786a; --wash: rgba(184,120,106,.10); --glow: rgba(184,120,106,.22);
+    --good: #4f8a64; --bad: #c0584a; --warn: #b8862e;
     --serif: 'Noto Serif SC', 'Songti SC', serif;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #16121a; --card: #1e1824; --line: rgba(245,239,232,.10); --text: #f5efe8;
-      --soft: rgba(245,239,232,.62); --muted: rgba(245,239,232,.38); --accent: #f2b5c8; --wash: rgba(242,181,200,.10); }
+    :root {
+      --bg: #16121a; --card: #1e1824; --up: #241d2b; --line: rgba(245,239,232,.10); --text: #f5efe8;
+      --soft: rgba(245,239,232,.64); --muted: rgba(245,239,232,.40); --ghost: rgba(245,239,232,.14);
+      --accent: #f2b5c8; --wash: rgba(242,181,200,.10); --glow: rgba(242,181,200,.22);
+      --good: #8cc9a0; --bad: #f0907f; --warn: #e2b866;
+    }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font: 14px/1.6 -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
-  main { max-width: 880px; margin: 0 auto; padding: 32px 20px 64px; }
-  header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
-  h1 { font-family: var(--serif); font-size: 26px; font-weight: 900; letter-spacing: -.02em; }
-  h1 small { display: block; margin-top: 2px; font: 600 12px/1.4 inherit; color: var(--muted); letter-spacing: .04em; }
-  .range { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
-  .range button { border: 0; background: none; color: var(--soft); font: 600 12.5px inherit; padding: 6px 14px; border-radius: 7px; cursor: pointer; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.6 -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; -webkit-font-smoothing: antialiased; }
+  main { max-width: 960px; margin: 0 auto; padding: 28px 20px 72px; }
+  .num, .kpi strong, td, .bars b, .split-legend b { font-variant-numeric: tabular-nums; }
+
+  /* ── 页头 ── */
+  .top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    margin: -28px -20px 0; padding: 14px 20px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+  .brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+  .brand h1 { font-family: var(--serif); font-size: 19px; font-weight: 900; letter-spacing: -.01em; white-space: nowrap; }
+  .brand span { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .range { flex: 0 0 auto; display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+  .range button { border: 0; background: none; color: var(--soft); font: 600 12.5px inherit; padding: 6px 12px; border-radius: 7px; cursor: pointer; }
   .range button.on { background: var(--wash); color: var(--accent); }
-  section { margin-top: 34px; }
-  h2 { font-size: 11px; font-weight: 700; letter-spacing: .16em; color: var(--muted); margin-bottom: 12px; }
-  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-  .kpi { padding: 16px 12px 14px 0; }
-  .kpi + .kpi { padding-left: 16px; border-left: 1px solid var(--line); }
-  .kpi span { display: block; font-size: 12px; color: var(--soft); }
-  .kpi strong { display: block; margin-top: 4px; font-family: var(--serif); font-size: 28px; font-weight: 900; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-  .kpi small { color: var(--muted); font-size: 11.5px; }
-  .chart { position: relative; height: 180px; border-bottom: 1px solid var(--line); }
-  .chart svg { width: 100%; height: 100%; overflow: visible; }
-  .chart .axis { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; margin-top: 6px; }
-  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-  th, td { text-align: right; padding: 9px 8px; border-bottom: 1px solid var(--line); font-size: 13px; }
-  th:first-child, td:first-child { text-align: left; padding-left: 0; }
-  th { color: var(--muted); font-weight: 600; font-size: 11.5px; }
-  td.cell { position: relative; }
-  td.cell i { position: absolute; inset: 3px 2px; border-radius: 6px; background: var(--accent); z-index: 0; }
-  td.cell b { position: relative; z-index: 1; font-weight: 600; }
-  .groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; }
-  .group h3 { font-family: var(--serif); font-size: 15px; font-weight: 700; margin: 18px 0 6px; }
-  .row { display: grid; grid-template-columns: minmax(0, 1fr) 54px; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--line); }
-  .row .name { font-size: 13px; }
-  .row .name small { display: block; color: var(--muted); font-size: 11.5px; }
-  .row .bar { grid-column: 1 / -1; height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; margin-top: -3px; }
-  .row .bar i { display: block; height: 100%; background: var(--accent); }
-  .row .num { text-align: right; font-family: var(--serif); font-weight: 700; font-variant-numeric: tabular-nums; }
-  .split { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--line); margin: 6px 0 8px; }
+
+  /* ── 分节 ── */
+  section { margin-top: 40px; }
+  .sec-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  .sec-head i { font-style: normal; font-family: var(--serif); color: var(--accent); font-size: 13px; font-weight: 700; }
+  .sec-head h2 { font-family: var(--serif); font-size: 18px; font-weight: 700; }
+  .sec-head p { margin-left: auto; color: var(--muted); font-size: 12px; text-align: right; }
+
+  /* ── 概览 ── */
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin-top: 24px; }
+  .kpi { background: var(--card); padding: 18px 18px 16px; min-width: 0; }
+  .kpi span { display: block; color: var(--soft); font-size: 12.5px; }
+  .kpi strong { display: block; margin-top: 6px; font-family: var(--serif); font-size: 34px; font-weight: 900; line-height: 1.1; letter-spacing: -.02em; white-space: nowrap; }
+  .kpi small { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 8px; color: var(--muted); font-size: 12px; }
+  .delta { font-weight: 700; }
+  .delta.up { color: var(--good); } .delta.down { color: var(--bad); } .delta.flat { color: var(--muted); }
+  .insights { margin-top: 18px; padding: 16px 18px; border-radius: 14px; background: var(--wash); }
+  .insights p { font-size: 14.5px; line-height: 1.8; }
+  .insights p + p { margin-top: 4px; }
+  .insights b { font-family: var(--serif); color: var(--accent); }
+
+  /* ── 趋势 ── */
+  .chart { position: relative; }
+  .chart svg { display: block; width: 100%; height: 220px; overflow: visible; }
+  .chart .x { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; margin-top: 6px; }
+  .legend { display: flex; gap: 16px; color: var(--soft); font-size: 12px; margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .tip { position: absolute; top: 0; pointer-events: none; padding: 8px 10px; border-radius: 10px; background: var(--card); border: 1px solid var(--line);
+    box-shadow: 0 8px 24px rgba(0,0,0,.14); font-size: 12px; white-space: nowrap; opacity: 0; transition: opacity .15s; }
+  .tip.on { opacity: 1; }
+  .tip b { font-family: var(--serif); }
+
+  /* ── 通用：两栏 / 卡片 / 条形 ── */
+  .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; min-width: 0; }
+  .card h3 { font-size: 13px; font-weight: 700; color: var(--soft); margin-bottom: 10px; }
+  .stat-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; }
+  .stat-list div span { display: block; color: var(--muted); font-size: 12px; }
+  .stat-list div strong { font-family: var(--serif); font-size: 22px; font-weight: 900; }
+  .stat-list div small { color: var(--muted); font-size: 11.5px; margin-left: 4px; }
+  .split { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: var(--ghost); }
   .split i { display: block; height: 100%; }
-  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--soft); }
-  .legend b { font-family: var(--serif); color: var(--text); margin-left: 4px; }
-  .note { color: var(--muted); font-size: 12px; line-height: 1.7; margin-top: 10px; }
-  .empty { color: var(--muted); padding: 24px 0; }
-  @media (max-width: 640px) {
+  .split-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; color: var(--soft); font-size: 12.5px; }
+  .split-legend em { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+  .split-legend b { font-family: var(--serif); color: var(--text); margin-left: 4px; }
+
+  .bars { display: flex; flex-direction: column; }
+  .bars .bar-row { display: grid; grid-template-columns: minmax(0, 1fr) 64px 96px; align-items: center; column-gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .bars .bar-row:last-child { border-bottom: 0; }
+  .bar-name { min-width: 0; font-size: 13px; }
+  .bar-name small { display: block; color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: var(--ghost); overflow: hidden; margin-top: 6px; }
+  .bar-track i { display: block; height: 100%; border-radius: 2px; background: var(--accent); }
+  .bars b { text-align: right; font-family: var(--serif); font-size: 15px; }
+  .bars .rate { text-align: right; color: var(--muted); font-size: 11.5px; white-space: nowrap; }
+  .bars .rate .delta { margin-left: 6px; }
+  .group-title { display: flex; justify-content: space-between; margin: 4px 0 2px; color: var(--muted); font-size: 11.5px; }
+
+  /* ── 留存 ── */
+  table { width: 100%; border-collapse: separate; border-spacing: 4px; }
+  th { color: var(--muted); font-weight: 600; font-size: 11.5px; text-align: center; padding: 4px; }
+  th:first-child, td:first-child { text-align: left; }
+  td { font-size: 13px; text-align: center; padding: 10px 4px; border-radius: 8px; }
+  td.cohort { color: var(--soft); white-space: nowrap; }
+  td.size { color: var(--muted); }
+  td.heat { position: relative; overflow: hidden; }
+  td.heat i { position: absolute; inset: 0; background: var(--accent); }
+  td.heat b { position: relative; font-weight: 700; }
+  td.empty { color: var(--ghost); }
+  td.heat.partial { outline: 1px dashed var(--accent); outline-offset: -1px; }
+  td.heat.partial b { opacity: .7; }
+
+  /* ── 漏斗 ── */
+  .funnel { display: flex; flex-direction: column; gap: 8px; }
+  .funnel div { display: grid; grid-template-columns: 76px minmax(0, 1fr) 52px; align-items: center; gap: 10px; font-size: 12.5px; color: var(--soft); }
+  .funnel span.fill { height: 22px; border-radius: 6px; background: var(--wash); position: relative; overflow: hidden; }
+  .funnel span.fill i { position: absolute; inset: 0 auto 0 0; background: var(--glow); border-right: 2px solid var(--accent); }
+  .funnel b { text-align: right; font-family: var(--serif); color: var(--text); }
+
+  .alert { color: var(--bad); font-weight: 700; }
+  .ok { color: var(--good); font-weight: 700; }
+  .note { color: var(--muted); font-size: 12px; line-height: 1.7; margin-top: 12px; }
+  .empty-state { color: var(--muted); padding: 18px 0; font-size: 13px; }
+  footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.8; }
+
+  @media (max-width: 760px) {
     .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .kpi:nth-child(3) { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
-    .kpi:nth-child(4) { border-top: 1px solid var(--line); }
-    .groups { grid-template-columns: 1fr; }
+    .two { grid-template-columns: 1fr; }
+    .kpi strong { font-size: 28px; }
+    .sec-head p { display: none; }
+  }
+  @media (max-width: 480px) {
+    .bars .bar-row { grid-template-columns: minmax(0, 1fr) 48px 84px; column-gap: 8px; }
+    .bars .rate .delta { margin-left: 4px; }
+    .card { padding: 14px; }
+  }
+  @media (max-width: 380px) {
+    main { padding-left: 14px; padding-right: 14px; }
+    .top { margin-left: -14px; margin-right: -14px; padding-left: 14px; padding-right: 14px; }
+    .brand span { display: none; }
+    .kpi { padding: 14px 12px; }
+    .kpi strong { font-size: 24px; }
+    table { border-spacing: 2px; }
+    td { font-size: 12px; padding: 8px 2px; }
   }
 </style>
 </head>
 <body>
 <main>
-  <header>
-    <h1>拾序 · 看板<small id="since">读取中…</small></h1>
+  <div class="top">
+    <div class="brand"><h1>拾序 · 看板</h1><span id="updated">读取中…</span></div>
     <div class="range" role="group" aria-label="时间范围">
       <button data-days="7">7 天</button><button data-days="30" class="on">30 天</button><button data-days="90">90 天</button>
     </div>
-  </header>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+  <div class="insights" id="insights"></div>
 
   <section>
-    <div class="kpis" id="kpis"></div>
-  </section>
-
-  <section>
-    <h2>每天有多少台设备在用</h2>
+    <div class="sec-head"><i>01</i><h2>趋势</h2><p>每天有多少台设备打开拾序</p></div>
+    <div class="legend"><span><i style="background:var(--accent)"></i>活跃设备</span><span><i style="background:var(--soft);opacity:.28"></i>新设备</span></div>
     <div class="chart" id="chart"></div>
   </section>
 
   <section>
-    <h2>留存 · 按开始使用的那一周分组</h2>
-    <div id="retention"></div>
-    <p class="note">每一格是这一批设备在之后第 n 周里还打开过拾序的比例。统计上线那一周的分组里包含此前就在用的老用户。</p>
+    <div class="sec-head"><i>02</i><h2>记账核心</h2><p>大家怎么记</p></div>
+    <div class="two">
+      <div class="card"><h3>落笔</h3><div class="stat-list" id="core"></div></div>
+      <div class="card"><h3>支出与收入</h3><div id="typeSplit"></div><h3 style="margin-top:18px">落笔时选了细分</h3><div id="tagSplit"></div></div>
+    </div>
   </section>
 
   <section>
-    <h2>在哪儿用</h2>
-    <div id="platforms"></div>
+    <div class="sec-head"><i>03</i><h2>留存</h2><p>按开始使用的那一周分组</p></div>
+    <div class="card" id="retention"></div>
+    <p class="note">每一格：这一批设备在之后第 n 周里还打开过拾序的比例，颜色越深留下的越多；虚线框是本周，还没过完。统计上线那一周的分组包含此前就在用的老用户。</p>
   </section>
 
   <section>
-    <h2>功能使用 · 次数</h2>
-    <div class="groups" id="features"></div>
-    <p class="note">只统计次数和很粗的分组，不含金额、去向名、细分名、备注或任何能认出某个人的信息。</p>
+    <div class="sec-head"><i>04</i><h2>功能使用</h2><p>次数 · 每百次打开 · 较上一段</p></div>
+    <div class="two" id="features"></div>
   </section>
+
+  <section>
+    <div class="sec-head"><i>05</i><h2>环境与习惯</h2><p>在哪儿用、怎么学会用</p></div>
+    <div class="two">
+      <div class="card"><h3>在哪儿用（按活跃设备天数）</h3><div id="platforms"></div></div>
+      <div class="card"><h3>页面指南</h3><div class="funnel" id="guide"></div></div>
+      <div class="card"><h3>去向放哪边（切换次数）</h3><div id="rail"></div></div>
+      <div class="card"><h3>换到哪个主题（切换次数）</h3><div class="bars" id="themes"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><i>06</i><h2>数据安全</h2><p>备份、导出与失败</p></div>
+    <div class="two">
+      <div class="card"><h3>导出</h3><div class="bars" id="exports"></div></div>
+      <div class="card"><h3>导入与失败</h3><div class="stat-list" id="dataHealth"></div></div>
+    </div>
+  </section>
+
+  <footer>
+    只统计次数和很粗的分组：不含金额、去向名、细分名、备注、具体时间，也没有设备标识。<br />
+    「活跃设备」按每台设备每天最多记一次计算；用户可在应用的「设置 → 隐私」里关闭统计。
+  </footer>
 </main>
 
 <script>
@@ -115,11 +218,25 @@ const DIM_LABELS = {
   1: '今日', 7: '7 天', 30: '30 天',
   nightsakura: '夜樱', inkgold: '墨金', deepsea: '深海', moss: '苔', dawn: '拂晓', frostmoon: '霜月', cloudpaper: '云笺', whitepeach: '白桃',
 };
-const PLATFORM_COLORS = { pwa: 'var(--accent)', web: 'rgba(127,127,127,.55)', android: '#7fb48f', ios: '#7a9eb8' };
+const PLATFORM_COLORS = { pwa: 'var(--accent)', android: 'var(--good)', web: 'var(--muted)', ios: 'var(--warn)' };
+// 第 4 节按组展示的事件（使用量和核心记账在别处单独讲）
+const FEATURE_GROUPS = ['记账', '明细', '统计', '整理'];
+const SKIP_IN_FEATURES = new Set(['record_add', 'record_tagged']);
 
 const fmt = (n) => Math.round(n).toLocaleString('zh-CN');
+const fmt1 = (n) => (Math.round(n * 10) / 10).toLocaleString('zh-CN');
+const pct = (n) => `${Math.round(n * 100)}%`;
 const label = (dim) => (dim in DIM_LABELS ? DIM_LABELS[dim] : dim);
+const $ = (id) => document.getElementById(id);
 
+function localDay(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+function shiftDay(day, n) {
+  const d = new Date(`${day}T12:00:00`);
+  d.setDate(d.getDate() + n);
+  return localDay(d);
+}
 function isoWeek(day) {
   const d = new Date(`${day}T00:00:00Z`);
   const weekday = (d.getUTCDay() + 6) % 7;
@@ -135,126 +252,268 @@ function addWeeks(week, n) {
   monday.setUTCDate(jan4.getUTCDate() - ((jan4.getUTCDay() + 6) % 7) + (w - 1 + n) * 7);
   return isoWeek(monday.toISOString().slice(0, 10));
 }
-function daysBack(n) {
-  const out = [];
-  for (let i = n - 1; i >= 0; i -= 1) out.push(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10));
-  return out;
+function weekLabel(week) {
+  const [y, w] = week.split('-w').map(Number);
+  const jan4 = new Date(Date.UTC(y, 0, 4));
+  const monday = new Date(jan4);
+  monday.setUTCDate(jan4.getUTCDate() - ((jan4.getUTCDay() + 6) % 7) + (w - 1) * 7);
+  return `${monday.getUTCMonth() + 1}/${monday.getUTCDate()} 起`;
+}
+
+function delta(current, previous) {
+  if (!previous && !current) return '<span class="delta flat">—</span>';
+  if (!previous) return '<span class="delta up">新</span>';
+  const change = (current - previous) / previous;
+  if (Math.abs(change) < 0.02) return '<span class="delta flat">持平</span>';
+  return `<span class="delta ${change > 0 ? 'up' : 'down'}">${change > 0 ? '▲' : '▼'} ${Math.abs(Math.round(change * 100))}%</span>`;
 }
 
 let data = null;
 let range = 30;
 
 async function load() {
-  const response = await fetch('/api/summary?days=180', { credentials: 'same-origin' });
+  const response = await fetch('/api/summary?days=400', { credentials: 'same-origin' });
   if (!response.ok) {
-    document.getElementById('since').textContent = '没有权限读取数据';
+    $('updated').textContent = '没有权限读取数据';
     return;
   }
   data = await response.json();
   render();
 }
 
-function sum(rows) { return rows.reduce((total, row) => total + row.count, 0); }
-
 function render() {
-  const days = daysBack(range);
-  const first = days[0];
-  const inRange = data.rows.filter((row) => row.day >= first);
-  const by = (name) => inRange.filter((row) => row.name === name);
-  document.getElementById('since').textContent = `${first} 至今 · 数据每次打开时读取`;
+  const today = localDay(new Date());
+  const start = shiftDay(today, -(range - 1));
+  const prevStart = shiftDay(start, -range);
+  const prevEnd = shiftDay(start, -1);
+  const days = Array.from({ length: range }, (_, i) => shiftDay(start, i));
+  const rows = data.rows;
+  const between = (from, to) => rows.filter((r) => r.day >= from && r.day <= to);
+  const cur = between(start, today);
+  const prev = between(prevStart, prevEnd);
+  const total = (set, name, dim) => set.reduce((s, r) => (r.name === name && (dim === undefined || r.dim === dim) ? s + r.count : s), 0);
+  const dims = (set, name) => {
+    const map = new Map();
+    set.forEach((r) => { if (r.name === name) map.set(r.dim, (map.get(r.dim) || 0) + r.count); });
+    return [...map.entries()].sort((a, b) => b[1] - a[1]);
+  };
+  $('updated').textContent = `${start.slice(5)} – ${today.slice(5)} · 打开时读取`;
 
-  // ── 关键数字 ──
-  const dauByDay = new Map(days.map((day) => [day, 0]));
-  by('active_day').forEach((row) => dauByDay.set(row.day, (dauByDay.get(row.day) || 0) + row.count));
-  const today = days[days.length - 1];
+  // ── 概览 ──
+  const dayDevices = total(cur, 'active_day');
+  const prevDayDevices = total(prev, 'active_day');
+  const avgDau = dayDevices / range;
+  const prevAvgDau = prevDayDevices / range;
+  const newDevices = total(cur, 'new_device');
+  const prevNew = total(prev, 'new_device');
+  const recordsN = total(cur, 'record_add');
+  const prevRecords = total(prev, 'record_add');
+  const perDevice = dayDevices ? recordsN / dayDevices : 0;
+  const prevPerDevice = prevDayDevices ? prevRecords / prevDayDevices : 0;
   const thisWeek = isoWeek(today);
-  const wau = sum(data.rows.filter((row) => row.name === 'active_week' && isoWeek(row.day) === thisWeek));
-  const mau = sum(data.rows.filter((row) => row.name === 'active_month' && row.day.slice(0, 7) === today.slice(0, 7)));
-  const deviceDays = sum(by('active_day'));
-  const records = sum(by('record_add'));
-  const kpis = [
-    ['今天活跃', fmt(dauByDay.get(today) || 0), `本周 ${fmt(wau)} · 本月 ${fmt(mau)}`],
-    ['新设备', fmt(sum(by('new_device'))), `近 ${range} 天`],
-    ['落笔', fmt(records), `近 ${range} 天`],
-    ['人均每天落笔', deviceDays ? (records / deviceDays).toFixed(1) : '0', '落笔 ÷ 活跃设备天数'],
-  ];
-  document.getElementById('kpis').innerHTML = kpis
-    .map(([name, value, hint]) => `<div class="kpi"><span>${name}</span><strong>${value}</strong><small>${hint}</small></div>`).join('');
+  const wau = rows.filter((r) => r.name === 'active_week' && isoWeek(r.day) === thisWeek).reduce((s, r) => s + r.count, 0);
+  const mau = rows.filter((r) => r.name === 'active_month' && r.day.slice(0, 7) === today.slice(0, 7)).reduce((s, r) => s + r.count, 0);
+  const todayDau = total(between(today, today), 'active_day');
 
-  // ── 日活趋势 ──
-  const values = days.map((day) => dauByDay.get(day) || 0);
-  const max = Math.max(1, ...values);
-  const w = 1000;
-  const h = 180;
-  const x = (i) => (values.length === 1 ? w / 2 : (i / (values.length - 1)) * w);
-  const y = (v) => h - 8 - (v / max) * (h - 28);
-  const line = values.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ');
-  document.getElementById('chart').innerHTML = `
-    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-label="每日活跃设备">
-      <path d="${line} L${w} ${h} L0 ${h} Z" fill="var(--wash)" />
-      <path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" />
-    </svg>
-    <div class="axis"><span>${days[0].slice(5)}</span><span>最高 ${fmt(max)}</span><span>${today.slice(5)}</span></div>`;
+  $('kpis').innerHTML = [
+    ['平均每天活跃设备', fmt1(avgDau), `${delta(avgDau, prevAvgDau)}<span>今天 ${fmt(todayDau)}</span>`],
+    ['本周 / 本月活跃', `${fmt(wau)}<span style="font-size:.55em;color:var(--muted)"> / ${fmt(mau)}</span>`, '<span>每台设备每周、每月各算一次</span>'],
+    ['新设备', fmt(newDevices), `${delta(newDevices, prevNew)}<span>较前 ${range} 天</span>`],
+    ['每台设备每天落笔', fmt1(perDevice), `${delta(perDevice, prevPerDevice)}<span>共 ${fmt(recordsN)} 笔</span>`],
+  ].map(([name, value, hint]) => `<div class="kpi"><span>${name}</span><strong>${value}</strong><small>${hint}</small></div>`).join('');
+
+  // ── 一句话解读 ──
+  const tagged = total(cur, 'record_tagged');
+  const sentences = [];
+  if (dayDevices === 0) {
+    sentences.push('这段时间还没有数据。统计上线后，打开过拾序的设备会在第二天出现在这里。');
+  } else {
+    const trend = prevAvgDau ? (avgDau - prevAvgDau) / prevAvgDau : null;
+    sentences.push(`近 ${range} 天平均每天 <b>${fmt1(avgDau)}</b> 台设备在用${trend === null ? '' : Math.abs(trend) < 0.05 ? '，和之前差不多' : `，比之前 ${range} 天${trend > 0 ? '多' : '少'} <b>${Math.abs(Math.round(trend * 100))}%</b>`}。`);
+    if (recordsN) sentences.push(`每台设备每天落笔 <b>${fmt1(perDevice)}</b> 次，其中 <b>${pct(tagged / recordsN)}</b> 选了细分。`);
+    // 只用已经过完的第 1 周来算，本周还没结束的分组不算进平均
+    const ret = retentionRows(rows, today).filter((r) => r.rates[0] !== null && !r.partial[0]).slice(0, 4);
+    if (ret.length) {
+      const avg = ret.reduce((s, r) => s + r.rates[0], 0) / ret.length;
+      sentences.push(`新设备第 1 周还会回来的比例约 <b>${pct(avg)}</b>（最近 ${ret.length} 个分组的平均）。`);
+    }
+  }
+  $('insights').innerHTML = sentences.map((s) => `<p>${s}</p>`).join('');
+
+  renderTrend(days, cur);
+
+  // ── 记账核心 ──
+  const backfill = total(cur, 'backfill_add');
+  const edits = total(cur, 'record_edit');
+  const deletes = total(cur, 'record_delete');
+  $('core').innerHTML = [
+    ['落笔', fmt(recordsN), '笔'],
+    ['补记', fmt(backfill), recordsN ? `占 ${pct(backfill / (recordsN + backfill))}` : ''],
+    ['编辑', fmt(edits), recordsN ? `每百笔 ${fmt1((edits / recordsN) * 100)}` : ''],
+    ['删除', fmt(deletes), recordsN ? `每百笔 ${fmt1((deletes / recordsN) * 100)}` : ''],
+  ].map(([n, v, s]) => `<div><span>${n}</span><strong>${v}</strong><small>${s}</small></div>`).join('');
+
+  const typeParts = dims(cur, 'record_add');
+  $('typeSplit').innerHTML = splitBar(typeParts, { expense: 'var(--accent)', income: 'var(--good)' });
+  $('tagSplit').innerHTML = splitBar(recordsN ? [['yes', tagged], ['no', Math.max(0, recordsN - tagged)]] : [], { yes: 'var(--accent)', no: 'var(--ghost)' });
 
   // ── 留存 ──
-  const cohortSize = new Map();
-  data.rows.filter((row) => row.name === 'new_device').forEach((row) => {
-    const week = isoWeek(row.day);
-    cohortSize.set(week, (cohortSize.get(week) || 0) + row.count);
-  });
-  const activeByCohort = new Map();
-  data.rows.filter((row) => row.name === 'active_week' && row.dim).forEach((row) => {
-    const key = `${row.dim}|${isoWeek(row.day)}`;
-    activeByCohort.set(key, (activeByCohort.get(key) || 0) + row.count);
-  });
-  const cohorts = [...cohortSize.keys()].sort().slice(-8).reverse();
-  document.getElementById('retention').innerHTML = cohorts.length === 0
-    ? '<p class="empty">还没有数据，一周后这里会出现第一行。</p>'
-    : `<table><thead><tr><th>开始使用的周</th><th>设备</th>${[1, 2, 3, 4].map((k) => `<th>第 ${k} 周</th>`).join('')}</tr></thead><tbody>${
-      cohorts.map((cohort) => {
-        const size = cohortSize.get(cohort);
-        const cells = [1, 2, 3, 4].map((k) => {
-          const target = addWeeks(cohort, k);
-          if (target > thisWeek) return '<td></td>';
-          const active = activeByCohort.get(`${cohort}|${target}`) || 0;
-          const rate = size ? active / size : 0;
-          return `<td class="cell"><i style="opacity:${(0.08 + rate * 0.6).toFixed(2)}"></i><b>${Math.round(rate * 100)}%</b></td>`;
-        }).join('');
-        return `<tr><td>${cohort}</td><td>${fmt(size)}</td>${cells}</tr>`;
-      }).join('')
+  const ret = retentionRows(rows, today).slice(0, 8);
+  $('retention').innerHTML = ret.length === 0
+    ? '<p class="empty-state">还没有分组。第一批新设备满一周后，这里会出现第一行。</p>'
+    : `<table><thead><tr><th>开始的周</th><th>设备</th>${[1, 2, 3, 4].map((k) => `<th>第 ${k} 周</th>`).join('')}</tr></thead><tbody>${
+      ret.map((r) => `<tr><td class="cohort">${weekLabel(r.cohort)}</td><td class="size">${fmt(r.size)}</td>${
+        r.rates.map((rate, k) => (rate === null
+          ? '<td class="empty">·</td>'
+          : `<td class="heat${r.partial[k] ? ' partial' : ''}" title="${r.partial[k] ? '本周还没过完' : ''}"><i style="opacity:${(0.1 + rate * 0.75).toFixed(2)}"></i><b>${pct(rate)}</b></td>`)).join('')
+      }</tr>`).join('')
     }</tbody></table>`;
 
-  // ── 平台 ──
-  const platform = new Map();
-  by('active_day').forEach((row) => platform.set(row.dim, (platform.get(row.dim) || 0) + row.count));
-  const total = sum(by('active_day'));
-  const parts = [...platform.entries()].sort((a, b) => b[1] - a[1]);
-  document.getElementById('platforms').innerHTML = total === 0
-    ? '<p class="empty">还没有数据。</p>'
-    : `<div class="split">${parts.map(([dim, n]) => `<i style="width:${(n / total) * 100}%;background:${PLATFORM_COLORS[dim] || 'var(--muted)'}"></i>`).join('')}</div>
-       <div class="legend">${parts.map(([dim, n]) => `<span>${label(dim)}<b>${Math.round((n / total) * 100)}%</b></span>`).join('')}</div>`;
-
   // ── 功能使用 ──
-  const groups = new Map();
-  Object.entries(data.events).forEach(([name, meta]) => {
-    if (meta.group === '使用量') return;
-    const rows = by(name);
-    const count = sum(rows);
-    const dims = new Map();
-    rows.forEach((row) => { if (row.dim) dims.set(row.dim, (dims.get(row.dim) || 0) + row.count); });
-    if (!groups.has(meta.group)) groups.set(meta.group, []);
-    groups.get(meta.group).push({ name, label: meta.label, count, dims });
-  });
-  document.getElementById('features').innerHTML = [...groups.entries()].map(([group, items]) => {
-    const top = Math.max(1, ...items.map((item) => item.count));
-    const rows = items.sort((a, b) => b.count - a.count).map((item) => {
-      const detail = [...item.dims.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4)
-        .map(([dim, n]) => `${label(dim)} ${fmt(n)}`).join(' · ');
-      return `<div class="row"><span class="name">${item.label}${detail ? `<small>${detail}</small>` : ''}</span>
-        <span class="num">${fmt(item.count)}</span><span class="bar"><i style="width:${(item.count / top) * 100}%"></i></span></div>`;
+  const events = data.events;
+  const groupHtml = FEATURE_GROUPS.map((group) => {
+    const items = Object.entries(events)
+      .filter(([name, meta]) => meta.group === group && !SKIP_IN_FEATURES.has(name))
+      .map(([name, meta]) => {
+        const count = total(cur, name);
+        const before = total(prev, name);
+        const top = dims(cur, name).filter(([d]) => d).slice(0, 3).map(([d, n]) => `${label(d)} ${fmt(n)}`).join(' · ');
+        return { name, label: meta.label, count, before, top };
+      })
+      .sort((a, b) => b.count - a.count);
+    const max = Math.max(1, ...items.map((item) => item.count));
+    const rowsHtml = items.map((item) => {
+      const rate = dayDevices ? (item.count / dayDevices) * 100 : 0;
+      return `<div class="bar-row"><span class="bar-name">${item.label}${item.top ? `<small>${item.top}</small>` : ''}</span>
+        <b>${fmt(item.count)}</b><span class="rate">${fmt1(rate)} ${item.before || item.count ? delta(item.count, item.before) : ''}</span>
+        <span class="bar-track"><i style="width:${(item.count / max) * 100}%"></i></span></div>`;
     }).join('');
-    return `<div class="group"><h3>${group}</h3>${rows}</div>`;
+    return `<div class="card"><h3>${group}</h3><div class="group-title"><span></span><span>次数　每百次打开</span></div><div class="bars">${rowsHtml}</div></div>`;
   }).join('');
+  $('features').innerHTML = groupHtml;
+
+  // ── 环境与习惯 ──
+  $('platforms').innerHTML = splitBar(dims(cur, 'active_day'), PLATFORM_COLORS);
+  const guideOpen = total(cur, 'guide_open');
+  const guideDemo = total(cur, 'guide_demo');
+  const guideDone = total(cur, 'guide_finish', 'done');
+  const guideSkip = total(cur, 'guide_finish', 'skip');
+  const guideMax = Math.max(1, guideOpen, guideDemo);
+  $('guide').innerHTML = guideOpen + guideDemo === 0
+    ? '<p class="empty-state">还没有人打开过指南。</p>'
+    : [['打开指南', guideOpen], ['看演示', guideDemo], ['看完', guideDone], ['中途跳过', guideSkip]]
+      .map(([n, v]) => `<div><span>${n}</span><span class="fill"><i style="width:${(v / guideMax) * 100}%"></i></span><b>${fmt(v)}</b></div>`).join('');
+  $('rail').innerHTML = splitBar(dims(cur, 'rail_side'), { left: 'var(--accent)', right: 'var(--good)' }, '还没有人切换过。');
+  const themes = dims(cur, 'theme');
+  const themeMax = Math.max(1, ...themes.map(([, n]) => n));
+  $('themes').innerHTML = themes.length === 0
+    ? '<p class="empty-state">还没有人换过主题。</p>'
+    : themes.map(([d, n]) => `<div class="bar-row"><span class="bar-name">${label(d)}</span><b>${fmt(n)}</b><span class="rate"></span>
+        <span class="bar-track"><i style="width:${(n / themeMax) * 100}%"></i></span></div>`).join('');
+
+  // ── 数据安全 ──
+  const exportsByKind = dims(cur, 'export');
+  const exportMax = Math.max(1, ...exportsByKind.map(([, n]) => n));
+  $('exports').innerHTML = exportsByKind.length === 0
+    ? '<p class="empty-state">这段时间没有导出。</p>'
+    : exportsByKind.map(([d, n]) => `<div class="bar-row"><span class="bar-name">${label(d)}</span><b>${fmt(n)}</b><span class="rate"></span>
+        <span class="bar-track"><i style="width:${(n / exportMax) * 100}%"></i></span></div>`).join('');
+  const exportTotal = total(cur, 'export');
+  const exportFail = total(cur, 'export_fail');
+  const importTotal = total(cur, 'import');
+  const importFail = total(cur, 'import_fail');
+  const failRate = (fail, ok) => (fail + ok ? fail / (fail + ok) : 0);
+  const failText = (fail, ok) => (fail
+    ? `<span class="alert">失败 ${fmt(fail)} 次 · ${pct(failRate(fail, ok))}</span>`
+    : '<span class="ok">没有失败</span>');
+  $('dataHealth').innerHTML = [
+    ['导出', fmt(exportTotal), failText(exportFail, exportTotal)],
+    ['导入备份', fmt(importTotal), failText(importFail, importTotal)],
+    ['合并导入', fmt(total(cur, 'import', 'merge')), ''],
+    ['覆盖导入', fmt(total(cur, 'import', 'replace')), ''],
+  ].map(([n, v, s]) => `<div><span>${n}</span><strong>${v}</strong><small>${s}</small></div>`).join('');
+}
+
+function splitBar(parts, colors, emptyText = '还没有数据。') {
+  const sum = parts.reduce((s, [, n]) => s + n, 0);
+  if (!sum) return `<p class="empty-state">${emptyText}</p>`;
+  return `<div class="split">${parts.map(([d, n]) => `<i style="width:${(n / sum) * 100}%;background:${colors[d] || 'var(--muted)'}"></i>`).join('')}</div>
+    <div class="split-legend">${parts.map(([d, n]) => `<span><em style="background:${colors[d] || 'var(--muted)'}"></em>${label(d)}<b>${pct(n / sum)}</b></span>`).join('')}</div>`;
+}
+
+/** 每个「开始使用的周」：设备数，以及之后第 1–4 周的回访比例（还没到的周为 null） */
+function retentionRows(rows, today) {
+  const thisWeek = isoWeek(today);
+  const size = new Map();
+  rows.filter((r) => r.name === 'new_device').forEach((r) => {
+    const week = isoWeek(r.day);
+    size.set(week, (size.get(week) || 0) + r.count);
+  });
+  const active = new Map();
+  rows.filter((r) => r.name === 'active_week' && r.dim).forEach((r) => {
+    const key = `${r.dim}|${isoWeek(r.day)}`;
+    active.set(key, (active.get(key) || 0) + r.count);
+  });
+  return [...size.keys()].sort().reverse().map((cohort) => {
+    const n = size.get(cohort);
+    const partial = [];
+    const rates = [1, 2, 3, 4].map((k) => {
+      const target = addWeeks(cohort, k);
+      partial.push(target === thisWeek);
+      if (target > thisWeek) return null;
+      return n ? Math.min(1, (active.get(`${cohort}|${target}`) || 0) / n) : 0;
+    });
+    return { cohort, size: n, rates, partial };
+  });
+}
+
+function renderTrend(days, cur) {
+  const dau = new Map(days.map((d) => [d, 0]));
+  const fresh = new Map(days.map((d) => [d, 0]));
+  cur.forEach((r) => {
+    if (r.name === 'active_day' && dau.has(r.day)) dau.set(r.day, dau.get(r.day) + r.count);
+    if (r.name === 'new_device' && fresh.has(r.day)) fresh.set(r.day, fresh.get(r.day) + r.count);
+  });
+  const a = days.map((d) => dau.get(d));
+  const n = days.map((d) => fresh.get(d));
+  const max = Math.max(1, ...a, ...n);
+  const W = 1000;
+  const H = 220;
+  const pad = 10;
+  const step = W / days.length;
+  const x = (i) => step * i + step / 2;
+  const y = (v) => H - pad - (v / max) * (H - pad * 3);
+  const line = a.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ');
+  const bars = n.map((v, i) => (v ? `<rect x="${(x(i) - step * 0.3).toFixed(1)}" y="${y(v).toFixed(1)}" width="${(step * 0.6).toFixed(1)}" height="${(H - pad - y(v)).toFixed(1)}" rx="2" fill="var(--soft)" opacity=".28" />` : '')).join('');
+  const grid = [0.25, 0.5, 0.75, 1].map((f) => `<line x1="0" x2="${W}" y1="${y(max * f).toFixed(1)}" y2="${y(max * f).toFixed(1)}" stroke="var(--line)" stroke-dasharray="4 6" vector-effect="non-scaling-stroke" />`).join('');
+  $('chart').innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="每日活跃设备与新设备">
+      ${grid}
+      <path d="${line} L${x(a.length - 1)} ${H - pad} L${x(0)} ${H - pad} Z" fill="var(--wash)" />
+      ${bars}
+      <path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" />
+      <line id="cursor" x1="0" x2="0" y1="0" y2="${H - pad}" stroke="var(--accent)" stroke-width="1" vector-effect="non-scaling-stroke" opacity="0" />
+    </svg>
+    <div class="tip" id="tip"></div>
+    <div class="x"><span>${days[0].slice(5)}</span><span>最高 ${fmt(max)}</span><span>${days[days.length - 1].slice(5)}</span></div>`;
+
+  const svg = $('chart').querySelector('svg');
+  const tip = $('tip');
+  const cursor = $('cursor');
+  const show = (clientX) => {
+    const box = svg.getBoundingClientRect();
+    const i = Math.max(0, Math.min(days.length - 1, Math.floor(((clientX - box.left) / box.width) * days.length)));
+    cursor.setAttribute('x1', x(i));
+    cursor.setAttribute('x2', x(i));
+    cursor.setAttribute('opacity', '0.5');
+    tip.innerHTML = `${days[i].slice(5)} · 活跃 <b>${fmt(a[i])}</b> · 新设备 <b>${fmt(n[i])}</b>`;
+    tip.classList.add('on');
+    const left = ((x(i) / W) * box.width);
+    tip.style.left = `${Math.min(Math.max(0, left - tip.offsetWidth / 2), box.width - tip.offsetWidth)}px`;
+  };
+  svg.addEventListener('pointermove', (e) => show(e.clientX));
+  svg.addEventListener('pointerdown', (e) => show(e.clientX));
+  svg.addEventListener('pointerleave', () => { tip.classList.remove('on'); cursor.setAttribute('opacity', '0'); });
 }
 
 document.querySelectorAll('.range button').forEach((button) => {
