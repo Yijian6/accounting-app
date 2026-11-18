@@ -8,6 +8,7 @@ This file records commit time, short hash, and commit name for this project.
 
 ## Existing Commits
 
+- 2026-11-18T12:34:38+08:00 | c062c21 | feat: action menu and rename sheet for organizing destinations and sub-tags
 - 2026-11-18T12:18:07+08:00 | 89d39bd | feat: year view in 明细 and destination details from the calendar ring
 - 2026-11-17T21:23:16+08:00 | 4521673 | feat: monthly ring view in the spending calendar
 - 2026-11-17T20:50:21+08:00 | 34785c0 | feat: tapping a donut segment focuses it instead of opening details
