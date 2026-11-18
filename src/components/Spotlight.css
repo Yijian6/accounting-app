@@ -1,0 +1,147 @@
+/*
+ * 聚光灯：整层吃掉触摸，只留一个会滑动的圆角亮框。
+ * 亮框是全项目唯一过渡 width/height 的地方：只有一个元素，若改用 scale 圆角会被拉变形。
+ */
+.spotlight {
+  position: fixed;
+  inset: 0;
+  z-index: 1070;
+  overflow: hidden;
+  touch-action: none;
+  animation: spotlight-in 260ms var(--ease-out) both;
+}
+
+.spotlight.is-blank {
+  background: rgba(0, 0, 0, 0.56);
+}
+
+.spotlight-hole {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-shadow: 0 0 0 200vmax rgba(0, 0, 0, 0.56);
+  transition:
+    transform 520ms var(--ease-spring),
+    width 520ms var(--ease-spring),
+    height 520ms var(--ease-spring),
+    border-radius 520ms var(--ease-spring);
+  pointer-events: none;
+}
+
+/* 亮框外一圈很淡的光，缓慢呼吸 */
+.spotlight-hole::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 1.5px solid var(--accent);
+  border-radius: inherit;
+  opacity: 0.7;
+  animation: spotlight-breathe 2.2s ease-in-out infinite;
+}
+
+.spotlight-card {
+  position: absolute;
+  left: 50%;
+  width: min(340px, calc(100vw - 32px));
+  padding: 14px 16px 12px;
+  border: 1px solid var(--bg-line);
+  border-radius: 16px;
+  background: var(--bg-card);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+  transform: translateX(-50%);
+  animation: spotlight-card-in 380ms var(--ease-spring) both;
+}
+
+.spotlight-card strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.spotlight-card p {
+  color: var(--text-soft);
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+
+.spotlight-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.spotlight-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.spotlight-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--text-ghost);
+  transition: width 0.35s var(--ease-spring), background-color 0.25s;
+}
+
+.spotlight-dots i.is-on {
+  width: 16px;
+  background: var(--accent);
+}
+
+.spotlight-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.spotlight-skip,
+.spotlight-next {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  transition: transform 0.25s var(--ease-spring), opacity 0.2s;
+}
+
+.spotlight-skip {
+  color: var(--text-muted);
+}
+
+.spotlight-next {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.spotlight-next:active,
+.spotlight-skip:active {
+  transform: scale(0.94);
+}
+
+@keyframes spotlight-in {
+  from { opacity: 0; }
+}
+
+@keyframes spotlight-card-in {
+  from {
+    opacity: 0;
+    transform: translate3d(-50%, 8px, 0) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes spotlight-breathe {
+  50% {
+    transform: scale(1.035);
+    opacity: 0.25;
+  }
+}

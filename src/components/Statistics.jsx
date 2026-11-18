@@ -61,7 +61,7 @@ function amountSizeClass(amount) {
 function PeriodSwitch({ value, onChange }) {
   const activeIndex = Math.max(0, PERIOD_OPTIONS.findIndex((option) => option.value === value));
   return (
-    <div className="stats-period-switch" role="group" aria-label="统计周期">
+    <div className="stats-period-switch" role="group" aria-label="统计周期" data-guide="period">
       <span
         className="stats-period-thumb"
         aria-hidden="true"
@@ -116,7 +116,7 @@ function DonutCenter({ periodLabel, total, destinationCount, selected, canOpen }
 function DestinationList({ segments, highlightedName, onSelect }) {
   if (!segments.length) return null;
   return (
-    <ul className="stats-list">
+    <ul className="stats-list" data-guide="stats-list">
       {segments.map((segment) => {
         const active = highlightedName === segment.name;
         return (
@@ -229,6 +229,7 @@ export default function Statistics({ records, categories = [], tags = [], tagAct
 
       <section className="stats-overview" aria-label="钱去了哪里">
         <DonutChart
+          guide="donut"
           segments={segments}
           selectedName={highlightedName}
           onSelect={handleDonutSelect}
@@ -244,7 +245,7 @@ export default function Statistics({ records, categories = [], tags = [], tagAct
           />
         </DonutChart>
 
-        <p className="stats-summary" key={periodDays}>{vm.summarySentence}</p>
+        <p className="stats-summary" key={periodDays} data-guide="summary">{vm.summarySentence}</p>
       </section>
 
       <DestinationList

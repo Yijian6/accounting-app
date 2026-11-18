@@ -12,10 +12,41 @@
 
 /* 应用图标 + 拾序：图标用和桌面图标同一套按主题生成的图，换主题时淡入 */
 .header-brand {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   min-width: 0;
+  min-height: 40px;
+  margin-left: -6px;
+  padding: 0 8px 0 6px;
+  border-radius: 12px;
+  transition: background-color 0.2s ease, transform 0.3s var(--ease-spring);
+}
+
+.header-brand:active {
+  background: var(--bg-up);
+  transform: scale(0.96);
+}
+
+/* 第一次打开时的小圆点：点过一次「拾序」就不再出现 */
+.header-hint {
+  position: absolute;
+  top: 6px;
+  left: 24px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--bg);
+  animation: header-hint-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes header-hint-pulse {
+  50% {
+    transform: scale(1.45);
+    opacity: 0.45;
+  }
 }
 
 .header-icon {

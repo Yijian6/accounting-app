@@ -68,12 +68,13 @@ export default function RecordForm({
         <button
           type="button"
           className="quick-entry-kicker"
+          data-guide="type"
           onClick={toggleType}
           aria-label={isIncome ? '当前是收入，点按切换为支出' : '当前是支出，点按切换为收入'}
         >
           <span key={type}>{isIncome ? '收 入' : '支 出'}</span>
         </button>
-        <label className="quick-amount-input">
+        <label className="quick-amount-input" data-guide="amount">
           <span>¥</span>
           <input
             type="number"
@@ -112,6 +113,7 @@ export default function RecordForm({
         <button
           type="button"
           className={`quick-more-toggle ${showMore ? 'expanded' : ''}`}
+          data-guide="more"
           onClick={() => setShowMore(!showMore)}
         >
           <span className="more-dot" /><span className="more-dot" /><span className="more-dot" />
@@ -180,7 +182,7 @@ export default function RecordForm({
         )}
       </section>
 
-      <button type="submit" className="quick-submit-btn" disabled={!canSubmit}>
+      <button type="submit" className="quick-submit-btn" data-guide="submit" disabled={!canSubmit}>
         落 笔
       </button>
     </form>

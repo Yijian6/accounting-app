@@ -693,7 +693,7 @@ export default function RecordList({
       >
         <div className="time-review-top">
           <span>时间回顾</span>
-          <div className="review-mode-switch" aria-label="回顾范围">
+          <div className="review-mode-switch" aria-label="回顾范围" data-guide="review-modes">
             <button
               type="button"
               className={reviewMode === 'day' ? 'active' : ''}
@@ -725,7 +725,7 @@ export default function RecordList({
           </div>
         </div>
 
-        <div className="time-review-nav">
+        <div className="time-review-nav" data-guide="review-nav">
           <button
             type="button"
             className="time-review-arrow"
@@ -738,6 +738,7 @@ export default function RecordList({
           <button
             type="button"
             className="time-review-title"
+            data-guide="review-title"
             onClick={openCalendar}
             disabled={reviewMode === 'all'}
             aria-label={`${reviewLabel}，打开花销日历`}
@@ -759,7 +760,7 @@ export default function RecordList({
           </button>
         </div>
 
-        <div className="time-review-metrics">
+        <div className="time-review-metrics" data-guide="metrics">
           <span>
             <small>支出</small>
             <strong className="expense">{formatAmount(reviewExpense)}</strong>
@@ -779,6 +780,7 @@ export default function RecordList({
             <button
               type="button"
               className="time-review-add-btn"
+              data-guide="add-day"
               onClick={openCreateForReviewDay}
             >
               + 补记这天
@@ -787,7 +789,7 @@ export default function RecordList({
         )}
       </section>
 
-      <div className="record-search">
+      <div className="record-search" data-guide="search">
         <label className="record-search-label" htmlFor="record-search-input">搜索记录</label>
         <div className="record-search-input-wrap">
           <svg className="record-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -827,7 +829,7 @@ export default function RecordList({
         >
           查看全部
         </button>
-        <button className="manage-icon-btn-inline" onClick={openDataManager} title="数据管理">
+        <button className="manage-icon-btn-inline" onClick={openDataManager} title="数据管理" data-guide="data-manager">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
@@ -836,9 +838,9 @@ export default function RecordList({
       </div>
 
       {records.length === 0 ? (
-        <div className="empty-state">暂无记录</div>
+        <div className="empty-state" data-guide="records-empty">暂无记录</div>
       ) : sortedRecords.length === 0 ? (
-        <div className="empty-state search-empty">
+        <div className="empty-state search-empty" data-guide="records-empty">
           <strong>{isSearching ? '没有找到相关记录' : '这段时间还没有记录'}</strong>
           <span>{isSearching ? '换个日期、去向、细分或备注试试' : '可以切换时间，回看别的日子。'}</span>
         </div>
@@ -866,6 +868,7 @@ export default function RecordList({
                 <div
                   key={item.id}
                   className={`record-row ${deleteTargetId === item.id ? 'delete-open' : ''}`}
+                  data-guide="record-row"
                 >
                   <button
                     className={`record-item ${pressedRecordId === item.id ? 'pressing' : ''}`}

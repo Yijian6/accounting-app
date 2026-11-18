@@ -61,7 +61,7 @@ Cloudflare Pages 自动部署：push 到 `origin/master` → `accounting-app-9f0
 ### 页面结构
 
 `App.jsx` 通过 `activeTab` 状态切换三个页面，无路由库：
-- 顶栏 `Header`：左上角是按主题生成的应用图标（`public/theme-icons/{theme}-192.png`）+「拾序」，换主题时图标跟着换
+- 顶栏 `Header`：左上角是按主题生成的应用图标（`public/theme-icons/{theme}-192.png`）+「拾序」，换主题时图标跟着换。「拾序」是页面指南入口：点它打开当前页的 `GuideSheet`（编号、一句话标题、一行说明、「演示」），演示由 `Spotlight` 在真实元素上挖圆角亮框逐步讲解（只指不点、不改数据，整层吃掉触摸）。文案和步骤都在 `utils/guides.js`，步骤用 `data-guide` 找元素（可给多个候选）；新加或改动被讲到的界面时同步维护 `data-guide` 和文案。首次打开时「拾序」上有一个呼吸小圆点，点过一次即消失（localStorage `accounting_guide_seen`，只是界面偏好，不进备份）
 - **记录** (`RecordForm`) — 快速记账表单：大号金额输入（顶部「支 出」小按钮点一下切成「收 入」并转绿）+ `DestinationPicker` + 「备注 · 时间 · 周期」展开 + 落笔
 - **明细** (`RecordList`) — 回看范围「日 · 月 · 年 · 全部」，含编辑/删除/补记。「年」下列表按月分组折叠（标题带当月支出和笔数，默认只展开最近一个月）。点日期标题弹出花销日历（`SpendCalendar`）：日/月下是一个月的日历（周一开头，每格是当天支出与五档深浅，点某天跳到那天），年下是 12 个月的格子（点某月切到「月」）；标题下两枚图标切换「按天/按月看 / 按去向看」，后者是这段时间的圆环 + 去向列表（数据来自 `utils/periodView.js`，按付款日计，不和上一期比），点一块只聚焦、点中心或点列表行打开与统计页同一个 `CategorySheet`。搜索：「日」「全部」下搜全部记录，「月」「年」下只搜这段时间；「数据管理」浮层集中所有数据操作：备份导出/导入、数据册（`DataBookExport`）、CSV/展示 JSON
 - **统计** (`Statistics`) — 只回答「钱去了哪里」，从上到下只有四样：周期切换（今日 · 7 天 · 30 天，默认今日）→ 环形图（`DonutChart`，中心是总额或选中分类）→ 一句解读（`summarySentence`）→ 去向列表。点圆环上的一块只聚焦（这块抬起、刻度点亮、中心换成名字 + 大号百分比 + 金额，再点同一块取消），聚焦后点圆环中心才弹出分类详情；点列表行直接弹出分类详情浮层（`CategorySheet`：头部下方一行文字列出细分构成「午餐 ¥310 · 晚餐 ¥120 · 不分细分 ¥40」，半屏前 5 笔，全屏全部记录 + 搜索；点其中一笔打开 `RecordEditor` 直接改这条记录）。有周期支出时列表下方一行小字注明分摊金额。不要再往这一页加标题、卡片或第二段解读
@@ -78,7 +78,7 @@ iOS Safari 下输入框的 `line-height` 小于字体行高会把占位文字上
 
 ### 动效
 
-`src/index.css` 的 `:root` 定义 `--ease-out` 与 `--ease-spring`（CSS `linear()` 阻尼弹簧，旧系统回退 cubic-bezier）。动画只动 transform / opacity；不要写 `transition: all`；`prefers-reduced-motion` 下全局降为 1ms。Service Worker 只在生产构建注册，开发时自动注销。
+`src/index.css` 的 `:root` 定义 `--ease-out` 与 `--ease-spring`（CSS `linear()` 阻尼弹簧，旧系统回退 cubic-bezier）。动画只动 transform / opacity（唯一例外：聚光灯亮框过渡 width/height，单个元素，用 scale 会拉坏圆角）；不要写 `transition: all`；`prefers-reduced-motion` 下全局降为 1ms。Service Worker 只在生产构建注册，开发时自动注销。
 
 ### 主题系统
 

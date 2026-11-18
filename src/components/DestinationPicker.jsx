@@ -417,7 +417,7 @@ export default function DestinationPicker({
             </button>
           )}
           {onManageCategories && (
-            <button type="button" className="dpick-gear" onClick={onManageCategories} title="管理去向" aria-label="管理去向">
+            <button type="button" className="dpick-gear" data-guide="manage" onClick={onManageCategories} title="管理去向" aria-label="管理去向">
               <GearIcon />
             </button>
           )}
@@ -425,7 +425,7 @@ export default function DestinationPicker({
       </div>
 
       <div className={`dpick-body${selectedCategory ? ' has-selection' : ''}`}>
-        <div className="dpick-wheel">
+        <div className="dpick-wheel" data-guide={onManageCategories ? 'wheel' : undefined}>
           <div
             className="dpick-rail"
             ref={railRef}
@@ -461,7 +461,7 @@ export default function DestinationPicker({
           <span className="dpick-indicator" />
         </div>
 
-        <div className="dpick-branch" ref={branchRef}>
+        <div className="dpick-branch" ref={branchRef} data-guide={onManageCategories ? 'branch' : undefined}>
           {isExpense && selectedCategory ? (
             <>
               <svg className="dpick-brace" aria-hidden="true" key={`brace:${category}`}>
@@ -503,6 +503,7 @@ export default function DestinationPicker({
                     <button
                       type="button"
                       className="dpick-tag dpick-add"
+                      data-guide={onManageCategories ? 'add-tag' : undefined}
                       style={{ '--i': categoryTags.length + legacyNames.length }}
                       onClick={() => { editDoneRef.current = false; setMenu(null); setDraft(''); setAdding(true); }}
                     >

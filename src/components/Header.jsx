@@ -6,10 +6,16 @@ const TABS = [
   { key: 'stats', label: '统计' },
 ];
 
-export default function Header({ activeTab, onTabChange, theme }) {
+export default function Header({ activeTab, onTabChange, theme, onGuide, guideHint = false }) {
   return (
     <header className="header">
-      <span className="header-brand">
+      <button
+        type="button"
+        className="header-brand"
+        onClick={onGuide}
+        aria-label="拾序 · 这一页怎么用"
+        title="这一页怎么用"
+      >
         {theme && (
           <img
             key={theme}
@@ -22,7 +28,8 @@ export default function Header({ activeTab, onTabChange, theme }) {
           />
         )}
         <span className="header-logo">拾序</span>
-      </span>
+        {guideHint && <span className="header-hint" aria-hidden="true" />}
+      </button>
       <nav className="header-nav">
         <span
           className="header-indicator"

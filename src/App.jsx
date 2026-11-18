@@ -7,6 +7,8 @@ import OrganizeSheet from './components/OrganizeSheet';
 import TransferSheet from './components/TransferSheet';
 import RenameSheet from './components/RenameSheet';
 import UndoToast from './components/UndoToast';
+import GuideSheet from './components/GuideSheet';
+import Spotlight from './components/Spotlight';
 import ThemePicker from './components/ThemePicker';
 import InstallPrompt from './components/InstallPrompt';
 import { useRecords } from './hooks/useRecords';
@@ -15,6 +17,10 @@ import { useTags } from './hooks/useTags';
 import { useTheme } from './hooks/useTheme';
 import { mergeBackupData, replaceBackupData } from './utils/backup';
 import * as taxonomy from './utils/taxonomy';
+import { getStorage, setStorage } from './utils/storage';
+
+// 只是界面偏好（看没看过页面指南），不属于记录数据，也不进备份
+const GUIDE_SEEN_KEY = 'accounting_guide_seen';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('add');
@@ -27,6 +33,26 @@ export default function App() {
   // 底部提示：{ id, message, snapshot }；snapshot 存在时可撤销
   const [toast, setToast] = useState(null);
   const toastIdRef = useRef(0);
+  // 页面指南：清单浮层 + 聚光灯演示
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [tour, setTour] = useState(null);
+  const [guideSeen, setGuideSeen] = useState(() => getStorage(GUIDE_SEEN_KEY, false) === true);
+  const tourTimerRef = useRef(0);
+
+  const openGuide = () => {
+    setGuideOpen(true);
+    if (!guideSeen) {
+      setGuideSeen(true);
+      setStorage(GUIDE_SEEN_KEY, true);
+    }
+  };
+
+  // 清单浮层收起后再开始演示，免得聚光灯照到正在下滑的浮层
+  const startTour = (steps) => {
+    setGuideOpen(false);
+    clearTimeout(tourTimerRef.current);
+    tourTimerRef.current = setTimeout(() => setTour(steps), 380);
+  };
   const { theme, setTheme } = useTheme();
 
   const {
@@ -152,6 +178,8 @@ export default function App() {
     <>
       <Header
         theme={theme}
+        onGuide={openGuide}
+        guideHint={!guideSeen}
         activeTab={activeTab}
         onTabChange={(tab) => {
           if (tab !== activeTab) window.scrollTo(0, 0);
@@ -221,6 +249,15 @@ export default function App() {
       />
 
       <UndoToast toast={toast} onUndo={undo} onDismiss={() => setToast(null)} />
+
+      <GuideSheet
+        open={guideOpen}
+        tab={activeTab}
+        onDemo={startTour}
+        onClose={() => setGuideOpen(false)}
+      />
+
+      <Spotlight key={tour ? tour[0]?.title : 'none'} steps={tour} onClose={() => setTour(null)} />
 
       <InstallPrompt />
       <ThemePicker theme={theme} onChangeTheme={setTheme} />

@@ -88,7 +88,7 @@ function arcTransform(arc, lifted) {
  * 焦点弧下方垫一层缓慢呼吸的光晕。点击圆环（含周围一圈宽松热区）按角度命中分类；
  * 中心内容由 children 提供。
  */
-export default function DonutChart({ segments, selectedName, onSelect, onCenterClick, label, children }) {
+export default function DonutChart({ segments, selectedName, onSelect, onCenterClick, label, guide, children }) {
   // useId 带有 : 或 « » 这类字符，放进 url(#...) 会失效
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const maskId = `donut-mask-${uid}`;
@@ -121,7 +121,7 @@ export default function DonutChart({ segments, selectedName, onSelect, onCenterC
   );
 
   return (
-    <div className={`donut${selectedArc ? ' has-selection' : ''}`}>
+    <div className={`donut${selectedArc ? ' has-selection' : ''}`} data-guide={guide}>
       <svg
         className="donut-svg"
         viewBox={`0 0 ${SIZE} ${SIZE}`}
